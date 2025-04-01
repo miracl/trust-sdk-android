@@ -1,0 +1,122 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "6c74811743b16db7f88213ce30f631d7",
+    "entities": [
+      {
+        "tableName": "authentication_users",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` TEXT NOT NULL, `pinLength` INTEGER NOT NULL, `isBlocked` INTEGER NOT NULL, `mpinId` BLOB NOT NULL, `token` BLOB NOT NULL, `dtas` TEXT NOT NULL, PRIMARY KEY(`mpinId`, `token`))",
+        "fields": [
+          {
+            "fieldPath": "identity.userId",
+            "columnName": "userId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identity.pinLength",
+            "columnName": "pinLength",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identity.isBlocked",
+            "columnName": "isBlocked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identity.mpinId",
+            "columnName": "mpinId",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identity.token",
+            "columnName": "token",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identity.dtas",
+            "columnName": "dtas",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "mpinId",
+            "token"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "signing_users",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`publicKey` BLOB NOT NULL, `userId` TEXT NOT NULL, `pinLength` INTEGER NOT NULL, `isBlocked` INTEGER NOT NULL, `mpinId` BLOB NOT NULL, `token` BLOB NOT NULL, `dtas` TEXT NOT NULL, PRIMARY KEY(`mpinId`, `token`))",
+        "fields": [
+          {
+            "fieldPath": "publicKey",
+            "columnName": "publicKey",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identity.userId",
+            "columnName": "userId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identity.pinLength",
+            "columnName": "pinLength",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identity.isBlocked",
+            "columnName": "isBlocked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identity.mpinId",
+            "columnName": "mpinId",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identity.token",
+            "columnName": "token",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "identity.dtas",
+            "columnName": "dtas",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "mpinId",
+            "token"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6c74811743b16db7f88213ce30f631d7')"
+    ]
+  }
+}

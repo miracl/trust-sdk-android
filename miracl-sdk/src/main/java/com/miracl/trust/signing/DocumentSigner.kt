@@ -1,0 +1,187 @@
+package com.miracl.trust.signing
+
+import com.miracl.trust.MIRACLError
+import com.miracl.trust.MIRACLResult
+import com.miracl.trust.MIRACLSuccess
+import com.miracl.trust.authentication.AuthenticationException
+import com.miracl.trust.authentication.AuthenticatorContract
+import com.miracl.trust.authentication.AuthenticatorScopes
+import com.miracl.trust.crypto.Crypto
+import com.miracl.trust.crypto.CryptoException
+import com.miracl.trust.delegate.PinProvider
+import com.miracl.trust.model.User
+import com.miracl.trust.model.isEmpty
+import com.miracl.trust.session.SigningSessionApi
+import com.miracl.trust.session.SigningSessionDetails
+import com.miracl.trust.session.SigningSessionException
+import com.miracl.trust.session.SigningSessionStatus
+import com.miracl.trust.storage.UserStorage
+import com.miracl.trust.util.acquirePin
+import com.miracl.trust.util.log.Loggable
+import com.miracl.trust.util.log.LoggerConstants
+import com.miracl.trust.util.secondsSince1970
+import com.miracl.trust.util.toHexString
+import java.util.*
+
+internal class DocumentSigner(
+    private val crypto: Crypto,
+    private val authenticator: AuthenticatorContract,
+    private val userStorage: UserStorage,
+    private val signingSessionApi: SigningSessionApi
+) : Loggable {
+    suspend fun sign(
+        message: ByteArray,
+        user: User,
+        pinProvider: PinProvider,
+        deviceName: String,
+        signingSessionDetails: SigningSessionDetails? = null
+    ): MIRACLResult<SigningResult, SigningException> {
+        logOperation(LoggerConstants.FLOW_STARTED)
+
+        validateInputParameters(user, message, signingSessionDetails)?.let { error ->
+            return MIRACLError(error)
+        }
+
+        var pinEntered: String? =
+            acquirePin(pinProvider) ?: return MIRACLError(SigningException.PinCancelled)
+        if (pinEntered?.length != user.pinLength) {
+            return MIRACLError(SigningException.InvalidPin)
+        }
+        val pin = pinEntered.toIntOrNull() ?: return MIRACLError(SigningException.InvalidPin)
+
+        val authenticateResponse = authenticator.authenticate(
+            user,
+            null,
+            { it.consume(pinEntered) },
+            arrayOf(AuthenticatorScopes.SIGNING_AUTHENTICATION.value),
+            deviceName
+        )
+        if (authenticateResponse is MIRACLError) {
+            return MIRACLError(
+                when (authenticateResponse.value) {
+                    is AuthenticationException.UnsuccessfulAuthentication -> SigningException.UnsuccessfulAuthentication
+                    is AuthenticationException.Revoked -> SigningException.Revoked
+                    else -> SigningException.SigningFail(authenticateResponse.value.cause)
+                }
+            )
+        }
+
+        val currentUser = userStorage.getUser(user.userId, user.projectId) ?: user
+
+        if (currentUser.publicKey == null || currentUser.publicKey.isEmpty()) {
+            return MIRACLError(SigningException.EmptyPublicKey)
+        }
+
+        val combinedMpinId = currentUser.mpinId + currentUser.publicKey
+        val timestamp = Date()
+
+        logOperation(LoggerConstants.DocumentSignerOperations.SIGNING)
+        val signResponse = crypto.sign(
+            message,
+            combinedMpinId,
+            currentUser.token,
+            timestamp,
+            pin
+        )
+
+        validateCryptoSign(signResponse)?.let { error ->
+            return MIRACLError(error)
+        }
+
+        pinEntered = null
+
+        val signingResult = (signResponse as MIRACLSuccess).value
+        val signature = Signature(
+            currentUser.mpinId.toHexString(),
+            signingResult.u.toHexString(),
+            signingResult.v.toHexString(),
+            currentUser.publicKey.toHexString(),
+            currentUser.dtas,
+            message.toHexString()
+        )
+
+        if (signingSessionDetails == null) {
+            logOperation(LoggerConstants.FLOW_FINISHED)
+            return MIRACLSuccess(SigningResult(signature, timestamp))
+        }
+
+        return completeSigningSession(signingSessionDetails, signature, timestamp)
+    }
+
+    private suspend fun completeSigningSession(
+        signingSessionDetails: SigningSessionDetails,
+        signature: Signature,
+        timestamp: Date
+    ): MIRACLResult<SigningResult, SigningException> {
+        logOperation(LoggerConstants.DocumentSignerOperations.UPDATE_SESSION_REQUEST)
+        val updateSigningSessionResult =
+            signingSessionApi.executeSigningSessionUpdateRequest(
+                signingSessionDetails.sessionId,
+                signature,
+                timestamp.secondsSince1970()
+            )
+
+        if (updateSigningSessionResult is MIRACLError) {
+            if (updateSigningSessionResult.value is SigningSessionException.InvalidSigningSession) {
+                return MIRACLError(SigningException.InvalidSigningSession)
+            }
+
+            return MIRACLError(SigningException.SigningFail(updateSigningSessionResult.value))
+        }
+
+        val signingSessionStatus = SigningSessionStatus.fromString(
+            (updateSigningSessionResult as MIRACLSuccess).value.status
+        )
+
+        if (signingSessionStatus != SigningSessionStatus.Signed) {
+            return MIRACLError(SigningException.InvalidSigningSession)
+        }
+
+        logOperation(LoggerConstants.FLOW_FINISHED)
+        return MIRACLSuccess(SigningResult(signature, timestamp))
+    }
+
+    private fun validateInputParameters(
+        user: User,
+        message: ByteArray,
+        signingSessionDetails: SigningSessionDetails?
+    ): SigningException? {
+        if (user.isEmpty()) {
+            return SigningException.InvalidUserData
+        }
+
+        if (user.revoked) {
+            return SigningException.Revoked
+        }
+
+        if (message.isEmpty()) {
+            return SigningException.EmptyMessageHash
+        }
+
+        if (signingSessionDetails?.sessionId?.isBlank() == true) {
+            return SigningException.InvalidSigningSessionDetails
+        }
+
+        return null
+    }
+
+    private fun validateCryptoSign(
+        signResponse: MIRACLResult<com.miracl.trust.crypto.SigningResult, CryptoException>
+    ): SigningException? =
+        when (signResponse) {
+            is MIRACLError -> SigningException.SigningFail(signResponse.value)
+            is MIRACLSuccess -> {
+                if (signResponse.value.u.isEmpty()
+                    || signResponse.value.v.isEmpty()
+                ) {
+                    SigningException.SigningFail()
+                } else {
+                    null
+                }
+            }
+        }
+
+    private fun logOperation(operation: String) {
+        logger?.info(LoggerConstants.DOCUMENT_SIGNER_TAG, operation)
+    }
+}

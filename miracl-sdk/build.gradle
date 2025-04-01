@@ -1,0 +1,181 @@
+plugins {
+    alias libs.plugins.android.library
+    alias libs.plugins.androidx.room
+    alias libs.plugins.kotlin.android
+    alias libs.plugins.kotlin.serialization
+    alias libs.plugins.ksp
+    alias libs.plugins.dokka
+    alias libs.plugins.binary.compatibility.validator
+    alias libs.plugins.maven.publish
+}
+
+android {
+    namespace 'com.miracl.trust'
+    compileSdk 35
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 35
+        versionName "1.0.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
+        }
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_TOOLCHAIN=clang", "-DANDROID_STL=c++_static"
+                cppFlags "-fexceptions  -std=c++11"
+            }
+        }
+
+        room {
+            schemaDirectory "$projectDir/schemas"
+        }
+
+        Properties properties = new Properties()
+        def propertiesFile = project.rootProject.file('miracltrust.properties')
+        if (propertiesFile.exists()) {
+            properties.load(propertiesFile.newDataInputStream())
+        }
+
+        buildConfigField "String", "VERSION_NAME", "\"$versionName\""
+    }
+
+    sourceSets {
+        androidTest.assets.srcDirs +=
+                files("$projectDir/schemas".toString())
+    }
+
+    testOptions {
+        unitTests {
+            all {
+                if (it.name == 'testReleaseUnitTest') {
+                    exclude "com/miracl/trust/network/HttpURLConnectionApiManagerUnitTest.class"
+                }
+            }
+        }
+
+        unitTests.returnDefaultValues = true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+
+        debug {
+            buildConfigField "String", "BASE_URL", "\"${project.getProperties().get('miracltrust.baseUrl')}\""
+
+            buildConfigField "String", "CUV_PROJECT_ID", "\"${project.getProperties().get('miracltrust.cuvProjectId')}\""
+            buildConfigField "String", "CUV_CLIENT_ID", "\"${project.getProperties().get('miracltrust.cuvClientId')}\""
+            buildConfigField "String", "CUV_CLIENT_SECRET", "\"${project.getProperties().get('miracltrust.cuvClientSecret')}\""
+
+            buildConfigField "String", "DV_PROJECT_ID", "\"${project.getProperties().get('miracltrust.dvProjectId')}\""
+
+            buildConfigField "String", "ECV_PROJECT_ID", "\"${project.getProperties().get('miracltrust.ecvProjectId')}\""
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+            version "3.30.5"
+        }
+    }
+
+    kotlin {
+        explicitApi = "strict"
+    }
+
+    dokkaGfm {
+        outputDirectory.set(new File(rootProject.buildDir, "documentation"))
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    packagingOptions {
+        resources.excludes.add("META-INF/*")
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation libs.androidx.core.ktx
+
+    testImplementation libs.junit
+    testImplementation libs.mockk
+
+    androidTestImplementation libs.androidx.test.core
+    androidTestImplementation libs.androidx.test.runner
+
+    // Kotlin Coroutines
+    implementation libs.kotlinx.coroutines.android
+    testImplementation libs.kotlinx.coroutines.test
+    androidTestImplementation libs.kotlinx.coroutines.test
+
+    // JSON
+    implementation libs.kotlinx.serialization
+
+    // Room Database
+    implementation libs.androidx.room.runtime
+    implementation libs.androidx.room.ktx
+    ksp libs.androidx.room.compiler
+    androidTestImplementation libs.androidx.room.testing
+
+    // Database encrypting
+    implementation libs.android.database.sqlcipher
+
+    // Test JWT verification
+    androidTestApi(libs.jjwt.api)
+    androidTestRuntimeOnly(libs.jjwt.impl)
+    androidTestRuntimeOnly(libs.jjwt.orgjson) {
+        exclude(group: 'org.json', module: 'json') // Provided by Android natively
+    }
+
+    androidTestImplementation project(':utilities')
+}
+
+apiValidation {
+    ignoredClasses += [
+            "com.miracl.trust.BuildConfig",
+            "com.miracl.trust.storage.room.UserDatabase_Impl",
+            "com.miracl.trust.storage.room.dao.UserDao_Impl"
+    ]
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.miracl.trust'
+            artifactId = 'trust-sdk-android'
+            version = '1.0.0'
+
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
+
+     repositories {
+         maven {
+             name = "GitHubPackages"
+             url = "https://maven.pkg.github.com/miracl/trust-sdk-android"
+             credentials {
+                 username = System.getenv("GITHUB_ACTOR")
+                 password = System.getenv("GITHUB_TOKEN")
+             }
+         }
+     }
+}

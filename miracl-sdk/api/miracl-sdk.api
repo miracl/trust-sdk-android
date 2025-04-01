@@ -1,0 +1,641 @@
+public final class com/miracl/trust/MIRACLError : com/miracl/trust/MIRACLResult {
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/Object;)Lcom/miracl/trust/MIRACLError;
+	public static synthetic fun copy$default (Lcom/miracl/trust/MIRACLError;Ljava/lang/Object;ILjava/lang/Object;)Lcom/miracl/trust/MIRACLError;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class com/miracl/trust/MIRACLResult {
+}
+
+public final class com/miracl/trust/MIRACLSuccess : com/miracl/trust/MIRACLResult {
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/Object;)Lcom/miracl/trust/MIRACLSuccess;
+	public static synthetic fun copy$default (Lcom/miracl/trust/MIRACLSuccess;Ljava/lang/Object;ILjava/lang/Object;)Lcom/miracl/trust/MIRACLSuccess;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/miracl/trust/MIRACLTrust {
+	public static final field Companion Lcom/miracl/trust/MIRACLTrust$Companion;
+	public synthetic fun <init> (Landroid/content/Context;Lcom/miracl/trust/configuration/Configuration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun abortAuthenticationSession (Lcom/miracl/trust/session/AuthenticationSessionDetails;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun abortSigningSession (Lcom/miracl/trust/session/SigningSessionDetails;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun authenticate (Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun authenticateWithAppLink (Lcom/miracl/trust/model/User;Landroid/net/Uri;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun authenticateWithNotificationPayload (Ljava/util/Map;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun authenticateWithQRCode (Lcom/miracl/trust/model/User;Ljava/lang/String;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public static final fun configure (Landroid/content/Context;Lcom/miracl/trust/configuration/Configuration;)V
+	public final fun delete (Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun delete (Lcom/miracl/trust/model/User;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun generateQuickCode (Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun getActivationToken (Landroid/net/Uri;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun getActivationToken (Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun getAuthenticationSessionDetailsFromAppLink (Landroid/net/Uri;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun getAuthenticationSessionDetailsFromNotificationPayload (Ljava/util/Map;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun getAuthenticationSessionDetailsFromQRCode (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public static final fun getInstance ()Lcom/miracl/trust/MIRACLTrust;
+	public final fun getSigningSessionDetailsFromAppLink (Landroid/net/Uri;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun getSigningSessionDetailsFromQRCode (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun getUser (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun getUser (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getUsers (Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun getUsers (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun register (Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun register (Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/delegate/PinProvider;Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public static synthetic fun register$default (Lcom/miracl/trust/MIRACLTrust;Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/delegate/PinProvider;Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;ILjava/lang/Object;)V
+	public final fun sendVerificationEmail (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun sendVerificationEmail (Ljava/lang/String;Lcom/miracl/trust/session/AuthenticationSessionDetails;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun setProjectId (Ljava/lang/String;)V
+	public final fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/session/SigningSessionDetails;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+}
+
+public final class com/miracl/trust/MIRACLTrust$Companion {
+	public final fun configure (Landroid/content/Context;Lcom/miracl/trust/configuration/Configuration;)V
+	public final fun getInstance ()Lcom/miracl/trust/MIRACLTrust;
+}
+
+public abstract class com/miracl/trust/authentication/AuthenticationException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/miracl/trust/authentication/AuthenticationException$AuthenticationFail : com/miracl/trust/authentication/AuthenticationException {
+	public fun <init> ()V
+}
+
+public final class com/miracl/trust/authentication/AuthenticationException$InvalidAppLink : com/miracl/trust/authentication/AuthenticationException {
+	public static final field INSTANCE Lcom/miracl/trust/authentication/AuthenticationException$InvalidAppLink;
+}
+
+public final class com/miracl/trust/authentication/AuthenticationException$InvalidAuthenticationSession : com/miracl/trust/authentication/AuthenticationException {
+	public static final field INSTANCE Lcom/miracl/trust/authentication/AuthenticationException$InvalidAuthenticationSession;
+}
+
+public final class com/miracl/trust/authentication/AuthenticationException$InvalidPin : com/miracl/trust/authentication/AuthenticationException {
+	public static final field INSTANCE Lcom/miracl/trust/authentication/AuthenticationException$InvalidPin;
+}
+
+public final class com/miracl/trust/authentication/AuthenticationException$InvalidPushNotificationPayload : com/miracl/trust/authentication/AuthenticationException {
+	public static final field INSTANCE Lcom/miracl/trust/authentication/AuthenticationException$InvalidPushNotificationPayload;
+}
+
+public final class com/miracl/trust/authentication/AuthenticationException$InvalidQRCode : com/miracl/trust/authentication/AuthenticationException {
+	public static final field INSTANCE Lcom/miracl/trust/authentication/AuthenticationException$InvalidQRCode;
+}
+
+public final class com/miracl/trust/authentication/AuthenticationException$InvalidUserData : com/miracl/trust/authentication/AuthenticationException {
+	public static final field INSTANCE Lcom/miracl/trust/authentication/AuthenticationException$InvalidUserData;
+}
+
+public final class com/miracl/trust/authentication/AuthenticationException$PinCancelled : com/miracl/trust/authentication/AuthenticationException {
+	public static final field INSTANCE Lcom/miracl/trust/authentication/AuthenticationException$PinCancelled;
+}
+
+public final class com/miracl/trust/authentication/AuthenticationException$Revoked : com/miracl/trust/authentication/AuthenticationException {
+	public static final field INSTANCE Lcom/miracl/trust/authentication/AuthenticationException$Revoked;
+}
+
+public final class com/miracl/trust/authentication/AuthenticationException$UnsuccessfulAuthentication : com/miracl/trust/authentication/AuthenticationException {
+	public static final field INSTANCE Lcom/miracl/trust/authentication/AuthenticationException$UnsuccessfulAuthentication;
+}
+
+public final class com/miracl/trust/authentication/AuthenticationException$UserNotFound : com/miracl/trust/authentication/AuthenticationException {
+	public static final field INSTANCE Lcom/miracl/trust/authentication/AuthenticationException$UserNotFound;
+}
+
+public final class com/miracl/trust/configuration/Configuration {
+	public synthetic fun <init> (Lcom/miracl/trust/configuration/Configuration$Builder;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/miracl/trust/configuration/Configuration$Builder {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun applicationInfo (Ljava/lang/String;)Lcom/miracl/trust/configuration/Configuration$Builder;
+	public final fun build ()Lcom/miracl/trust/configuration/Configuration;
+	public final fun connectTimeout (I)Lcom/miracl/trust/configuration/Configuration$Builder;
+	public final fun deviceName (Ljava/lang/String;)Lcom/miracl/trust/configuration/Configuration$Builder;
+	public final fun httpRequestExecutor (Lcom/miracl/trust/network/HttpRequestExecutor;)Lcom/miracl/trust/configuration/Configuration$Builder;
+	public final fun logger (Lcom/miracl/trust/util/log/Logger;)Lcom/miracl/trust/configuration/Configuration$Builder;
+	public final fun loggingLevel (Lcom/miracl/trust/util/log/Logger$LoggingLevel;)Lcom/miracl/trust/configuration/Configuration$Builder;
+	public final fun platformUrl (Ljava/lang/String;)Lcom/miracl/trust/configuration/Configuration$Builder;
+	public final fun readTimeout (I)Lcom/miracl/trust/configuration/Configuration$Builder;
+	public final fun userStorage (Lcom/miracl/trust/storage/UserStorage;)Lcom/miracl/trust/configuration/Configuration$Builder;
+}
+
+public abstract class com/miracl/trust/configuration/ConfigurationException : java/lang/Exception {
+}
+
+public final class com/miracl/trust/configuration/ConfigurationException$EmptyProjectId : com/miracl/trust/configuration/ConfigurationException {
+	public static final field INSTANCE Lcom/miracl/trust/configuration/ConfigurationException$EmptyProjectId;
+}
+
+public abstract class com/miracl/trust/crypto/CryptoException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/miracl/trust/crypto/CryptoException$GenerateSigningKeyPairError : com/miracl/trust/crypto/CryptoException {
+	public fun <init> ()V
+}
+
+public final class com/miracl/trust/crypto/CryptoException$GetClientPass1ProofError : com/miracl/trust/crypto/CryptoException {
+	public fun <init> ()V
+}
+
+public final class com/miracl/trust/crypto/CryptoException$GetClientPass2ProofError : com/miracl/trust/crypto/CryptoException {
+	public fun <init> ()V
+}
+
+public final class com/miracl/trust/crypto/CryptoException$GetClientTokenError : com/miracl/trust/crypto/CryptoException {
+	public fun <init> ()V
+}
+
+public final class com/miracl/trust/crypto/CryptoException$GetSigningClientTokenError : com/miracl/trust/crypto/CryptoException {
+	public fun <init> ()V
+}
+
+public final class com/miracl/trust/crypto/CryptoException$SignError : com/miracl/trust/crypto/CryptoException {
+	public fun <init> ()V
+}
+
+public abstract interface class com/miracl/trust/delegate/PinConsumer {
+	public abstract fun consume (Ljava/lang/String;)V
+}
+
+public abstract interface class com/miracl/trust/delegate/PinProvider {
+	public abstract fun provide (Lcom/miracl/trust/delegate/PinConsumer;)V
+}
+
+public abstract interface class com/miracl/trust/delegate/ResultHandler {
+	public abstract fun onResult (Lcom/miracl/trust/MIRACLResult;)V
+}
+
+public final class com/miracl/trust/model/QuickCode : java/io/Serializable {
+	public final fun getCode ()Ljava/lang/String;
+	public final fun getExpireTime ()J
+	public final fun getTtlSeconds ()I
+}
+
+public final class com/miracl/trust/model/User {
+	public final fun getHashedMpinId ()Ljava/lang/String;
+	public final fun getPinLength ()I
+	public final fun getProjectId ()Ljava/lang/String;
+	public final fun getRevoked ()Z
+	public final fun getUserId ()Ljava/lang/String;
+}
+
+public abstract class com/miracl/trust/network/ApiException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getUrl ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/miracl/trust/network/ApiException$ClientError : com/miracl/trust/network/ApiException {
+	public fun <init> ()V
+	public final fun getClientErrorData ()Lcom/miracl/trust/network/ClientErrorData;
+}
+
+public final class com/miracl/trust/network/ApiException$ExecutionError : com/miracl/trust/network/ApiException {
+	public fun <init> ()V
+}
+
+public final class com/miracl/trust/network/ApiException$ServerError : com/miracl/trust/network/ApiException {
+	public fun <init> ()V
+}
+
+public final class com/miracl/trust/network/ApiRequest {
+	public fun <init> (Lcom/miracl/trust/network/HttpMethod;Ljava/util/Map;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;)V
+	public final fun component1 ()Lcom/miracl/trust/network/HttpMethod;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/Map;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy (Lcom/miracl/trust/network/HttpMethod;Ljava/util/Map;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;)Lcom/miracl/trust/network/ApiRequest;
+	public static synthetic fun copy$default (Lcom/miracl/trust/network/ApiRequest;Lcom/miracl/trust/network/HttpMethod;Ljava/util/Map;Ljava/lang/String;Ljava/util/Map;Ljava/lang/String;ILjava/lang/Object;)Lcom/miracl/trust/network/ApiRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBody ()Ljava/lang/String;
+	public final fun getHeaders ()Ljava/util/Map;
+	public final fun getMethod ()Lcom/miracl/trust/network/HttpMethod;
+	public final fun getParams ()Ljava/util/Map;
+	public final fun getUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/miracl/trust/network/ClientErrorData {
+	public final fun getCode ()Ljava/lang/String;
+	public final fun getContext ()Ljava/util/Map;
+	public final fun getInfo ()Ljava/lang/String;
+}
+
+public final class com/miracl/trust/network/HttpMethod : java/lang/Enum {
+	public static final field DELETE Lcom/miracl/trust/network/HttpMethod;
+	public static final field GET Lcom/miracl/trust/network/HttpMethod;
+	public static final field POST Lcom/miracl/trust/network/HttpMethod;
+	public static final field PUT Lcom/miracl/trust/network/HttpMethod;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getMethod ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/miracl/trust/network/HttpMethod;
+	public static fun values ()[Lcom/miracl/trust/network/HttpMethod;
+}
+
+public abstract interface class com/miracl/trust/network/HttpRequestExecutor {
+	public abstract fun execute (Lcom/miracl/trust/network/ApiRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract class com/miracl/trust/network/HttpRequestExecutorException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/miracl/trust/network/HttpRequestExecutorException$ExecutionError : com/miracl/trust/network/HttpRequestExecutorException {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/miracl/trust/network/HttpRequestExecutorException$HttpError : com/miracl/trust/network/HttpRequestExecutorException {
+	public fun <init> (ILjava/lang/String;)V
+	public final fun getResponseBody ()Ljava/lang/String;
+	public final fun getResponseCode ()I
+}
+
+public final class com/miracl/trust/registration/ActivationTokenErrorResponse {
+	public final fun getAccessId ()Ljava/lang/String;
+	public final fun getProjectId ()Ljava/lang/String;
+	public final fun getUserId ()Ljava/lang/String;
+}
+
+public abstract class com/miracl/trust/registration/ActivationTokenException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/miracl/trust/registration/ActivationTokenException$EmptyUserId : com/miracl/trust/registration/ActivationTokenException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/ActivationTokenException$EmptyUserId;
+}
+
+public final class com/miracl/trust/registration/ActivationTokenException$EmptyVerificationCode : com/miracl/trust/registration/ActivationTokenException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/ActivationTokenException$EmptyVerificationCode;
+}
+
+public final class com/miracl/trust/registration/ActivationTokenException$GetActivationTokenFail : com/miracl/trust/registration/ActivationTokenException {
+	public fun <init> ()V
+}
+
+public final class com/miracl/trust/registration/ActivationTokenException$UnsuccessfulVerification : com/miracl/trust/registration/ActivationTokenException {
+	public fun <init> ()V
+	public final fun getActivationTokenErrorResponse ()Lcom/miracl/trust/registration/ActivationTokenErrorResponse;
+}
+
+public final class com/miracl/trust/registration/ActivationTokenResponse {
+	public final fun getAccessId ()Ljava/lang/String;
+	public final fun getActivationToken ()Ljava/lang/String;
+	public final fun getProjectId ()Ljava/lang/String;
+	public final fun getUserId ()Ljava/lang/String;
+}
+
+public final class com/miracl/trust/registration/EmailVerificationMethod : java/lang/Enum {
+	public static final field Code Lcom/miracl/trust/registration/EmailVerificationMethod;
+	public static final field Companion Lcom/miracl/trust/registration/EmailVerificationMethod$Companion;
+	public static final field Link Lcom/miracl/trust/registration/EmailVerificationMethod;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public fun toString ()Ljava/lang/String;
+	public static fun valueOf (Ljava/lang/String;)Lcom/miracl/trust/registration/EmailVerificationMethod;
+	public static fun values ()[Lcom/miracl/trust/registration/EmailVerificationMethod;
+}
+
+public final class com/miracl/trust/registration/EmailVerificationMethod$Companion {
+	public final fun fromString (Ljava/lang/String;)Lcom/miracl/trust/registration/EmailVerificationMethod;
+}
+
+public abstract class com/miracl/trust/registration/QuickCodeException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/miracl/trust/registration/QuickCodeException$GenerationFail : com/miracl/trust/registration/QuickCodeException {
+	public fun <init> ()V
+}
+
+public final class com/miracl/trust/registration/QuickCodeException$InvalidPin : com/miracl/trust/registration/QuickCodeException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/QuickCodeException$InvalidPin;
+}
+
+public final class com/miracl/trust/registration/QuickCodeException$LimitedQuickCodeGeneration : com/miracl/trust/registration/QuickCodeException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/QuickCodeException$LimitedQuickCodeGeneration;
+}
+
+public final class com/miracl/trust/registration/QuickCodeException$PinCancelled : com/miracl/trust/registration/QuickCodeException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/QuickCodeException$PinCancelled;
+}
+
+public final class com/miracl/trust/registration/QuickCodeException$Revoked : com/miracl/trust/registration/QuickCodeException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/QuickCodeException$Revoked;
+}
+
+public final class com/miracl/trust/registration/QuickCodeException$UnsuccessfulAuthentication : com/miracl/trust/registration/QuickCodeException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/QuickCodeException$UnsuccessfulAuthentication;
+}
+
+public abstract class com/miracl/trust/registration/RegistrationException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/miracl/trust/registration/RegistrationException$EmptyActivationToken : com/miracl/trust/registration/RegistrationException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/RegistrationException$EmptyActivationToken;
+}
+
+public final class com/miracl/trust/registration/RegistrationException$EmptyUserId : com/miracl/trust/registration/RegistrationException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/RegistrationException$EmptyUserId;
+}
+
+public final class com/miracl/trust/registration/RegistrationException$InvalidActivationToken : com/miracl/trust/registration/RegistrationException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/RegistrationException$InvalidActivationToken;
+}
+
+public final class com/miracl/trust/registration/RegistrationException$InvalidPin : com/miracl/trust/registration/RegistrationException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/RegistrationException$InvalidPin;
+}
+
+public final class com/miracl/trust/registration/RegistrationException$PinCancelled : com/miracl/trust/registration/RegistrationException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/RegistrationException$PinCancelled;
+}
+
+public final class com/miracl/trust/registration/RegistrationException$ProjectMismatch : com/miracl/trust/registration/RegistrationException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/RegistrationException$ProjectMismatch;
+}
+
+public final class com/miracl/trust/registration/RegistrationException$RegistrationFail : com/miracl/trust/registration/RegistrationException {
+	public fun <init> ()V
+}
+
+public final class com/miracl/trust/registration/RegistrationException$UnsupportedEllipticCurve : com/miracl/trust/registration/RegistrationException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/RegistrationException$UnsupportedEllipticCurve;
+}
+
+public abstract class com/miracl/trust/registration/VerificationException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/miracl/trust/registration/VerificationException$EmptyUserId : com/miracl/trust/registration/VerificationException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/VerificationException$EmptyUserId;
+}
+
+public final class com/miracl/trust/registration/VerificationException$InvalidSessionDetails : com/miracl/trust/registration/VerificationException {
+	public static final field INSTANCE Lcom/miracl/trust/registration/VerificationException$InvalidSessionDetails;
+}
+
+public final class com/miracl/trust/registration/VerificationException$RequestBackoff : com/miracl/trust/registration/VerificationException {
+	public final fun getBackoff ()J
+}
+
+public final class com/miracl/trust/registration/VerificationException$VerificationFail : com/miracl/trust/registration/VerificationException {
+	public fun <init> ()V
+}
+
+public final class com/miracl/trust/registration/VerificationResponse {
+	public final fun getBackoff ()J
+	public final fun getMethod ()Lcom/miracl/trust/registration/EmailVerificationMethod;
+}
+
+public final class com/miracl/trust/session/AuthenticationSessionDetails : com/miracl/trust/session/SessionDetails {
+	public final fun getAccessId ()Ljava/lang/String;
+}
+
+public abstract class com/miracl/trust/session/AuthenticationSessionException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/Exception;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Exception;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/miracl/trust/session/AuthenticationSessionException$AbortSessionFail : com/miracl/trust/session/AuthenticationSessionException {
+}
+
+public final class com/miracl/trust/session/AuthenticationSessionException$GetAuthenticationSessionDetailsFail : com/miracl/trust/session/AuthenticationSessionException {
+}
+
+public final class com/miracl/trust/session/AuthenticationSessionException$InvalidAppLink : com/miracl/trust/session/AuthenticationSessionException {
+	public static final field INSTANCE Lcom/miracl/trust/session/AuthenticationSessionException$InvalidAppLink;
+}
+
+public final class com/miracl/trust/session/AuthenticationSessionException$InvalidNotificationPayload : com/miracl/trust/session/AuthenticationSessionException {
+	public static final field INSTANCE Lcom/miracl/trust/session/AuthenticationSessionException$InvalidNotificationPayload;
+}
+
+public final class com/miracl/trust/session/AuthenticationSessionException$InvalidQRCode : com/miracl/trust/session/AuthenticationSessionException {
+	public static final field INSTANCE Lcom/miracl/trust/session/AuthenticationSessionException$InvalidQRCode;
+}
+
+public final class com/miracl/trust/session/AuthenticationSessionException$InvalidSessionDetails : com/miracl/trust/session/AuthenticationSessionException {
+	public static final field INSTANCE Lcom/miracl/trust/session/AuthenticationSessionException$InvalidSessionDetails;
+}
+
+public final class com/miracl/trust/session/IdentityType : java/lang/Enum {
+	public static final field Alphanumeric Lcom/miracl/trust/session/IdentityType;
+	public static final field Companion Lcom/miracl/trust/session/IdentityType$Companion;
+	public static final field Email Lcom/miracl/trust/session/IdentityType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/miracl/trust/session/IdentityType;
+	public static fun values ()[Lcom/miracl/trust/session/IdentityType;
+}
+
+public final class com/miracl/trust/session/IdentityType$Companion {
+	public final fun fromString (Ljava/lang/String;)Lcom/miracl/trust/session/IdentityType;
+}
+
+public abstract class com/miracl/trust/session/SessionDetails {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILcom/miracl/trust/session/VerificationMethod;Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/session/IdentityType;Ljava/lang/String;ZZLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getIdentityType ()Lcom/miracl/trust/session/IdentityType;
+	public final fun getIdentityTypeLabel ()Ljava/lang/String;
+	public final fun getLimitQuickCodeRegistration ()Z
+	public final fun getPinLength ()I
+	public final fun getProjectId ()Ljava/lang/String;
+	public final fun getProjectLogoUrl ()Ljava/lang/String;
+	public final fun getProjectName ()Ljava/lang/String;
+	public final fun getQuickCodeEnabled ()Z
+	public final fun getUserId ()Ljava/lang/String;
+	public final fun getVerificationCustomText ()Ljava/lang/String;
+	public final fun getVerificationMethod ()Lcom/miracl/trust/session/VerificationMethod;
+	public final fun getVerificationUrl ()Ljava/lang/String;
+}
+
+public final class com/miracl/trust/session/SigningSessionDetails : com/miracl/trust/session/SessionDetails {
+	public final fun getExpireTime ()J
+	public final fun getSessionId ()Ljava/lang/String;
+	public final fun getSigningDescription ()Ljava/lang/String;
+	public final fun getSigningHash ()Ljava/lang/String;
+	public final fun getStatus ()Lcom/miracl/trust/session/SigningSessionStatus;
+}
+
+public abstract class com/miracl/trust/session/SigningSessionException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/Exception;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Exception;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/miracl/trust/session/SigningSessionException$AbortSigningSessionFail : com/miracl/trust/session/SigningSessionException {
+}
+
+public final class com/miracl/trust/session/SigningSessionException$CompleteSigningSessionFail : com/miracl/trust/session/SigningSessionException {
+}
+
+public final class com/miracl/trust/session/SigningSessionException$GetSigningSessionDetailsFail : com/miracl/trust/session/SigningSessionException {
+}
+
+public final class com/miracl/trust/session/SigningSessionException$InvalidAppLink : com/miracl/trust/session/SigningSessionException {
+	public static final field INSTANCE Lcom/miracl/trust/session/SigningSessionException$InvalidAppLink;
+}
+
+public final class com/miracl/trust/session/SigningSessionException$InvalidQRCode : com/miracl/trust/session/SigningSessionException {
+	public static final field INSTANCE Lcom/miracl/trust/session/SigningSessionException$InvalidQRCode;
+}
+
+public final class com/miracl/trust/session/SigningSessionException$InvalidSigningSession : com/miracl/trust/session/SigningSessionException {
+	public static final field INSTANCE Lcom/miracl/trust/session/SigningSessionException$InvalidSigningSession;
+}
+
+public final class com/miracl/trust/session/SigningSessionException$InvalidSigningSessionDetails : com/miracl/trust/session/SigningSessionException {
+	public static final field INSTANCE Lcom/miracl/trust/session/SigningSessionException$InvalidSigningSessionDetails;
+}
+
+public final class com/miracl/trust/session/SigningSessionStatus : java/lang/Enum {
+	public static final field Active Lcom/miracl/trust/session/SigningSessionStatus;
+	public static final field Companion Lcom/miracl/trust/session/SigningSessionStatus$Companion;
+	public static final field Signed Lcom/miracl/trust/session/SigningSessionStatus;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/miracl/trust/session/SigningSessionStatus;
+	public static fun values ()[Lcom/miracl/trust/session/SigningSessionStatus;
+}
+
+public final class com/miracl/trust/session/SigningSessionStatus$Companion {
+	public final fun fromString (Ljava/lang/String;)Lcom/miracl/trust/session/SigningSessionStatus;
+}
+
+public final class com/miracl/trust/session/VerificationMethod : java/lang/Enum {
+	public static final field Companion Lcom/miracl/trust/session/VerificationMethod$Companion;
+	public static final field FullCustom Lcom/miracl/trust/session/VerificationMethod;
+	public static final field StandardEmail Lcom/miracl/trust/session/VerificationMethod;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/miracl/trust/session/VerificationMethod;
+	public static fun values ()[Lcom/miracl/trust/session/VerificationMethod;
+}
+
+public final class com/miracl/trust/session/VerificationMethod$Companion {
+	public final fun fromString (Ljava/lang/String;)Lcom/miracl/trust/session/VerificationMethod;
+}
+
+public final class com/miracl/trust/signing/Signature {
+	public static final field Companion Lcom/miracl/trust/signing/Signature$Companion;
+	public final fun getDtas ()Ljava/lang/String;
+	public final fun getHash ()Ljava/lang/String;
+	public final fun getMpinId ()Ljava/lang/String;
+	public final fun getPublicKey ()Ljava/lang/String;
+	public final fun getU ()Ljava/lang/String;
+	public final fun getV ()Ljava/lang/String;
+}
+
+public synthetic class com/miracl/trust/signing/Signature$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lcom/miracl/trust/signing/Signature$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/miracl/trust/signing/Signature;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcom/miracl/trust/signing/Signature;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class com/miracl/trust/signing/Signature$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract class com/miracl/trust/signing/SigningException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/miracl/trust/signing/SigningException$EmptyMessageHash : com/miracl/trust/signing/SigningException {
+	public static final field INSTANCE Lcom/miracl/trust/signing/SigningException$EmptyMessageHash;
+}
+
+public final class com/miracl/trust/signing/SigningException$EmptyPublicKey : com/miracl/trust/signing/SigningException {
+	public static final field INSTANCE Lcom/miracl/trust/signing/SigningException$EmptyPublicKey;
+}
+
+public final class com/miracl/trust/signing/SigningException$InvalidPin : com/miracl/trust/signing/SigningException {
+	public static final field INSTANCE Lcom/miracl/trust/signing/SigningException$InvalidPin;
+}
+
+public final class com/miracl/trust/signing/SigningException$InvalidSigningSession : com/miracl/trust/signing/SigningException {
+	public static final field INSTANCE Lcom/miracl/trust/signing/SigningException$InvalidSigningSession;
+}
+
+public final class com/miracl/trust/signing/SigningException$InvalidSigningSessionDetails : com/miracl/trust/signing/SigningException {
+	public static final field INSTANCE Lcom/miracl/trust/signing/SigningException$InvalidSigningSessionDetails;
+}
+
+public final class com/miracl/trust/signing/SigningException$InvalidUserData : com/miracl/trust/signing/SigningException {
+	public static final field INSTANCE Lcom/miracl/trust/signing/SigningException$InvalidUserData;
+}
+
+public final class com/miracl/trust/signing/SigningException$PinCancelled : com/miracl/trust/signing/SigningException {
+	public static final field INSTANCE Lcom/miracl/trust/signing/SigningException$PinCancelled;
+}
+
+public final class com/miracl/trust/signing/SigningException$Revoked : com/miracl/trust/signing/SigningException {
+	public static final field INSTANCE Lcom/miracl/trust/signing/SigningException$Revoked;
+}
+
+public final class com/miracl/trust/signing/SigningException$SigningFail : com/miracl/trust/signing/SigningException {
+	public fun <init> ()V
+}
+
+public final class com/miracl/trust/signing/SigningException$UnsuccessfulAuthentication : com/miracl/trust/signing/SigningException {
+	public static final field INSTANCE Lcom/miracl/trust/signing/SigningException$UnsuccessfulAuthentication;
+}
+
+public final class com/miracl/trust/signing/SigningResult {
+	public final fun getSignature ()Lcom/miracl/trust/signing/Signature;
+	public final fun getTimestamp ()Ljava/util/Date;
+}
+
+public abstract interface class com/miracl/trust/storage/UserStorage {
+	public abstract fun add (Lcom/miracl/trust/model/User;)V
+	public abstract fun all ()Ljava/util/List;
+	public abstract fun delete (Lcom/miracl/trust/model/User;)V
+	public abstract fun getUser (Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/trust/model/User;
+	public abstract fun loadStorage ()V
+	public abstract fun update (Lcom/miracl/trust/model/User;)V
+}
+
+public final class com/miracl/trust/storage/UserStorageException : java/lang/Exception {
+}
+
+public abstract interface class com/miracl/trust/util/log/Logger {
+	public abstract fun debug (Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun error (Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun info (Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun warning (Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class com/miracl/trust/util/log/Logger$LoggingLevel : java/lang/Enum {
+	public static final field DEBUG Lcom/miracl/trust/util/log/Logger$LoggingLevel;
+	public static final field ERROR Lcom/miracl/trust/util/log/Logger$LoggingLevel;
+	public static final field INFO Lcom/miracl/trust/util/log/Logger$LoggingLevel;
+	public static final field NONE Lcom/miracl/trust/util/log/Logger$LoggingLevel;
+	public static final field WARNING Lcom/miracl/trust/util/log/Logger$LoggingLevel;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/miracl/trust/util/log/Logger$LoggingLevel;
+	public static fun values ()[Lcom/miracl/trust/util/log/Logger$LoggingLevel;
+}
+
