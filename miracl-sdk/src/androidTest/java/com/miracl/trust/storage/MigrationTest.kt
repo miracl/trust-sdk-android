@@ -2,8 +2,6 @@ package com.miracl.trust.storage
 
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
-import androidx.core.database.getBlobOrNull
-import androidx.core.database.getStringOrNull
 import androidx.room.Room
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.SupportSQLiteDatabase
@@ -65,8 +63,11 @@ class MigrationTest {
             val authenticationIdentityId =
                 cursor.getString(cursor.getColumnIndexOrThrow("authenticationIdentityId"))
 
+            val signingIdentityIndex = cursor.getColumnIndexOrThrow("signingIdentityId")
             val signingIdentityId =
-                cursor.getStringOrNull(cursor.getColumnIndexOrThrow("signingIdentityId"))
+                if (cursor.isNull(signingIdentityIndex)) null else cursor.getString(
+                    signingIdentityIndex
+                )
 
             cursor = migratedDatabase.query(
                 "SELECT `pinLength`, `mpinId`, `revoked`, `token`, `dtas`, `publicKey` FROM `identities` WHERE identities.id = ?",
@@ -95,9 +96,12 @@ class MigrationTest {
                     user.authenticationIdentity.dtas,
                     cursor.getString(getColumnIndexOrThrow("dtas"))
                 )
+
+                val publicKeyIndex = getColumnIndexOrThrow("publicKey")
+                val publicKey = if (isNull(publicKeyIndex)) null else getBlob(publicKeyIndex)
                 assertArrayEquals(
                     user.authenticationIdentity.publicKey,
-                    cursor.getBlobOrNull(getColumnIndexOrThrow("publicKey"))
+                    publicKey
                 )
             }
 
@@ -131,9 +135,12 @@ class MigrationTest {
                         user.signingIdentity.dtas,
                         cursor.getString(getColumnIndexOrThrow("dtas"))
                     )
+
+                    val publicKeyIndex = getColumnIndexOrThrow("publicKey")
+                    val publicKey = if (isNull(publicKeyIndex)) null else getBlob(publicKeyIndex)
                     assertArrayEquals(
                         user.signingIdentity.publicKey,
-                        cursor.getBlobOrNull(getColumnIndexOrThrow("publicKey"))
+                        publicKey
                     )
                 }
             }

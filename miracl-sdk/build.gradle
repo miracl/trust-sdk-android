@@ -112,7 +112,6 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation libs.androidx.core.ktx
 
     testImplementation libs.junit
     testImplementation libs.mockk

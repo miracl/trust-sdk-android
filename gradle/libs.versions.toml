@@ -1,7 +1,6 @@
 [versions]
 androidDatabaseSqlcipher = "4.6.1"
 androidGradlePlugin = "8.7.2"
-androidxCoreKtx = "1.15.0"
 androidxRoom = "2.6.1"
 androidxTestCore = "1.6.1"
 androidxTestRunner = "1.6.2"
@@ -20,7 +19,6 @@ mockk = "1.13.13"
 
 [libraries]
 android-database-sqlcipher = { module = "net.zetetic:sqlcipher-android", version.ref = "androidDatabaseSqlcipher" }
-androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCoreKtx" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "androidxRoom" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "androidxRoom" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidxRoom" }
