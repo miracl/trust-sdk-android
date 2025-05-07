@@ -10,6 +10,7 @@ googleApiClient = "2.7.0"
 googleApiServicesGmail = "v1-rev20240520-2.0.0"
 googleOauthClientJetty = "1.36.0"
 jjwt = "0.12.6"
+jreleaser = "1.18.0"
 junit = "4.13.2"
 kotlin = "2.0.21"
 kotlinxCoroutines = "1.9.0"
@@ -42,7 +43,8 @@ android-library = { id = "com.android.library", version.ref = "androidGradlePlug
 androidx-room = { id = "androidx.room", version.ref = "androidxRoom" }
 binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryCompatabilityValidator" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
-maven-publish = { id = "maven-publish" }
+jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+maven-publish = { id = "maven-publish" }
