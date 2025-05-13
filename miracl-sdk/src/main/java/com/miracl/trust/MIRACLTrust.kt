@@ -88,8 +88,9 @@ public class MIRACLTrust private constructor(
 
     private val deviceName: String = configuration.deviceName ?: Build.MODEL
 
-    @VisibleForTesting
-    internal var projectId: String = configuration.projectId
+    /** Project ID setting for the application in MIRACL Trust platform. */
+    public var projectId: String = configuration.projectId
+        private set
 
     //endregion
 
