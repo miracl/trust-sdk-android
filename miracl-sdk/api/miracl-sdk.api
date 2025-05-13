@@ -42,6 +42,7 @@ public final class com/miracl/trust/MIRACLTrust {
 	public final fun getAuthenticationSessionDetailsFromNotificationPayload (Ljava/util/Map;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun getAuthenticationSessionDetailsFromQRCode (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public static final fun getInstance ()Lcom/miracl/trust/MIRACLTrust;
+	public final fun getProjectId ()Ljava/lang/String;
 	public final fun getSigningSessionDetailsFromAppLink (Landroid/net/Uri;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun getSigningSessionDetailsFromQRCode (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun getUser (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
