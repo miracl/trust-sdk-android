@@ -22,29 +22,6 @@ The MIRACL Trust Android SDK provides the following functionalities:
 
 ## Installation
 
-1. Add the MIRACL Trust Android SDK repository to your `build.gradle.kts` file
-(Kotlin DSL) file or `build.gradle` file (Gradle Groovy)
-
-    Kotlin:
-
-    ```kotlin
-    repositories {
-        maven {
-            url = uri("https://maven.pkg.github.com/miracl/trust-sdk-android")
-        }
-    }
-    ```
-
-    Groovy:
-
-    ```groovy
-    repositories {
-        maven {
-            url = uri("https://maven.pkg.github.com/miracl/trust-sdk-android")
-        }
-    }
-    ```
-
 1. Add the following line to the dependencies section in your module
    `build.gradle`
 
@@ -52,7 +29,7 @@ The MIRACL Trust Android SDK provides the following functionalities:
 
    ```kotlin
    dependencies {
-       implementation("com.miracl.trust:trust-sdk-android:1.1.0")
+       implementation("com.miracl:trust-sdk-android:1.1.0")
    }
    ```
 
@@ -60,7 +37,7 @@ The MIRACL Trust Android SDK provides the following functionalities:
 
    ```groovy
    dependencies{
-       implementation "com.miracl.trust:trust-sdk-android:1.1.0"
+       implementation "com.miracl:trust-sdk-android:1.1.0"
    }
    ```
 
