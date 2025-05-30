@@ -96,14 +96,10 @@ public class MIRACLTrust private constructor(
 
     //region Initialization
     init {
-        logger = if (BuildConfig.DEBUG) {
-            configuration.logger
-                ?: DefaultLogger(
-                    configuration.loggingLevel ?: Logger.LoggingLevel.NONE
-                )
-        } else {
-            null
-        }
+        logger = configuration.logger
+            ?: DefaultLogger(
+                configuration.loggingLevel ?: Logger.LoggingLevel.NONE
+            )
 
         val httpRequestExecutor = configuration.httpRequestExecutor
             ?: HttpsURLConnectionRequestExecutor(
