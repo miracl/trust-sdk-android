@@ -21,6 +21,7 @@ import com.miracl.trust.util.log.Loggable
 import com.miracl.trust.util.log.LoggerConstants
 import com.miracl.trust.util.secondsSince1970
 import com.miracl.trust.util.toHexString
+import com.miracl.trust.util.toUser
 import java.util.*
 
 internal class DocumentSigner(
@@ -66,7 +67,7 @@ internal class DocumentSigner(
             )
         }
 
-        val currentUser = userStorage.getUser(user.userId, user.projectId) ?: user
+        val currentUser = userStorage.getUser(user.userId, user.projectId)?.toUser() ?: user
 
         if (currentUser.publicKey == null || currentUser.publicKey.isEmpty()) {
             return MIRACLError(SigningException.EmptyPublicKey)

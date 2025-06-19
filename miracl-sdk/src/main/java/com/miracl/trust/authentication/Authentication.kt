@@ -16,7 +16,9 @@ import com.miracl.trust.util.acquirePin
 import com.miracl.trust.util.hexStringToByteArray
 import com.miracl.trust.util.log.Loggable
 import com.miracl.trust.util.log.LoggerConstants
+import com.miracl.trust.util.toUserDto
 import com.miracl.trust.util.toHexString
+import com.miracl.trust.util.toUser
 
 internal enum class AuthenticatorScopes(val value: String) {
     SIGNING_AUTHENTICATION("dvs-auth"),
@@ -280,7 +282,7 @@ internal class Authenticator(
             AuthenticationException.InvalidPushNotificationPayload
         )
 
-        val user = userStorage.getUser(userId, projectId) ?: return MIRACLError(
+        val user = userStorage.getUser(userId, projectId)?.toUser() ?: return MIRACLError(
             AuthenticationException.UserNotFound
         )
 
@@ -289,7 +291,7 @@ internal class Authenticator(
 
     private fun revokeUser(user: User) {
         try {
-            userStorage.update(user.revoke())
+            userStorage.update(user.revoke().toUserDto())
         } catch (ex: Exception) {
             logger?.error(
                 LoggerConstants.AUTHENTICATOR_TAG,
