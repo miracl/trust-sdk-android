@@ -11,6 +11,7 @@ import com.miracl.trust.storage.room.RoomUserStorage
 import com.miracl.trust.storage.room.UserDatabase
 import com.miracl.trust.storage.security.KeyProtector
 import com.miracl.trust.storage.security.KeyProvider
+import com.miracl.trust.util.toUserDto
 import com.miracl.trust.utilities.randomByteArray
 import com.miracl.trust.utilities.randomPinLength
 import com.miracl.trust.utilities.randomUuidString
@@ -55,7 +56,7 @@ class DatabaseModuleTest {
             // Arrange
             val userStorage = RoomUserStorage(createDatabaseInDefaultDatabaseDir())
             val user = createUser()
-            userStorage.add(user)
+            userStorage.add(user.toUserDto())
 
             userStorage.all().let { users ->
                 Assert.assertEquals(1, users.size)

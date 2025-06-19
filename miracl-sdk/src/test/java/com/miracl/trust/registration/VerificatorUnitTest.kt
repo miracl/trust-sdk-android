@@ -15,6 +15,7 @@ import com.miracl.trust.randomByteArray
 import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
 import com.miracl.trust.session.AuthenticationSessionDetails
+import com.miracl.trust.storage.UserDto
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.toHexString
 import io.mockk.*
@@ -128,7 +129,7 @@ class VerificatorUnitTest {
             val method = EmailVerificationMethod.Code
 
             val mpinId = randomByteArray()
-            every { userStorageMock.getUser(userId, projectId) } returns User(
+            every { userStorageMock.getUser(userId, projectId) } returns UserDto(
                 userId = userId,
                 projectId = projectId,
                 revoked = Random.nextBoolean(),

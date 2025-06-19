@@ -1,6 +1,6 @@
 package com.miracl.trust.storage.room
 
-import com.miracl.trust.model.User
+import com.miracl.trust.storage.UserDto
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.storage.room.model.UserModel
 import kotlinx.coroutines.runBlocking
@@ -9,40 +9,40 @@ internal class RoomUserStorage(private val userDatabase: UserDatabase) : UserSto
     override fun loadStorage() {
     }
 
-    override fun add(user: User) {
+    override fun add(user: UserDto) {
         runBlocking {
             userDatabase.userDao().insert(user.toUserModel())
         }
     }
 
-    override fun update(user: User) {
+    override fun update(user: UserDto) {
         runBlocking {
             userDatabase.userDao().update(user.toUserModel())
         }
     }
 
-    override fun delete(user: User) {
+    override fun delete(user: UserDto) {
         runBlocking {
             userDatabase.userDao().delete(user.toUserModel())
         }
     }
 
-    override fun getUser(userId: String, projectId: String): User? {
+    override fun getUser(userId: String, projectId: String): UserDto? {
         return runBlocking {
             val userModel = userDatabase.userDao().get(userId, projectId)
-            userModel?.toUser()
+            userModel?.toUserDto()
         }
     }
 
-    override fun all(): List<User> {
+    override fun all(): List<UserDto> {
         return runBlocking {
             userDatabase.userDao().getAll()
-                .map { it.toUser() }
+                .map { it.toUserDto() }
         }
     }
 
-    private fun UserModel.toUser(): User =
-        User(
+    private fun UserModel.toUserDto(): UserDto =
+        UserDto(
             userId = userId,
             projectId = projectId,
             revoked = revoked,
@@ -53,7 +53,7 @@ internal class RoomUserStorage(private val userDatabase: UserDatabase) : UserSto
             publicKey = publicKey
         )
 
-    private fun User.toUserModel(): UserModel =
+    private fun UserDto.toUserModel(): UserModel =
         UserModel(
             userId = userId,
             projectId = projectId,

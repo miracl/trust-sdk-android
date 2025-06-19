@@ -2,6 +2,7 @@ package com.miracl.trust.registration
 
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
+import com.miracl.trust.assertUserEqualsDto
 import com.miracl.trust.crypto.Crypto
 import com.miracl.trust.crypto.CryptoException
 import com.miracl.trust.crypto.SigningKeyPair
@@ -13,10 +14,12 @@ import com.miracl.trust.randomHexString
 import com.miracl.trust.randomNumericPin
 import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
+import com.miracl.trust.storage.UserDto
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.hexStringToByteArray
 import com.miracl.trust.util.toHexString
 import com.miracl.trust.util.toSHA256
+import com.miracl.trust.util.toUserDto
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -386,7 +389,7 @@ class RegistratorUnitTest {
                 value = expectedToken
             )
             every { userStorageMock.getUser(userId, projectId) } returns null
-            every { userStorageMock.add(ofType(User::class)) } just runs
+            every { userStorageMock.add(ofType(UserDto::class)) } just runs
 
             // Act
             val actualResult = registrator.finishRegistration(
@@ -414,9 +417,9 @@ class RegistratorUnitTest {
             Assert.assertEquals(signingKeyPair.publicKey, user.publicKey)
             Assert.assertEquals(hashOfMpinId, user.hashedMpinId)
 
-            val userCapturingSlot = CapturingSlot<User>()
+            val userCapturingSlot = CapturingSlot<UserDto>()
             verify { userStorageMock.add(capture(userCapturingSlot)) }
-            Assert.assertEquals(user, userCapturingSlot.captured)
+            assertUserEqualsDto(user, userCapturingSlot.captured)
         }
 
     @Test
@@ -429,7 +432,7 @@ class RegistratorUnitTest {
             every { userStorageMock.getUser(userId, projectId) } returns null
 
             val exception = Exception()
-            every { userStorageMock.add(ofType(User::class)) } throws exception
+            every { userStorageMock.add(ofType(UserDto::class)) } throws exception
 
             // Act
             val actualResult = registrator.finishRegistration(
@@ -709,7 +712,6 @@ class RegistratorUnitTest {
         runTest {
             // Arrange
             val mpinId = randomHexString()
-            val hashOfMpinId = mpinId.hexStringToByteArray().toSHA256()
             val signingKeyPair = createSigningKeyPair()
             val signatureResponse = createSignatureResponse()
 
@@ -726,8 +728,8 @@ class RegistratorUnitTest {
                 value = expectedToken
             )
 
-            every { userStorageMock.getUser(userId, projectId) } returns createUser()
-            every { userStorageMock.update(ofType(User::class)) } just runs
+            every { userStorageMock.getUser(userId, projectId) } returns createUser().toUserDto()
+            every { userStorageMock.update(ofType(UserDto::class)) } just runs
 
             // Act
             val actualResult = registrator.finishRegistration(
@@ -745,7 +747,7 @@ class RegistratorUnitTest {
             Assert.assertTrue(actualResult is MIRACLSuccess)
             Assert.assertEquals(userId, (actualResult as MIRACLSuccess).value.userId)
 
-            val capturingSlot = CapturingSlot<User>()
+            val capturingSlot = CapturingSlot<UserDto>()
             verify { userStorageMock.update(capture(capturingSlot)) }
             val user = capturingSlot.captured
 
@@ -756,17 +758,16 @@ class RegistratorUnitTest {
             Assert.assertArrayEquals(expectedToken, user.token)
             Assert.assertEquals(signatureResponse.dtas, user.dtas)
             Assert.assertEquals(signingKeyPair.publicKey, user.publicKey)
-            Assert.assertEquals(hashOfMpinId, user.hashedMpinId)
         }
 
     @Test
     fun `finishRegistration should return MIRACLError when could not update existing user`() =
         runTest {
             // Arrange
-            every { userStorageMock.getUser(userId, projectId) } returns createUser()
+            every { userStorageMock.getUser(userId, projectId) } returns createUser().toUserDto()
 
             val exception = Exception()
-            every { userStorageMock.update(ofType(User::class)) } throws exception
+            every { userStorageMock.update(ofType(UserDto::class)) } throws exception
 
             // Act
             val actualResult = registrator.finishRegistration(

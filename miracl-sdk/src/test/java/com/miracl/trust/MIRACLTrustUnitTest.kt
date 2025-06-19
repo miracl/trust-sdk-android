@@ -12,10 +12,12 @@ import com.miracl.trust.network.HttpRequestExecutor
 import com.miracl.trust.registration.*
 import com.miracl.trust.session.*
 import com.miracl.trust.signing.*
+import com.miracl.trust.storage.UserDto
 import com.miracl.trust.storage.UserStorageException
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants
+import com.miracl.trust.util.toUserDto
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -1472,22 +1474,22 @@ class MIRACLTrustUnitTest {
     @Test
     fun `getUsers returns list of users when there are registered users`() = runTest {
         // Arrange
-        val expectedUsers = listOf(mockk<User>(), mockk<User>())
+        val userDtos = listOf(createRandomUser().toUserDto(), createRandomUser().toUserDto())
 
-        every { userStorageMock.all() } returns expectedUsers
+        every { userStorageMock.all() } returns userDtos
 
         // Act
         val users = miraclTrust.getUsers()
 
         // Assert
-        Assert.assertEquals(users, expectedUsers)
+        assertUsersEqualDtos(users, userDtos)
     }
 
     @Test
     fun `getUsers returns empty list when there aren't registered users`() = runTest {
         // Arrange
-        val expectedUsers = listOf<User>()
-        every { userStorageMock.all() } returns expectedUsers
+        val userDtos = listOf<UserDto>()
+        every { userStorageMock.all() } returns userDtos
 
         // Act
         val users = miraclTrust.getUsers()
@@ -1510,8 +1512,8 @@ class MIRACLTrustUnitTest {
     @Test
     fun `getUsers with callback returns list of users when there are registered users`() {
         // Arrange
-        val expectedUsers = listOf(mockk<User>(), mockk<User>())
-        every { userStorageMock.all() } returns expectedUsers
+        val userDtos = listOf(createRandomUser().toUserDto(), createRandomUser().toUserDto())
+        every { userStorageMock.all() } returns userDtos
 
         val resultHandlerMock = mockk<ResultHandler<List<User>, UserStorageException>>()
         every { resultHandlerMock.onResult(any()) } just runs
@@ -1526,14 +1528,14 @@ class MIRACLTrustUnitTest {
 
         val result = capturingSlot.captured
         Assert.assertTrue(result is MIRACLSuccess)
-        Assert.assertEquals((result as MIRACLSuccess).value, expectedUsers)
+        assertUsersEqualDtos((result as MIRACLSuccess).value, userDtos)
     }
 
     @Test
     fun `getUsers with callback returns null when there aren't registered users`() {
         // Arrange
-        val expectedUsers = listOf<User>()
-        every { userStorageMock.all() } returns expectedUsers
+        val userDtos = listOf<UserDto>()
+        every { userStorageMock.all() } returns userDtos
 
         val resultHandlerMock = mockk<ResultHandler<List<User>, UserStorageException>>()
         every { resultHandlerMock.onResult(any()) } just runs
@@ -1577,15 +1579,15 @@ class MIRACLTrustUnitTest {
     fun `getUser returns User when there is a user with the given userId`() = runTest {
         // Arrange
         val userId = randomUuidString()
-        val expectedUser = mockk<User>()
+        val userDto = createRandomUser().toUserDto()
 
-        every { userStorageMock.getUser(userId, projectId) } returns expectedUser
+        every { userStorageMock.getUser(userId, projectId) } returns userDto
 
         // Act
         val user = miraclTrust.getUser(userId)
 
         // Assert
-        Assert.assertEquals(user, expectedUser)
+        assertUserEqualsDto(user, userDto)
     }
 
     @Test
@@ -1617,9 +1619,9 @@ class MIRACLTrustUnitTest {
     fun `getUser with callback returns User when there is a user with the given userId`() {
         // Arrange
         val userId = randomUuidString()
-        val expectedUser = mockk<User>()
+        val userDto = createRandomUser().toUserDto()
 
-        every { userStorageMock.getUser(userId, projectId) } returns expectedUser
+        every { userStorageMock.getUser(userId, projectId) } returns userDto
 
         val resultHandlerMock = mockk<ResultHandler<User?, UserStorageException>>()
         every { resultHandlerMock.onResult(any()) } just runs
@@ -1634,7 +1636,9 @@ class MIRACLTrustUnitTest {
 
         val result = capturingSlot.captured
         Assert.assertTrue(result is MIRACLSuccess)
-        Assert.assertEquals((result as MIRACLSuccess).value, expectedUser)
+
+        val user = (result as MIRACLSuccess).value
+        assertUserEqualsDto(user, userDto)
     }
 
     @Test
@@ -1687,16 +1691,16 @@ class MIRACLTrustUnitTest {
     @Test
     fun `delete user should call userStorage with correct user value`() = runTest {
         // Arrange
-        val user = mockk<User>()
+        val user = createRandomUser()
         every {
-            userStorageMock.delete(user)
+            userStorageMock.delete(any())
         } just runs
 
         // Act
         miraclTrust.delete(user)
 
         // Assert
-        verify { userStorageMock.delete(user) }
+        verify { userStorageMock.delete(any()) }
     }
 
     @Test(expected = UserStorageException::class)
@@ -1713,9 +1717,9 @@ class MIRACLTrustUnitTest {
     @Test
     fun `delete user with callback should call userStorage with correct user value`() {
         // Arrange
-        val user = mockk<User>()
+        val user = createRandomUser()
         every {
-            userStorageMock.delete(user)
+            userStorageMock.delete(any())
         } just runs
 
         val resultHandlerMock = mockk<ResultHandler<Unit, UserStorageException>>()
@@ -1726,7 +1730,7 @@ class MIRACLTrustUnitTest {
         testCoroutineDispatcher.scheduler.advanceUntilIdle()
 
         // Assert
-        verify { userStorageMock.delete(user) }
+        verify { userStorageMock.delete(any()) }
 
         val capturingSlot = CapturingSlot<MIRACLResult<Unit, UserStorageException>>()
         coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
@@ -1747,7 +1751,7 @@ class MIRACLTrustUnitTest {
         every { resultHandlerMock.onResult(any()) } just runs
 
         // Act
-        miraclTrust.delete(mockk(), resultHandlerMock)
+        miraclTrust.delete(createRandomUser(), resultHandlerMock)
         testCoroutineDispatcher.scheduler.advanceUntilIdle()
 
         // Assert

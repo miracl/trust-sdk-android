@@ -1,10 +1,10 @@
 package com.miracl.trust.user_storage
 
 import androidx.room.withTransaction
-import com.miracl.trust.model.User
 import com.miracl.trust.randomByteArray
 import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
+import com.miracl.trust.storage.UserDto
 import com.miracl.trust.storage.room.RoomUserStorage
 import com.miracl.trust.storage.room.UserDatabase
 import com.miracl.trust.storage.room.dao.UserDao
@@ -245,7 +245,7 @@ class RoomUserStorageUnitTest {
 
         // Assert
         Assert.assertEquals(1, list.size)
-        val user: User = list.first()
+        val user: UserDto = list.first()
 
         Assert.assertEquals(userModel.userId, user.userId)
         Assert.assertEquals(projectId, user.projectId)
@@ -257,7 +257,7 @@ class RoomUserStorageUnitTest {
         Assert.assertEquals(userModel.publicKey, user.publicKey)
     }
 
-    private fun createUser() = User(
+    private fun createUser() = UserDto(
         userId = randomUuidString(),
         projectId = projectId,
         revoked = Random.nextBoolean(),

@@ -15,7 +15,9 @@ import com.miracl.trust.randomUuidString
 import com.miracl.trust.registration.RegistrationException
 import com.miracl.trust.registration.Registrator
 import com.miracl.trust.session.SessionApi
+import com.miracl.trust.storage.UserDto
 import com.miracl.trust.storage.UserStorage
+import com.miracl.trust.util.toUserDto
 import com.miracl.trust.util.toHexString
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -298,7 +300,7 @@ class AuthenticatorUnitTest {
                 (result as MIRACLError).value
             )
 
-            val capturingSlot = CapturingSlot<User>()
+            val capturingSlot = CapturingSlot<UserDto>()
             verify { userStorageMock.update(capture(capturingSlot)) }
             val updatedUser = capturingSlot.captured
 
@@ -472,7 +474,7 @@ class AuthenticatorUnitTest {
                 (result as MIRACLError).value
             )
 
-            val capturingSlot = CapturingSlot<User>()
+            val capturingSlot = CapturingSlot<UserDto>()
             verify { userStorageMock.update(capture(capturingSlot)) }
             val updatedUser = capturingSlot.captured
 
@@ -502,7 +504,7 @@ class AuthenticatorUnitTest {
                 )
             } returns MIRACLError(apiException)
 
-            every { userStorageMock.update(ofType(User::class)) } throws Exception()
+            every { userStorageMock.update(ofType(UserDto::class)) } throws Exception()
 
             // Act
             val result =
@@ -1063,7 +1065,7 @@ class AuthenticatorUnitTest {
         runTest {
             // Arrange
             val authenticatorSpy = spyk(authenticator)
-            val user = createUser()
+            val user = createUser().toUserDto()
             val scope = arrayOf(AuthenticatorScopes.OIDC.value)
             val projectId = randomUuidString()
             val qrUrl = "https://mcl.mpin.io/mobile-login/#$accessId"
@@ -1091,7 +1093,7 @@ class AuthenticatorUnitTest {
             // Assert
             coVerify {
                 authenticatorSpy.authenticate(
-                    user,
+                    any(),
                     accessId,
                     pinProviderMock,
                     scope,
@@ -1105,7 +1107,7 @@ class AuthenticatorUnitTest {
     fun `authenticateWithNotificationPayload should return MIRACLError when authentication fails`() {
         runTest {
             // Arrange
-            val user = createUser()
+            val user = createUser().toUserDto()
             val scope = arrayOf(AuthenticatorScopes.OIDC.value)
             val projectId = randomUuidString()
             val qrUrl = "https://mcl.mpin.io/mobile-login/#$accessId"
@@ -1227,7 +1229,7 @@ class AuthenticatorUnitTest {
     fun `authenticateWithNotificationPayload should return MIRACLError when payload contains invalid qrURL`() {
         runTest {
             // Arrange
-            val user = createUser()
+            val user = createUser().toUserDto()
             val scope = arrayOf(AuthenticatorScopes.OIDC.value)
             val projectId = randomUuidString()
             val qrUrl = "https://mcl.mpin.io/mobile-login"

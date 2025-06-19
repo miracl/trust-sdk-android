@@ -25,6 +25,7 @@ import com.miracl.trust.session.SigningSessionUpdateResponse
 import com.miracl.trust.session.VerificationMethod
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.toHexString
+import com.miracl.trust.util.toUserDto
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -58,7 +59,7 @@ class DocumentSignerUnitTest {
     @Before
     fun resetMocks() {
         clearAllMocks()
-        coEvery { userStorageMock.getUser(any(), any()) } returns createSigningUser()
+        coEvery { userStorageMock.getUser(any(), any()) } returns createSigningUser().toUserDto()
     }
 
     @Test
@@ -332,7 +333,7 @@ class DocumentSignerUnitTest {
                 )
             } returns MIRACLSuccess(mockk())
 
-            coEvery { userStorageMock.getUser(any(), any()) } returns signingUser
+            coEvery { userStorageMock.getUser(any(), any()) } returns signingUser.toUserDto()
 
             val documentSigner =
                 DocumentSigner(
@@ -376,7 +377,7 @@ class DocumentSignerUnitTest {
                 )
             } returns MIRACLSuccess(mockk())
 
-            coEvery { userStorageMock.getUser(any(), any()) } returns signingUser
+            coEvery { userStorageMock.getUser(any(), any()) } returns signingUser.toUserDto()
 
             val documentSigner =
                 DocumentSigner(

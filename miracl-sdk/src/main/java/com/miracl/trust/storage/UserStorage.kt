@@ -1,7 +1,5 @@
 package com.miracl.trust.storage
 
-import com.miracl.trust.model.User
-
 /**
  * ## A type representing storage
  * Already registered users will be kept in it between app launches.
@@ -25,29 +23,29 @@ public interface UserStorage {
      * Adds a registered user to the user storage.
      * @param user registered user.
      */
-    public fun add(user: User)
+    public fun add(user: UserDto)
 
     /**
      * Updates a registered user in the user storage.
      * @param user The registered user to update.
      */
-    public fun update(user: User)
+    public fun update(user: UserDto)
 
     /**
      * Deletes a registered user and its identities from the user storage.
      * @param user The registered user to delete.
      */
-    public fun delete(user: User)
+    public fun delete(user: UserDto)
 
     /**
      * Retrieves a registered user from the user storage.
      * @param userId Identifier of the user.
      * @param projectId Identifier of the project on the MIRACLTrust platform to which the user is linked.
      */
-    public fun getUser(userId: String, projectId: String): User?
+    public fun getUser(userId: String, projectId: String): UserDto?
 
     /**
      * Returns all users from the user storage.
      */
-    public fun all(): List<User>
+    public fun all(): List<UserDto>
 }
