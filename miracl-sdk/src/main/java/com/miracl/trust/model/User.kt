@@ -9,17 +9,22 @@ import com.miracl.trust.util.toSHA256
  * @property projectId Required to link the user with the project on the MIRACLTrust platform.
  * @property revoked Provides information if the user is revoked or not.
  * @property pinLength The number of the digits the user PIN should be.
+ * @property mpinId representing the user to the MIRACL Trust Platform.
+ * @property token representing the user securely.
+ * @property dtas required for server side validation.
+ * @property publicKey Public part of the signing key.
+
  */
 @Keep
-public class User internal constructor(
+public class User(
     public val userId: String,
     public val projectId: String,
     public val revoked: Boolean,
     public val pinLength: Int,
-    internal val mpinId: ByteArray,
-    internal val token: ByteArray,
-    internal val dtas: String,
-    internal val publicKey: ByteArray?
+    public val mpinId: ByteArray,
+    public val token: ByteArray,
+    public val dtas: String,
+    public val publicKey: ByteArray?
 ) {
     /** Hex encoded SHA256 representation of the mpinId property. */
     public val hashedMpinId: String = mpinId.toSHA256()

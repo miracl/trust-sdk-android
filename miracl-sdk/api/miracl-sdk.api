@@ -186,10 +186,15 @@ public final class com/miracl/trust/model/QuickCode : java/io/Serializable {
 }
 
 public final class com/miracl/trust/model/User {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZI[B[BLjava/lang/String;[B)V
+	public final fun getDtas ()Ljava/lang/String;
 	public final fun getHashedMpinId ()Ljava/lang/String;
+	public final fun getMpinId ()[B
 	public final fun getPinLength ()I
 	public final fun getProjectId ()Ljava/lang/String;
+	public final fun getPublicKey ()[B
 	public final fun getRevoked ()Z
+	public final fun getToken ()[B
 	public final fun getUserId ()Ljava/lang/String;
 }
 
