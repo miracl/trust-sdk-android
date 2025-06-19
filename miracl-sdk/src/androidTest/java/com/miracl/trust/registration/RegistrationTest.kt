@@ -23,6 +23,7 @@ import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.storage.room.RoomUserStorage
 import com.miracl.trust.storage.room.UserDatabase
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
+import com.miracl.trust.util.toUser
 import com.miracl.trust.utilities.*
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
@@ -224,7 +225,7 @@ class RegistrationTest {
         authenticationResult = authenticate(user, accessId, wrongPinProvider)
         Assert.assertTrue(authenticationResult is MIRACLError)
 
-        user = userStorage.getUser(user.userId, user.projectId)!!
+        user = userStorage.getUser(user.userId, user.projectId)!!.toUser()
         Assert.assertTrue(user.revoked)
 
         // Override registration

@@ -610,13 +610,25 @@ public final class com/miracl/trust/signing/SigningResult {
 	public final fun getTimestamp ()Ljava/util/Date;
 }
 
+public final class com/miracl/trust/storage/UserDto {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZI[B[BLjava/lang/String;[B)V
+	public final fun getDtas ()Ljava/lang/String;
+	public final fun getMpinId ()[B
+	public final fun getPinLength ()I
+	public final fun getProjectId ()Ljava/lang/String;
+	public final fun getPublicKey ()[B
+	public final fun getRevoked ()Z
+	public final fun getToken ()[B
+	public final fun getUserId ()Ljava/lang/String;
+}
+
 public abstract interface class com/miracl/trust/storage/UserStorage {
-	public abstract fun add (Lcom/miracl/trust/model/User;)V
+	public abstract fun add (Lcom/miracl/trust/storage/UserDto;)V
 	public abstract fun all ()Ljava/util/List;
-	public abstract fun delete (Lcom/miracl/trust/model/User;)V
-	public abstract fun getUser (Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/trust/model/User;
+	public abstract fun delete (Lcom/miracl/trust/storage/UserDto;)V
+	public abstract fun getUser (Ljava/lang/String;Ljava/lang/String;)Lcom/miracl/trust/storage/UserDto;
 	public abstract fun loadStorage ()V
-	public abstract fun update (Lcom/miracl/trust/model/User;)V
+	public abstract fun update (Lcom/miracl/trust/storage/UserDto;)V
 }
 
 public final class com/miracl/trust/storage/UserStorageException : java/lang/Exception {

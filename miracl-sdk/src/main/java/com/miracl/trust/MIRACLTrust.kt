@@ -28,6 +28,8 @@ import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import com.miracl.trust.util.log.DefaultLogger
 import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants
+import com.miracl.trust.util.toUserDto
+import com.miracl.trust.util.toUser
 import kotlinx.coroutines.*
 import kotlin.jvm.Throws
 
@@ -928,7 +930,7 @@ public class MIRACLTrust private constructor(
     public suspend fun getUsers(): List<User> {
         return withContext(Dispatchers.IO) {
             try {
-                userStorage.all()
+                userStorage.all().map { it.toUser() }
             } catch (ex: Exception) {
                 throw UserStorageException(ex)
             }
@@ -944,7 +946,7 @@ public class MIRACLTrust private constructor(
     public fun getUsers(resultHandler: ResultHandler<List<User>, UserStorageException>) {
         miraclTrustScope.launch {
             try {
-                val users = userStorage.all()
+                val users = userStorage.all().map { it.toUser() }
 
                 withContext(resultHandlerDispatcher) {
                     resultHandler.onResult(MIRACLSuccess(users))
@@ -966,7 +968,7 @@ public class MIRACLTrust private constructor(
     public suspend fun getUser(userId: String): User? {
         return withContext(Dispatchers.IO) {
             try {
-                userStorage.getUser(userId, projectId)
+                userStorage.getUser(userId, projectId)?.toUser()
             } catch (ex: Exception) {
                 throw UserStorageException(ex)
             }
@@ -984,7 +986,8 @@ public class MIRACLTrust private constructor(
     public fun getUser(userId: String, resultHandler: ResultHandler<User?, UserStorageException>) {
         miraclTrustScope.launch {
             try {
-                val user = userStorage.getUser(userId, projectId)
+                val user = userStorage.getUser(userId, projectId)?.toUser()
+
                 withContext(resultHandlerDispatcher) {
                     resultHandler.onResult(MIRACLSuccess(user))
                 }
@@ -1003,7 +1006,7 @@ public class MIRACLTrust private constructor(
     public suspend fun delete(user: User) {
         withContext(Dispatchers.IO) {
             try {
-                userStorage.delete(user)
+                userStorage.delete(user.toUserDto())
             } catch (ex: Exception) {
                 throw UserStorageException(ex)
             }
@@ -1020,7 +1023,7 @@ public class MIRACLTrust private constructor(
     public fun delete(user: User, resultHandler: ResultHandler<Unit, UserStorageException>) {
         miraclTrustScope.launch {
             try {
-                userStorage.delete(user)
+                userStorage.delete(user.toUserDto())
 
                 withContext(resultHandlerDispatcher) {
                     resultHandler.onResult(MIRACLSuccess(Unit))

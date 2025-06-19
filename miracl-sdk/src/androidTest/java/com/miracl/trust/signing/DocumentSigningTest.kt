@@ -28,6 +28,7 @@ import com.miracl.trust.storage.room.RoomUserStorage
 import com.miracl.trust.storage.room.UserDatabase
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import com.miracl.trust.util.secondsSince1970
+import com.miracl.trust.util.toUser
 import com.miracl.trust.utilities.MIRACLService
 import com.miracl.trust.utilities.USER_ID
 import com.miracl.trust.utilities.USER_PIN_LENGTH
@@ -314,7 +315,7 @@ class DocumentSigningTest {
         Assert.assertTrue(signingResult is MIRACLError)
         Assert.assertEquals(SigningException.Revoked, (signingResult as MIRACLError).value)
 
-        user = userStorage.getUser(user.userId, user.projectId)!!
+        user = userStorage.getUser(user.userId, user.projectId)!!.toUser()
         Assert.assertTrue(user.revoked)
 
         // Act

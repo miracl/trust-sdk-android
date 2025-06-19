@@ -15,6 +15,7 @@ import com.miracl.trust.util.acquirePin
 import com.miracl.trust.util.hexStringToByteArray
 import com.miracl.trust.util.log.Loggable
 import com.miracl.trust.util.log.LoggerConstants
+import com.miracl.trust.util.toUserDto
 import com.miracl.trust.util.toHexString
 
 internal interface RegistratorContract {
@@ -334,7 +335,7 @@ internal class Registrator(
 
     private fun saveUser(user: User): MIRACLResult<Unit, RegistrationException> {
         return try {
-            userStorage.add(user)
+            userStorage.add(user.toUserDto())
             MIRACLSuccess(Unit)
         } catch (ex: Exception) {
             MIRACLError(RegistrationException.RegistrationFail(ex))
@@ -343,7 +344,7 @@ internal class Registrator(
 
     private fun updateUser(user: User): MIRACLResult<Unit, RegistrationException> {
         return try {
-            userStorage.update(user)
+            userStorage.update(user.toUserDto())
             MIRACLSuccess(Unit)
         } catch (ex: Exception) {
             MIRACLError(RegistrationException.RegistrationFail(ex))
