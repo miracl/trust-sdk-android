@@ -60,13 +60,16 @@ class RegistratorUnitTest {
             val activationToken = randomUuidString()
             val pushNotificationToken = randomUuidString()
             val mpinId = randomHexString()
+            val dtas = randomUuidString()
 
             val registerRequestCapturingSlot = CapturingSlot<RegisterRequestBody>()
             val registerResponse =
                 RegisterResponse(
                     mpinId = mpinId,
                     projectId = projectId,
-                    regOTT = randomUuidString()
+                    dtas = dtas,
+                    curve = SupportedEllipticCurves.BN254CX.name,
+                    secretUrls = listOf(randomUuidString(), randomUuidString())
                 )
             coEvery {
                 registrationApiMock.executeRegisterRequest(
@@ -79,21 +82,6 @@ class RegistratorUnitTest {
             coEvery {
                 cryptoMock.generateSigningKeyPair()
             } returns MIRACLSuccess(signingKeyPair)
-
-            val dtas = randomUuidString()
-            val signatureResponse = SignatureResponse(
-                clientSecret2Url = randomUuidString(),
-                dvsClientSecretShare = randomHexString(),
-                dtas = dtas,
-                curve = SupportedEllipticCurves.BN254CX.name
-            )
-            coEvery {
-                registrationApiMock.executeSignatureRequest(
-                    mpinId = mpinId,
-                    regOTT = registerResponse.regOTT,
-                    publicKey = signingKeyPair.publicKey.toHexString()
-                )
-            } returns MIRACLSuccess(value = signatureResponse)
 
             // Act
             registratorSpy.register(
@@ -112,8 +100,7 @@ class RegistratorUnitTest {
                     projectId = projectId,
                     mpinId = mpinId,
                     signingKeyPair = signingKeyPair,
-                    clientSecretShare = signatureResponse.dvsClientSecretShare,
-                    clientSecret2Url = signatureResponse.clientSecret2Url,
+                    secretUrls = registerResponse.secretUrls,
                     dtas = dtas,
                     pinProvider = pinProvider
                 )
@@ -124,6 +111,10 @@ class RegistratorUnitTest {
             Assert.assertEquals(deviceName, registerRequestBody.deviceName)
             Assert.assertEquals(activationToken, registerRequestBody.activationToken)
             Assert.assertEquals(pushNotificationToken, registerRequestBody.pushToken)
+            Assert.assertEquals(
+                signingKeyPair.publicKey.toHexString(),
+                registerRequestBody.publicKey
+            )
         }
 
     @Test
@@ -173,6 +164,33 @@ class RegistratorUnitTest {
         }
 
     @Test
+    fun `register should return MIRACLError when generateSigningKeyPair returns MIRACLError`() =
+        runTest {
+            // Arrange
+            val activationToken = randomUuidString()
+
+            val cryptoException = CryptoException.GenerateSigningKeyPairError()
+            coEvery {
+                cryptoMock.generateSigningKeyPair()
+            } returns MIRACLError(value = cryptoException)
+
+            // Act
+            val actualResult = registrator.register(
+                userId = userId,
+                projectId = projectId,
+                activationToken = activationToken,
+                pinProvider = pinProvider,
+                deviceName = deviceName,
+                null
+            )
+
+            // Assert
+            Assert.assertTrue(actualResult is MIRACLError)
+            Assert.assertTrue((actualResult as MIRACLError).value is RegistrationException.RegistrationFail)
+            Assert.assertEquals(cryptoException, actualResult.value.cause)
+        }
+
+    @Test
     fun `register should return MIRACLError when executeRegisterRequest returns MIRACLError`() =
         runTest {
             // Arrange
@@ -209,7 +227,9 @@ class RegistratorUnitTest {
                 RegisterResponse(
                     mpinId = randomUuidString(),
                     projectId = differentProjectId,
-                    regOTT = randomUuidString()
+                    dtas = randomUuidString(),
+                    curve = SupportedEllipticCurves.BN254CX.name,
+                    secretUrls = listOf(randomUuidString(), randomUuidString())
                 )
             coEvery {
                 registrationApiMock.executeRegisterRequest(any(), any())
@@ -234,76 +254,22 @@ class RegistratorUnitTest {
         }
 
     @Test
-    fun `register should return MIRACLError when executeSignatureRequest returns MIRACLError`() =
+    fun `register should return MIRACLError when curve from registerResponse is not supported by the Crypto`() =
         runTest {
             // Arrange
             val activationToken = randomUuidString()
-            val registrationException = RegistrationException.RegistrationFail(IOException())
 
+            val registerResponse =
+                RegisterResponse(
+                    mpinId = randomUuidString(),
+                    projectId = projectId,
+                    dtas = randomUuidString(),
+                    curve = "unsupported curve",
+                    secretUrls = listOf(randomUuidString(), randomUuidString())
+                )
             coEvery {
-                registrationApiMock.executeSignatureRequest(any(), any(), any())
-            } returns MIRACLError(value = registrationException)
-
-            setUpCryptoMock()
-
-            // Act
-            val actualResult = registrator.register(
-                userId = userId,
-                projectId = projectId,
-                activationToken = activationToken,
-                pinProvider = pinProvider,
-                deviceName = deviceName,
-                null
-            )
-
-            // Assert
-            Assert.assertTrue(actualResult is MIRACLError)
-            Assert.assertEquals(registrationException, (actualResult as MIRACLError).value)
-        }
-
-    @Test
-    fun `register should return MIRACLError when executeSignatureRequest throws exception`() =
-        runTest {
-            // Arrange
-            val activationToken = randomUuidString()
-            val exception = Exception()
-
-            coEvery {
-                registrationApiMock.executeSignatureRequest(any(), any(), any())
-            } throws exception
-
-            setUpCryptoMock()
-
-            // Act
-            val actualResult = registrator.register(
-                userId = userId,
-                projectId = projectId,
-                activationToken = activationToken,
-                pinProvider = pinProvider,
-                deviceName = deviceName,
-                null
-            )
-
-            // Assert
-            Assert.assertTrue(actualResult is MIRACLError)
-            Assert.assertTrue((actualResult as MIRACLError).value is RegistrationException.RegistrationFail)
-            Assert.assertEquals(exception, actualResult.value.cause)
-        }
-
-    @Test
-    fun `register should return MIRACLError when curve from signatureResponse is not supported by the Crypto`() =
-        runTest {
-            // Arrange
-            val activationToken = randomUuidString()
-            val signatureResponse = SignatureResponse(
-                clientSecret2Url = randomUuidString(),
-                dvsClientSecretShare = randomUuidString(),
-                dtas = randomUuidString(),
-                curve = "unsupported curve"
-            )
-            coEvery {
-                registrationApiMock.executeSignatureRequest(any(), any(), any())
-            } returns MIRACLSuccess(value = signatureResponse)
+                registrationApiMock.executeRegisterRequest(any(), any())
+            } returns MIRACLSuccess(value = registerResponse)
 
             setUpCryptoMock()
 
@@ -366,20 +332,24 @@ class RegistratorUnitTest {
             val hashOfMpinId = mpinId.hexStringToByteArray().toSHA256()
 
             val dtas = randomUuidString()
-            val clientSecret2Url = randomUuidString()
-            val clientSecretShare = randomHexString()
+            val secretUrls = listOf(randomUuidString(), randomUuidString())
 
             val signingKeyPair = SigningKeyPair(randomByteArray(), randomByteArray())
 
-            val clientSecretShare2Response = createDVSClientSecret2Response()
+            val clientSecretShare1Response = createDVSClientSecretResponse()
             coEvery {
-                registrationApiMock.executeDVSClientSecret2Request(clientSecret2Url, projectId)
+                registrationApiMock.executeDVSClientSecretRequest(secretUrls[0])
+            } returns MIRACLSuccess(value = clientSecretShare1Response)
+
+            val clientSecretShare2Response = createDVSClientSecretResponse()
+            coEvery {
+                registrationApiMock.executeDVSClientSecretRequest(secretUrls[1])
             } returns MIRACLSuccess(value = clientSecretShare2Response)
 
             val expectedToken = randomByteArray()
             coEvery {
                 cryptoMock.getSigningClientToken(
-                    clientSecretShare.hexStringToByteArray(),
+                    clientSecretShare1Response.dvsClientSecret.hexStringToByteArray(),
                     clientSecretShare2Response.dvsClientSecret.hexStringToByteArray(),
                     signingKeyPair.privateKey,
                     mpinId.hexStringToByteArray() + signingKeyPair.publicKey,
@@ -397,8 +367,7 @@ class RegistratorUnitTest {
                 projectId,
                 mpinId,
                 signingKeyPair,
-                clientSecretShare,
-                clientSecret2Url,
+                secretUrls,
                 dtas,
                 pinProvider
             )
@@ -427,7 +396,6 @@ class RegistratorUnitTest {
         runTest {
             // Arrange
             val registerResponse = createRegisterResponse()
-            val signatureResponse = createSignatureResponse()
 
             every { userStorageMock.getUser(userId, projectId) } returns null
 
@@ -440,9 +408,8 @@ class RegistratorUnitTest {
                 projectId,
                 registerResponse.mpinId,
                 createSigningKeyPair(),
-                signatureResponse.dvsClientSecretShare,
-                signatureResponse.clientSecret2Url,
-                signatureResponse.dtas,
+                registerResponse.secretUrls,
+                registerResponse.dtas,
                 pinProvider
             )
 
@@ -460,9 +427,10 @@ class RegistratorUnitTest {
             val registerResponse = RegisterResponse(
                 mpinId = invalidMpinId,
                 projectId = projectId,
-                regOTT = randomUuidString()
+                dtas = randomUuidString(),
+                curve = SupportedEllipticCurves.BN254CX.name,
+                secretUrls = listOf(randomUuidString(), randomUuidString())
             )
-            val signatureResponse = createSignatureResponse()
 
             // Act
             val actualResult = registrator.finishRegistration(
@@ -470,9 +438,8 @@ class RegistratorUnitTest {
                 projectId,
                 registerResponse.mpinId,
                 createSigningKeyPair(),
-                signatureResponse.dvsClientSecretShare,
-                signatureResponse.clientSecret2Url,
-                signatureResponse.dtas,
+                registerResponse.secretUrls,
+                registerResponse.dtas,
                 pinProvider
             )
 
@@ -483,15 +450,14 @@ class RegistratorUnitTest {
         }
 
     @Test
-    fun `finishRegistration should return MIRACLError when executeDVSClientSecret2Request request returns MIRACLError`() =
+    fun `finishRegistration should return MIRACLError when executeDVSClientSecretRequest request returns MIRACLError`() =
         runTest {
             // Arrange
             val registerResponse = createRegisterResponse()
-            val signatureResponse = createSignatureResponse()
 
             val registrationException = RegistrationException.RegistrationFail(IOException())
             coEvery {
-                registrationApiMock.executeDVSClientSecret2Request(any(), any())
+                registrationApiMock.executeDVSClientSecretRequest(any())
             } returns MIRACLError(registrationException)
 
             // Act
@@ -500,9 +466,8 @@ class RegistratorUnitTest {
                 projectId,
                 registerResponse.mpinId,
                 createSigningKeyPair(),
-                signatureResponse.dvsClientSecretShare,
-                signatureResponse.clientSecret2Url,
-                signatureResponse.dtas,
+                registerResponse.secretUrls,
+                registerResponse.dtas,
                 pinProvider
             )
 
@@ -512,42 +477,11 @@ class RegistratorUnitTest {
         }
 
     @Test
-    fun `finishRegistration should return MIRACLError when client secret share1 is not a valid hexString`() =
-        runTest {
-            // Arrange
-            val registerResponse = createRegisterResponse()
-            val invalidSecretShare1 = "invalid css1"
-            val signatureResponse = SignatureResponse(
-                clientSecret2Url = randomUuidString(),
-                dvsClientSecretShare = invalidSecretShare1,
-                dtas = randomUuidString(),
-                curve = SupportedEllipticCurves.BN254CX.name
-            )
-
-            // Act
-            val actualResult = registrator.finishRegistration(
-                userId,
-                projectId,
-                registerResponse.mpinId,
-                createSigningKeyPair(),
-                signatureResponse.dvsClientSecretShare,
-                signatureResponse.clientSecret2Url,
-                signatureResponse.dtas,
-                pinProvider
-            )
-
-            // Assert
-            Assert.assertTrue(actualResult is MIRACLError)
-            Assert.assertTrue((actualResult as MIRACLError).value is RegistrationException.RegistrationFail)
-            Assert.assertTrue(actualResult.value.cause is NumberFormatException)
-        }
-
-    @Test
     fun `finishRegistration should return MIRACLError when entering the pin was canceled`() {
         runTest {
             // Arrange
             val mpinId = randomHexString()
-            val signatureResponse = createSignatureResponse()
+            val registerResponse = createRegisterResponse()
 
             // Act
             val actualResult = registrator.finishRegistration(
@@ -555,9 +489,8 @@ class RegistratorUnitTest {
                 projectId,
                 mpinId,
                 createSigningKeyPair(),
-                signatureResponse.dvsClientSecretShare,
-                signatureResponse.clientSecret2Url,
-                signatureResponse.dtas,
+                registerResponse.secretUrls,
+                registerResponse.dtas,
             ) { it.consume(null) }
 
             // Assert
@@ -572,7 +505,7 @@ class RegistratorUnitTest {
             // Arrange
             val pin = randomNumericPin(length = 3)
             val mpinId = randomHexString()
-            val signatureResponse = createSignatureResponse()
+            val registerResponse = createRegisterResponse()
 
             // Act
             val actualResult = registrator.finishRegistration(
@@ -580,9 +513,8 @@ class RegistratorUnitTest {
                 projectId,
                 mpinId,
                 createSigningKeyPair(),
-                signatureResponse.dvsClientSecretShare,
-                signatureResponse.clientSecret2Url,
-                signatureResponse.dtas,
+                registerResponse.secretUrls,
+                registerResponse.dtas,
             ) { it.consume(pin) }
 
             // Assert
@@ -597,7 +529,7 @@ class RegistratorUnitTest {
             // Arrange
             val pin = randomNumericPin(7)
             val mpinId = randomHexString()
-            val signatureResponse = createSignatureResponse()
+            val registerResponse = createRegisterResponse()
 
             // Act
             val actualResult = registrator.finishRegistration(
@@ -605,9 +537,8 @@ class RegistratorUnitTest {
                 projectId,
                 mpinId,
                 createSigningKeyPair(),
-                signatureResponse.dvsClientSecretShare,
-                signatureResponse.clientSecret2Url,
-                signatureResponse.dtas,
+                registerResponse.secretUrls,
+                registerResponse.dtas,
             ) { it.consume(pin) }
 
             // Assert
@@ -622,7 +553,7 @@ class RegistratorUnitTest {
             // Arrange
             val pin = "a" + randomNumericPin(randomPinLength()).substring(1)
             val mpinId = randomHexString()
-            val signatureResponse = createSignatureResponse()
+            val registerResponse = createRegisterResponse()
 
             // Act
             val actualResult = registrator.finishRegistration(
@@ -630,9 +561,8 @@ class RegistratorUnitTest {
                 projectId,
                 mpinId,
                 createSigningKeyPair(),
-                signatureResponse.dvsClientSecretShare,
-                signatureResponse.clientSecret2Url,
-                signatureResponse.dtas,
+                registerResponse.secretUrls,
+                registerResponse.dtas,
             ) { it.consume(pin) }
 
             // Assert
@@ -662,8 +592,7 @@ class RegistratorUnitTest {
                 projectId = projectId,
                 randomHexString(),
                 createSigningKeyPair(),
-                randomHexString(),
-                randomUuidString(),
+                listOf(randomHexString(), randomHexString()),
                 randomUuidString(),
                 pinProvider
             )
@@ -675,19 +604,18 @@ class RegistratorUnitTest {
         }
 
     @Test
-    fun `finishRegistration should return MIRACLError when dvs client secret share2 is not a valid hexString`() =
+    fun `finishRegistration should return MIRACLError when dvs client secret share is not a valid hexString`() =
         runTest {
             // Arrange
             val registerResponse = createRegisterResponse()
-            val signatureResponse = createSignatureResponse()
 
-            val invalidSecretShare2 = "invalid css2"
-            val clientSecretShare2Response = DVSClientSecret2Response(
-                dvsClientSecret = invalidSecretShare2
+            val invalidSecretShare = "invalid css"
+            val clientSecretShareResponse = DVSClientSecretResponse(
+                dvsClientSecret = invalidSecretShare
             )
             coEvery {
-                registrationApiMock.executeDVSClientSecret2Request(any(), any())
-            } returns MIRACLSuccess(value = clientSecretShare2Response)
+                registrationApiMock.executeDVSClientSecretRequest(any())
+            } returns MIRACLSuccess(value = clientSecretShareResponse)
 
             // Act
             val actualResult = registrator.finishRegistration(
@@ -695,9 +623,8 @@ class RegistratorUnitTest {
                 projectId,
                 registerResponse.mpinId,
                 createSigningKeyPair(),
-                signatureResponse.dvsClientSecretShare,
-                signatureResponse.clientSecret2Url,
-                signatureResponse.dtas,
+                registerResponse.secretUrls,
+                registerResponse.dtas,
                 pinProvider
             )
 
@@ -713,7 +640,7 @@ class RegistratorUnitTest {
             // Arrange
             val mpinId = randomHexString()
             val signingKeyPair = createSigningKeyPair()
-            val signatureResponse = createSignatureResponse()
+            val registerResponse = createRegisterResponse()
 
             val expectedToken = randomByteArray()
             coEvery {
@@ -737,9 +664,8 @@ class RegistratorUnitTest {
                 projectId,
                 mpinId,
                 signingKeyPair,
-                signatureResponse.dvsClientSecretShare,
-                signatureResponse.clientSecret2Url,
-                signatureResponse.dtas,
+                registerResponse.secretUrls,
+                registerResponse.dtas,
                 pinProvider
             )
 
@@ -756,7 +682,7 @@ class RegistratorUnitTest {
             Assert.assertEquals(pin.length, user.pinLength)
             Assert.assertArrayEquals(mpinId.hexStringToByteArray(), user.mpinId)
             Assert.assertArrayEquals(expectedToken, user.token)
-            Assert.assertEquals(signatureResponse.dtas, user.dtas)
+            Assert.assertEquals(registerResponse.dtas, user.dtas)
             Assert.assertEquals(signingKeyPair.publicKey, user.publicKey)
         }
 
@@ -775,8 +701,7 @@ class RegistratorUnitTest {
                 projectId,
                 randomHexString(),
                 createSigningKeyPair(),
-                randomHexString(),
-                randomUuidString(),
+                listOf(randomHexString(), randomHexString()),
                 randomUuidString(),
                 pinProvider
             )
@@ -802,28 +727,13 @@ class RegistratorUnitTest {
         RegisterResponse(
             mpinId = randomHexString(),
             projectId = projectId,
-            regOTT = randomUuidString()
-        )
-
-    private fun createSignatureResponse() =
-        SignatureResponse(
-            clientSecret2Url = randomUuidString(),
-            dvsClientSecretShare = randomHexString(),
             dtas = randomUuidString(),
-            curve = SupportedEllipticCurves.BN254CX.name
-        )
-
-    private fun createDVSClientSecret1Response() =
-        DVSClientSecret1Response(
-            dvsClientSecretShare = randomHexString(),
-            clientSecret2Url = randomUuidString(),
             curve = SupportedEllipticCurves.BN254CX.name,
-            dtas = randomUuidString(),
-            mpinId = randomHexString()
+            secretUrls = listOf(randomUuidString(), randomUuidString())
         )
 
-    private fun createDVSClientSecret2Response() =
-        DVSClientSecret2Response(
+    private fun createDVSClientSecretResponse() =
+        DVSClientSecretResponse(
             dvsClientSecret = randomHexString()
         )
 
@@ -833,19 +743,9 @@ class RegistratorUnitTest {
             registrationApiMock.executeRegisterRequest(any(), any())
         } returns MIRACLSuccess(value = registerResponse)
 
-        val signatureResponse = createSignatureResponse()
+        val clientSecretShare2Response = createDVSClientSecretResponse()
         coEvery {
-            registrationApiMock.executeSignatureRequest(any(), any(), any())
-        } returns MIRACLSuccess(value = signatureResponse)
-
-        val clientSecretShare1Response = createDVSClientSecret1Response()
-        coEvery {
-            registrationApiMock.executeDVSClientSecret1Request(any(), any(), any())
-        } returns MIRACLSuccess(value = clientSecretShare1Response)
-
-        val clientSecretShare2Response = createDVSClientSecret2Response()
-        coEvery {
-            registrationApiMock.executeDVSClientSecret2Request(any(), any())
+            registrationApiMock.executeDVSClientSecretRequest(any())
         } returns MIRACLSuccess(value = clientSecretShare2Response)
     }
 
