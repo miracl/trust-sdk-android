@@ -204,14 +204,15 @@ internal class Authenticator(
 
             val authenticateResponse = (authenticationResponseResult as MIRACLSuccess).value
 
-            authenticateResponse.renewSecretResponse?.token?.let { dvsRegistrationToken ->
+            authenticateResponse.renewSecretResponse?.token?.let { token ->
                 logOperation(LoggerConstants.AuthenticatorOperations.RENEW_SECRET_STARTED)
-                val renewResponse = registrator.overrideRegistration(
-                    user.userId,
-                    user.projectId,
-                    dvsRegistrationToken,
-                    { it.consume(pinEntered) },
-                    deviceName
+                val renewResponse = registrator.register(
+                    userId = user.userId,
+                    projectId = user.projectId,
+                    activationToken = token,
+                    pinProvider = { it.consume(pinEntered) },
+                    deviceName = deviceName,
+                    pushNotificationsToken = null
                 )
 
                 if (renewResponse is MIRACLSuccess) {

@@ -16,43 +16,22 @@ import kotlinx.serialization.Serializable
 internal data class RegisterRequestBody(
     @SerialName("userId") val userId: String,
     @SerialName("deviceName") val deviceName: String,
-    @SerialName("activateCode") val activationToken: String,
+    @SerialName("activationToken") val activationToken: String,
     @SerialName("pushToken") val pushToken: String? = null,
+    @SerialName("publicKey") val publicKey: String
 )
 
 @Serializable
 internal data class RegisterResponse(
     @SerialName("mpinId") val mpinId: String,
     @SerialName("projectId") val projectId: String,
-    @SerialName("regOTT") val regOTT: String
-)
-
-@Serializable
-internal data class SignatureResponse(
-    @SerialName("dvsClientSecretShare") var dvsClientSecretShare: String,
-    @SerialName("cs2url") val clientSecret2Url: String,
     @SerialName("dtas") val dtas: String,
-    @SerialName("curve") val curve: String
-)
-
-@Serializable
-internal data class DVSClientSecretRequestBody(
-    @SerialName("publicKey") val publicKey: String,
-    @SerialName("deviceName") val deviceName: String,
-    @SerialName("dvsRegisterToken") val dvsRegisterToken: String
-)
-
-@Serializable
-internal data class DVSClientSecret1Response(
-    @SerialName("dvsClientSecretShare") val dvsClientSecretShare: String,
-    @SerialName("cs2url") val clientSecret2Url: String,
     @SerialName("curve") val curve: String,
-    @SerialName("dtas") val dtas: String,
-    @SerialName("mpinId") val mpinId: String
+    @SerialName("secretUrls") val secretUrls: List<String>
 )
 
 @Serializable
-internal data class DVSClientSecret2Response(
+internal data class DVSClientSecretResponse(
     @SerialName("dvsClientSecret") var dvsClientSecret: String
 )
 
@@ -62,22 +41,9 @@ internal interface RegistrationApi {
         projectId: String
     ): MIRACLResult<RegisterResponse, RegistrationException>
 
-    suspend fun executeSignatureRequest(
-        mpinId: String,
-        regOTT: String,
-        publicKey: String
-    ): MIRACLResult<SignatureResponse, RegistrationException>
-
-    suspend fun executeDVSClientSecret1Request(
-        publicKey: String,
-        dvsRegistrationToken: String,
-        deviceName: String
-    ): MIRACLResult<DVSClientSecret1Response, RegistrationException>
-
-    suspend fun executeDVSClientSecret2Request(
-        clientSecretUrl: String,
-        projectId: String
-    ): MIRACLResult<DVSClientSecret2Response, RegistrationException>
+    suspend fun executeDVSClientSecretRequest(
+        clientSecretUrl: String
+    ): MIRACLResult<DVSClientSecretResponse, RegistrationException>
 
 }
 
@@ -98,7 +64,7 @@ internal class RegistrationApiManager(
             val registerRequestAsJson = jsonUtil.toJsonString(registerRequestBody)
             val registerRequest =
                 ApiRequest(
-                    method = HttpMethod.PUT,
+                    method = HttpMethod.POST,
                     headers = null,
                     body = registerRequestAsJson,
                     params = null,
@@ -123,81 +89,11 @@ internal class RegistrationApiManager(
         }
     }
 
-    override suspend fun executeSignatureRequest(
-        mpinId: String,
-        regOTT: String,
-        publicKey: String
-    ): MIRACLResult<SignatureResponse, RegistrationException> {
+    override suspend fun executeDVSClientSecretRequest(
+        clientSecretUrl: String
+    ): MIRACLResult<DVSClientSecretResponse, RegistrationException> {
         try {
-            val signatureParams = mutableMapOf(
-                "regOTT" to regOTT,
-                "publicKey" to publicKey
-            )
-            val signatureRequest = ApiRequest(
-                method = HttpMethod.GET,
-                headers = null,
-                body = null,
-                params = signatureParams,
-                url = "${apiSettings.signatureUrl}/$mpinId"
-            )
-
-            val result = apiRequestExecutor.execute(signatureRequest)
-            if (result is MIRACLError) {
-                return MIRACLError(RegistrationException.RegistrationFail(result.value))
-            }
-
-            val signatureResponse =
-                jsonUtil.fromJsonString<SignatureResponse>((result as MIRACLSuccess).value)
-
-            return MIRACLSuccess(signatureResponse)
-        } catch (ex: java.lang.Exception) {
-            return MIRACLError(RegistrationException.RegistrationFail(ex))
-        }
-    }
-
-    override suspend fun executeDVSClientSecret1Request(
-        publicKey: String,
-        dvsRegistrationToken: String,
-        deviceName: String
-    ): MIRACLResult<DVSClientSecret1Response, RegistrationException> {
-        val requestBody = DVSClientSecretRequestBody(
-            publicKey,
-            deviceName,
-            dvsRegistrationToken
-        )
-
-        try {
-            val requestBodyJson = jsonUtil.toJsonString(requestBody)
-            val apiRequest = ApiRequest(
-                method = HttpMethod.POST,
-                headers = null,
-                body = requestBodyJson,
-                params = null,
-                url = apiSettings.dvsRegUrl
-            )
-
-            val result = apiRequestExecutor.execute(apiRequest)
-            if (result is MIRACLError) {
-                return MIRACLError(
-                    RegistrationException.RegistrationFail(result.value)
-                )
-            }
-
-            val dvsClientSecret1Response =
-                jsonUtil.fromJsonString<DVSClientSecret1Response>((result as MIRACLSuccess).value)
-
-            return MIRACLSuccess(dvsClientSecret1Response)
-        } catch (ex: Exception) {
-            return MIRACLError(RegistrationException.RegistrationFail(ex))
-        }
-    }
-
-    override suspend fun executeDVSClientSecret2Request(
-        clientSecretUrl: String,
-        projectId: String
-    ): MIRACLResult<DVSClientSecret2Response, RegistrationException> {
-        try {
-            val clientSecretShare2Request = ApiRequest(
+            val clientSecretShareRequest = ApiRequest(
                 method = HttpMethod.GET,
                 headers = null,
                 body = null,
@@ -205,15 +101,15 @@ internal class RegistrationApiManager(
                 url = clientSecretUrl
             )
 
-            val result = apiRequestExecutor.execute(clientSecretShare2Request)
+            val result = apiRequestExecutor.execute(clientSecretShareRequest)
             if (result is MIRACLError) {
                 return MIRACLError(RegistrationException.RegistrationFail(result.value))
             }
 
-            val dvsClientSecret2Response =
-                jsonUtil.fromJsonString<DVSClientSecret2Response>((result as MIRACLSuccess).value)
+            val dvsClientSecretResponse =
+                jsonUtil.fromJsonString<DVSClientSecretResponse>((result as MIRACLSuccess).value)
 
-            return MIRACLSuccess(dvsClientSecret2Response)
+            return MIRACLSuccess(dvsClientSecretResponse)
         } catch (ex: java.lang.Exception) {
             return MIRACLError(RegistrationException.RegistrationFail(ex))
         }
