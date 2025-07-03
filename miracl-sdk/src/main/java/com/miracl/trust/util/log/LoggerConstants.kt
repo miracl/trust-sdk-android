@@ -28,7 +28,6 @@ internal object LoggerConstants {
 
     object RegistratorOperations {
         internal const val REGISTER_REQUEST = "Executing register request."
-        internal const val SIGNATURE_REQUEST = "Executing signature request."
         internal const val SIGNING_KEY_PAIR = "Getting signing key pair."
         internal const val DVS_CLIENT_SECRET_1_REQUEST = "Executing DVS client secret 1 request."
         internal const val DVS_CLIENT_SECRET_2_REQUEST = "Executing DVS client secret 2 request."

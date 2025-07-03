@@ -27,14 +27,6 @@ internal interface RegistratorContract {
         deviceName: String,
         pushNotificationsToken: String?
     ): MIRACLResult<User, RegistrationException>
-
-    suspend fun overrideRegistration(
-        userId: String,
-        projectId: String,
-        dvsRegistrationToken: String,
-        pinProvider: PinProvider,
-        deviceName: String
-    ): MIRACLResult<User, RegistrationException>
 }
 
 internal class Registrator(
@@ -61,11 +53,25 @@ internal class Registrator(
             return MIRACLError(exception)
         }
 
+        logOperation(LoggerConstants.RegistratorOperations.SIGNING_KEY_PAIR)
+        val signingKeyPairResponse = crypto.generateSigningKeyPair()
+
+        if (signingKeyPairResponse is MIRACLError) {
+            return MIRACLError(
+                RegistrationException.RegistrationFail(
+                    signingKeyPairResponse.value
+                )
+            )
+        }
+
+        val signingKeyPair = (signingKeyPairResponse as MIRACLSuccess).value
+
         val registerRequestBody = RegisterRequestBody(
             userId = userId.trim(),
             deviceName = deviceName.trim(),
             activationToken = activationToken.trim(),
-            pushToken = pushNotificationsToken
+            pushToken = pushNotificationsToken,
+            publicKey = signingKeyPair.publicKey.toHexString()
         )
 
         try {
@@ -81,32 +87,8 @@ internal class Registrator(
                 return MIRACLError(RegistrationException.ProjectMismatch)
             }
 
-            val signingKeyPairResponse = crypto.generateSigningKeyPair()
-            if (signingKeyPairResponse is MIRACLError) {
-                return MIRACLError(
-                    RegistrationException.RegistrationFail(
-                        signingKeyPairResponse.value
-                    )
-                )
-            }
-
-            val signingKeyPair = (signingKeyPairResponse as MIRACLSuccess).value
-
-            logOperation(LoggerConstants.RegistratorOperations.SIGNATURE_REQUEST)
-            val signatureResponseResult = registrationApi.executeSignatureRequest(
-                registerResponse.mpinId,
-                registerResponse.regOTT,
-                signingKeyPair.publicKey.toHexString()
-            )
-
-            if (signatureResponseResult is MIRACLError) {
-                return MIRACLError(signatureResponseResult.value)
-            }
-
-            val signatureResponse = (signatureResponseResult as MIRACLSuccess).value
-
-            if (!SupportedEllipticCurves.values().map { it.name }
-                    .contains(signatureResponse.curve)) {
+            if (!SupportedEllipticCurves.entries.map { it.name }
+                    .contains(registerResponse.curve)) {
                 return MIRACLError(RegistrationException.UnsupportedEllipticCurve)
             }
 
@@ -115,57 +97,13 @@ internal class Registrator(
                 projectId,
                 registerResponse.mpinId,
                 signingKeyPair,
-                signatureResponse.dvsClientSecretShare,
-                signatureResponse.clientSecret2Url,
-                signatureResponse.dtas,
+                registerResponse.secretUrls,
+                registerResponse.dtas,
                 pinProvider
             )
         } catch (ex: java.lang.Exception) {
             return MIRACLError(RegistrationException.RegistrationFail(ex))
         }
-    }
-
-    override suspend fun overrideRegistration(
-        userId: String,
-        projectId: String,
-        dvsRegistrationToken: String,
-        pinProvider: PinProvider,
-        deviceName: String
-    ): MIRACLResult<User, RegistrationException> {
-        logOperation(LoggerConstants.RegistratorOperations.SIGNING_KEY_PAIR)
-        val signingKeyPairResponse = crypto.generateSigningKeyPair()
-        if (signingKeyPairResponse is MIRACLError) {
-            return MIRACLError(
-                RegistrationException.RegistrationFail(
-                    signingKeyPairResponse.value
-                )
-            )
-        }
-
-        val signingKeyPair = (signingKeyPairResponse as MIRACLSuccess).value
-
-        logOperation(LoggerConstants.RegistratorOperations.DVS_CLIENT_SECRET_1_REQUEST)
-        val dvsClientSecret1ResponseResult = registrationApi.executeDVSClientSecret1Request(
-            signingKeyPair.publicKey.toHexString(),
-            dvsRegistrationToken,
-            deviceName
-        )
-        validateDVSClientSecret1Response(dvsClientSecret1ResponseResult)?.let { error ->
-            return MIRACLError(error)
-        }
-
-        val dvsClientSecret1Response = (dvsClientSecret1ResponseResult as MIRACLSuccess).value
-
-        return finishRegistration(
-            userId,
-            projectId,
-            dvsClientSecret1Response.mpinId,
-            signingKeyPair,
-            dvsClientSecret1Response.dvsClientSecretShare,
-            dvsClientSecret1Response.clientSecret2Url,
-            dvsClientSecret1Response.dtas,
-            pinProvider
-        )
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
@@ -174,20 +112,27 @@ internal class Registrator(
         projectId: String,
         mpinId: String,
         signingKeyPair: SigningKeyPair,
-        clientSecretShare: String,
-        clientSecret2Url: String,
+        secretUrls: List<String>,
         dtas: String,
         pinProvider: PinProvider
     ): MIRACLResult<User, RegistrationException> {
         try {
-            logOperation(LoggerConstants.RegistratorOperations.DVS_CLIENT_SECRET_2_REQUEST)
-            val clientSecretResponseResult =
-                registrationApi.executeDVSClientSecret2Request(clientSecret2Url, projectId)
-            validateDVSClientSecret2Response(clientSecretResponseResult)?.let { error ->
+            logOperation(LoggerConstants.RegistratorOperations.DVS_CLIENT_SECRET_1_REQUEST)
+            val clientSecret1ResponseResult =
+                registrationApi.executeDVSClientSecretRequest(secretUrls[0])
+            validateDVSClientSecretResponse(clientSecret1ResponseResult)?.let { error ->
                 return MIRACLError(error)
             }
+            val clientSecretShare1Response = (clientSecret1ResponseResult as MIRACLSuccess).value
 
-            val clientSecretShare2Response = (clientSecretResponseResult as MIRACLSuccess).value
+            logOperation(LoggerConstants.RegistratorOperations.DVS_CLIENT_SECRET_2_REQUEST)
+            val clientSecret2ResponseResult =
+                registrationApi.executeDVSClientSecretRequest(secretUrls[1])
+            validateDVSClientSecretResponse(clientSecret2ResponseResult)?.let { error ->
+                return MIRACLError(error)
+            }
+            val clientSecretShare2Response = (clientSecret2ResponseResult as MIRACLSuccess).value
+
             val combinedMpinId = mpinId.hexStringToByteArray() + signingKeyPair.publicKey
 
             logOperation(LoggerConstants.RegistratorOperations.SIGNING_CLIENT_TOKEN)
@@ -204,13 +149,14 @@ internal class Registrator(
                 pinEntered.toIntOrNull() ?: return MIRACLError(RegistrationException.InvalidPin)
 
             val tokenResult = crypto.getSigningClientToken(
-                clientSecretShare1 = clientSecretShare.hexStringToByteArray(),
+                clientSecretShare1 = clientSecretShare1Response.dvsClientSecret.hexStringToByteArray(),
                 clientSecretShare2 = clientSecretShare2Response.dvsClientSecret.hexStringToByteArray(),
                 privateKey = signingKeyPair.privateKey,
                 signingMpinId = combinedMpinId,
                 pin = pin
             )
 
+            clientSecretShare1Response.dvsClientSecret = ""
             clientSecretShare2Response.dvsClientSecret = ""
 
             validateDVSClientToken(tokenResult)?.let { error ->
@@ -247,30 +193,8 @@ internal class Registrator(
         return null
     }
 
-    private fun validateDVSClientSecret1Response(
-        clientSecret1Response: MIRACLResult<DVSClientSecret1Response, RegistrationException>
-    ): RegistrationException? =
-        when (clientSecret1Response) {
-            is MIRACLError -> clientSecret1Response.value
-
-            is MIRACLSuccess -> {
-                if (!SupportedEllipticCurves.values().map { it.name }
-                        .contains(clientSecret1Response.value.curve)) {
-                    RegistrationException.UnsupportedEllipticCurve
-                } else if (clientSecret1Response.value.mpinId.isBlank()
-                    || clientSecret1Response.value.dtas.isBlank()
-                    || clientSecret1Response.value.dvsClientSecretShare.isBlank()
-                    || clientSecret1Response.value.clientSecret2Url.isBlank()
-                ) {
-                    RegistrationException.RegistrationFail()
-                } else {
-                    null
-                }
-            }
-        }
-
-    private fun validateDVSClientSecret2Response(
-        clientSecret2Response: MIRACLResult<DVSClientSecret2Response, RegistrationException>
+    private fun validateDVSClientSecretResponse(
+        clientSecret2Response: MIRACLResult<DVSClientSecretResponse, RegistrationException>
     ): RegistrationException? =
         when (clientSecret2Response) {
             is MIRACLError -> clientSecret2Response.value
