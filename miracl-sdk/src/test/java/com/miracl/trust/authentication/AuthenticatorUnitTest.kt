@@ -674,7 +674,7 @@ class AuthenticatorUnitTest {
             ) andThen MIRACLSuccess(AuthenticateResponse(200, "OK", null, null))
 
             coEvery {
-                registratorMock.overrideRegistration(any(), any(), any(), any(), any())
+                registratorMock.register(any(), any(), any(), any(), any(), any())
             } returns MIRACLSuccess(createUser())
 
             // Act
@@ -689,12 +689,13 @@ class AuthenticatorUnitTest {
 
             // Assert
             coVerify {
-                registratorMock.overrideRegistration(
+                registratorMock.register(
                     user.userId,
                     user.projectId,
                     token,
                     any(),
-                    deviceName
+                    deviceName,
+                    null
                 )
             }
             Assert.assertTrue(result is MIRACLSuccess)
@@ -732,7 +733,7 @@ class AuthenticatorUnitTest {
                 publicKey = randomByteArray()
             )
             coEvery {
-                registratorMock.overrideRegistration(any(), any(), any(), any(), any())
+                registratorMock.register(any(), any(), any(), any(), any(), any())
             } returns MIRACLSuccess(renewedUser)
 
             // Act
@@ -783,7 +784,7 @@ class AuthenticatorUnitTest {
             )
 
             coEvery {
-                registratorMock.overrideRegistration(any(), any(), any(), any(), any())
+                registratorMock.register(any(), any(), any(), any(), any(), any())
             } returns MIRACLError(RegistrationException.RegistrationFail())
 
             // Act
