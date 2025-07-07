@@ -101,9 +101,18 @@ internal class RegistrationApiManager(
                 url = clientSecretUrl
             )
 
-            val result = apiRequestExecutor.execute(clientSecretShareRequest)
+            var result = apiRequestExecutor.execute(clientSecretShareRequest)
+
             if (result is MIRACLError) {
-                return MIRACLError(RegistrationException.RegistrationFail(result.value))
+                if (result.value !is ApiException.ExecutionError) {
+                    return MIRACLError(RegistrationException.RegistrationFail(result.value))
+                }
+
+                // Retry the request if there is an execution error
+                result = apiRequestExecutor.execute(clientSecretShareRequest)
+                if (result is MIRACLError) {
+                    return MIRACLError(RegistrationException.RegistrationFail(result.value))
+                }
             }
 
             val dvsClientSecretResponse =
