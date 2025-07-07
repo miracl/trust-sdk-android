@@ -15,6 +15,7 @@ import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import io.mockk.CapturingSlot
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -217,6 +218,54 @@ class RegistrationApiUnitTest {
         runTest {
             // Arrange
             val clientSecretUrl = randomUuidString()
+            val httpRequestExecutorException = ApiException.ClientError()
+            val executorResult = MIRACLError<String, ApiException>(
+                value = httpRequestExecutorException
+            )
+            coEvery {
+                httpRequestExecutorMock.execute(any())
+            } returns executorResult
+
+            // Act
+            val result = registrationApi.executeDVSClientSecretRequest(clientSecretUrl)
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertTrue((result as MIRACLError).value is RegistrationException.RegistrationFail)
+            Assert.assertEquals(httpRequestExecutorException, result.value.cause)
+        }
+
+    @Test
+    fun `executeClientSecretRequest should retry the request when there is an execution error`() =
+        runTest {
+            // Arrange
+            val clientSecretUrl = randomUuidString()
+            val executionError = ApiException.ExecutionError()
+            val executorResult = MIRACLError<String, ApiException>(
+                value = executionError
+            )
+            val dvsClientSecretResponse =
+                DVSClientSecretResponse(dvsClientSecret = randomHexString())
+            val dvsClientSecret2ResponseAsJson = jsonUtil.toJsonString(dvsClientSecretResponse)
+            coEvery {
+                httpRequestExecutorMock.execute(any())
+            } returns executorResult andThen MIRACLSuccess(dvsClientSecret2ResponseAsJson)
+
+            // Act
+            val result = registrationApi.executeDVSClientSecretRequest(clientSecretUrl)
+
+            // Assert
+            coVerify(exactly = 2) { httpRequestExecutorMock.execute(any()) }
+
+            Assert.assertTrue(result is MIRACLSuccess)
+            Assert.assertTrue((result as MIRACLSuccess).value.dvsClientSecret.isNotBlank())
+        }
+
+    @Test
+    fun `executeClientSecretRequest should return MIRACLError when the retry returns an error`() =
+        runTest {
+            // Arrange
+            val clientSecretUrl = randomUuidString()
             val httpRequestExecutorException = ApiException.ExecutionError()
             val executorResult = MIRACLError<String, ApiException>(
                 value = httpRequestExecutorException
@@ -229,6 +278,8 @@ class RegistrationApiUnitTest {
             val result = registrationApi.executeDVSClientSecretRequest(clientSecretUrl)
 
             // Assert
+            coVerify(exactly = 2) { httpRequestExecutorMock.execute(any()) }
+
             Assert.assertTrue(result is MIRACLError)
             Assert.assertTrue((result as MIRACLError).value is RegistrationException.RegistrationFail)
             Assert.assertEquals(httpRequestExecutorException, result.value.cause)
