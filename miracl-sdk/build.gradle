@@ -1,3 +1,5 @@
+import org.jetbrains.dokka.gradle.DokkaTask
+
 plugins {
     alias libs.plugins.android.library
     alias libs.plugins.androidx.room
@@ -231,4 +233,15 @@ jreleaser {
             }
         }
     }
+}
+
+tasks.withType(DokkaTask.class).configureEach {
+    String dokkaBaseConfiguration = """
+    {
+      "customAssets": ["${file("assets/logo-icon.svg")}"]
+    }
+    """
+    pluginsMapConfiguration.set(
+            ["org.jetbrains.dokka.base.DokkaBase": dokkaBaseConfiguration]
+    )
 }
