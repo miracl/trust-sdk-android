@@ -52,8 +52,8 @@ To configure the SDK:
    [Getting Started](https://miracl.com/resources/docs/guides/get-started/)
    guide.
 2. Call the
-   [configure](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/configure/)
-   method with a configuration created by the [Configuration.Builder](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust.configuration/-configuration/-builder/)
+   [configure](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/configure.html)
+   method with a configuration created by the [Configuration.Builder](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.configuration/-configuration/-builder/index.html)
    class:
 
 Kotlin:
@@ -82,14 +82,14 @@ public class YourApplication extends Application {
 ```
 
 Call the
-[configure](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/configure/)
+[configure](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/configure.html)
 method as early as possible in the application lifecycle and avoid using the
-[getInstance](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/get-instance/)
+[getInstance](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/get-instance.html)
 method before that; otherwise assertion will be triggered.
 
 ### Obtain instance of the SDK
 
-To obtain an instance of the SDK, call the [getInsatnce](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/get-instance/)
+To obtain an instance of the SDK, call the [getInsatnce](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/get-instance.html)
 method:
 
 Kotlin:
@@ -121,7 +121,7 @@ options for that:
   - [Email Code](https://miracl.com/resources/docs/guides/built-in-user-verification/email-code/)
 
   Start the verification by calling of the
-  [sendVerificationEmail](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/send-verification-email/)
+  [sendVerificationEmail](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/send-verification-email.html)
   method:
 
   Kotlin:
@@ -162,7 +162,7 @@ options for that:
   ```
   
   Then, a verification email is sent, and a
-  [VerificationResponse](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust.registration/-verification-response/)
+  [VerificationResponse](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.registration/-verification-response/index.html)
   with backoff and email verification method is returned.
 
   If the verification method you have chosen for your project is:
@@ -174,13 +174,13 @@ options for that:
     - If the end user is registering for the first time or resetting their PIN,
       an email with a verification code will be sent, and the email
       verification method in the response will be
-      [EmailVerificationMethod.Code](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust.registration/-email-verification-method/-code/).
+      [EmailVerificationMethod.Code](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.registration/-email-verification-method/-code/index.html).
       Then, ask the user to enter the code in the application.
 
     - If the end user has already registered another device with the same
       User ID, a Verification URL will be sent, and the verification method in
       the response will be
-      [EmailVerificationMethod.Link](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust.registration/-email-verification-method/-link/).
+      [EmailVerificationMethod.Link](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.registration/-email-verification-method/-link/index.html).
       In this case, proceed as described for the **Email Link** verification
       method below.
 
@@ -202,7 +202,7 @@ options for that:
 
       After the application recieves the Verification URL, it must confirm the
       verification by passing it to the
-      [getActivationToken](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/get-activation-token/)
+      [getActivationToken](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-activation-token.html)
       method:
 
       Kotlin:
@@ -260,7 +260,7 @@ options for that:
 
       When the end user enters the verification code, the application must
       confirm the verification by passing it to the
-      [getActivationToken](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/get-activation-token/)
+      [getActivationToken](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-activation-token.html)
       method:
 
        Kotlin:
@@ -307,13 +307,13 @@ options for that:
       ```
 
 1. Pass the User ID (email or any string you use for identification), activation
-   token (received from verification), [PinProvider](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust.delegate/-pin-provider/)
-   and [ResultHandler](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust.delegate/-result-handler/)
-   implementations to the [register](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/register/)
-   function. When the registration is successful, a [ResultHandler](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust.delegate/-result-handler/)
-   callback is returned, passing a [MIRACLSuccess](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-success/)
-   together with the registered user as its value. Otherwise, [MIRACLError](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-error/)
-   with a [RegistrationException](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust.registration/-registration-exception/)
+   token (received from verification), [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
+   and [ResultHandler](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-result-handler/index.html)
+   implementations to the [register](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/register.html)
+   function. When the registration is successful, a [ResultHandler](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-result-handler/index.html)
+   callback is returned, passing a [MIRACLSuccess](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-success/index.html)
+   together with the registered user as its value. Otherwise, [MIRACLError](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-error/index.html)
+   with a [RegistrationException](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.registration/-registration-exception/index.html)
    is passed in the callback.
 
    Kotlin:
@@ -366,7 +366,7 @@ options for that:
    ```
 
    If you call the
-   [register](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/register/)
+   [register](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/register.html)
    method with the same User ID more than once, the User ID will be overridden.
    Therefore, you can use it when you want to reset your authentication PIN
    code.
@@ -381,11 +381,11 @@ MIRACL Trust SDK offers two options:
 #### Authenticate users on the mobile application
 
 The
-[authenticate](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate/)
+[authenticate](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate.html)
 method generates a [JWT](https://jwt.io) authentication token for а registered
 user.
 
-Use [PinProvider](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust.delegate/-pin-provider/)
+Use [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
 the same way it is used during registration.
 
 Kotlin:
@@ -437,7 +437,7 @@ To authenticate a user on another application, there are three options:
 
 - Authenticate with [AppLink](https://developer.android.com/training/app-links)
 
-  Use the [authenticateWithAppLink](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-app-link/)
+  Use the [authenticateWithAppLink](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-app-link.html)
   method:
 
   Kotlin:
@@ -485,7 +485,7 @@ To authenticate a user on another application, there are three options:
 
 - Authenticate with QR code
 
-  Use the [authenticateWithQRCode](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-q-r-code/)
+  Use the [authenticateWithQRCode](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-q-r-code.html)
   method:
 
   Kotlin:
@@ -528,7 +528,7 @@ To authenticate a user on another application, there are three options:
 - Authenticate with
   [notification](https://developer.android.com/guide/topics/ui/notifiers/notifications)
 
-  Use the [authenticateWithNotificationPayload](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-notification-payload/)
+  Use the [authenticateWithNotificationPayload](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-notification-payload.html)
   method:
 
   Kotlin:
@@ -579,7 +579,7 @@ cryptographic signing of documents. For more information, see
 In the context of this SDK, we refer to it as 'Signing'.
 
 To sign a document, use the
-[sign](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/sign/)
+[sign](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/sign.html)
 method as follows:
 
 Kotlin:
@@ -634,8 +634,8 @@ endpoint. If the MIRACL Trust platform returns a status code `200`, the
 is a way to register another device without going through the verification
 process.
 
-To generate a QuickCode, call the [generateQuickCode](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust/-m-i-r-a-c-l-trust/generate-quick-code/)
-method with an already registered [User](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust.model/-user/)
+To generate a QuickCode, call the [generateQuickCode](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/generate-quick-code.html)
+method with an already registered [User](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.model/-user/index.html)
 object:
 
 Kotlin:
@@ -690,11 +690,11 @@ MIRACL Trust SDK Android depends on:
 1. How to provide PIN code?
 
    For security reasons, the PIN code is sent to the SDK at the last possible
-   moment. A [PinProvider](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust.delegate/-pin-provider/)
+   moment. A [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
    is responsible for that and when the SDK calls it, the currently executed
    operation is blocked until a PIN code is provided. Therefore, this is a good
-   place to display some user interface for entering the PIN code. Implement [PinProvider](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust.delegate/-pin-provider/)
-   and use it to obtain a PIN. Then pass the PIN to the [PinConsumer](https://miracl.com/resources/docs/apis-and-libraries/android/com.miracl.trust.delegate/-pin-consumer/).
+   place to display some user interface for entering the PIN code. Implement [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
+   and use it to obtain a PIN. Then pass the PIN to the [PinConsumer](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-consumer/index.html).
 
    Kotlin:
 
@@ -728,3 +728,8 @@ MIRACL Trust SDK Android depends on:
    1. Select your project.
    1. In the CONFIGURATION section, go to **General**.
    1. Copy the **Project ID** value.
+
+## Documentation
+
+- [Developer Documentation](https://miracl.com/resources/docs/get-started/overview/)
+- [API reference](https://miracl.github.io/trust-sdk-android/)
