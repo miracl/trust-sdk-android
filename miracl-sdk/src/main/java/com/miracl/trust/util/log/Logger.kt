@@ -23,8 +23,6 @@ public interface Logger {
      * - *[WARNING]* - enables error and warning logs
      * - *[INFO]* - enables error, warning and info logs
      * - *[DEBUG]* - enables error, warning, info and debug logs
-     *
-     * **Note:** All logs are disabled on release builds
      */
     public enum class LoggingLevel {
         /**
