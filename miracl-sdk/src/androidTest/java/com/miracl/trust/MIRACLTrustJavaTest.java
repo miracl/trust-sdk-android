@@ -24,6 +24,8 @@ import com.miracl.trust.registration.QuickCodeException;
 import com.miracl.trust.registration.RegistrationException;
 import com.miracl.trust.session.AuthenticationSessionDetails;
 import com.miracl.trust.session.AuthenticationSessionException;
+import com.miracl.trust.session.CrossDeviceSession;
+import com.miracl.trust.session.CrossDeviceSessionException;
 import com.miracl.trust.session.SessionDetails;
 import com.miracl.trust.session.SigningSessionDetails;
 import com.miracl.trust.session.SigningSessionException;
@@ -40,7 +42,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -174,6 +175,21 @@ public class MIRACLTrustJavaTest {
             Jws<Claims> claims = JwtHelper.INSTANCE.parseSignedClaims(token);
             Assert.assertTrue(claims.getPayload().getAudience().contains(projectId));
         }));
+        testCoroutineDispatcher.getScheduler().advanceUntilIdle();
+    }
+
+    @Test
+    public void testAuthenticationWithCrossDeviceSession() {
+        String qrCode = MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL();
+        miraclTrust.getCrossDeviceSessionFromQRCode(qrCode, result -> {
+            Assert.assertTrue(result instanceof MIRACLSuccess);
+
+            CrossDeviceSession crossDeviceSession =
+                    ((MIRACLSuccess<CrossDeviceSession, CrossDeviceSessionException>) result).getValue();
+            createUser(user -> miraclTrust.authenticate(user, crossDeviceSession, pinProvider, authenticationResult -> {
+                Assert.assertTrue(authenticationResult instanceof MIRACLSuccess);
+            }));
+        });
         testCoroutineDispatcher.getScheduler().advanceUntilIdle();
     }
 
@@ -371,6 +387,68 @@ public class MIRACLTrustJavaTest {
                     ((MIRACLSuccess<SigningSessionDetails, SigningSessionException>) result).getValue();
             miraclTrust.abortSigningSession(sessionDetails, abortSigningSessionResult -> {
                 Assert.assertTrue(abortSigningSessionResult instanceof MIRACLSuccess);
+            });
+        });
+        testCoroutineDispatcher.getScheduler().advanceUntilIdle();
+    }
+
+    @Test
+    public void testGetCrossDeviceSessionFromAppLink() {
+        Uri appLink = Uri.parse(MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL());
+        miraclTrust.getCrossDeviceSessionFromAppLink(appLink, result -> {
+            Assert.assertTrue(result instanceof MIRACLSuccess);
+
+            CrossDeviceSession crossDeviceSession =
+                    ((MIRACLSuccess<CrossDeviceSession, CrossDeviceSessionException>) result).getValue();
+            Assert.assertEquals(projectId, crossDeviceSession.getProjectId());
+        });
+        testCoroutineDispatcher.getScheduler().advanceUntilIdle();
+    }
+
+    @Test
+    public void testGetCrossDeviceSessionFromQRCode() {
+        String qrCode = MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL();
+        miraclTrust.getCrossDeviceSessionFromQRCode(qrCode, result -> {
+            Assert.assertTrue(result instanceof MIRACLSuccess);
+
+            CrossDeviceSession crossDeviceSession =
+                    ((MIRACLSuccess<CrossDeviceSession, CrossDeviceSessionException>) result).getValue();
+            Assert.assertEquals(projectId, crossDeviceSession.getProjectId());
+        });
+        testCoroutineDispatcher.getScheduler().advanceUntilIdle();
+    }
+
+    @Test
+    public void testGetCrossDeviceSessionFromNotificationPayload() {
+        String qrUrl = MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL();
+        Map<String, String> payload = new HashMap<String, String>() {
+            {
+                put("projectID", projectId);
+                put("userID", USER_ID);
+                put("qrURL", qrUrl);
+            }
+        };
+
+        miraclTrust.getCrossDeviceSessionFromNotificationPayload(payload, result -> {
+            Assert.assertTrue(result instanceof MIRACLSuccess);
+
+            CrossDeviceSession crossDeviceSession =
+                    ((MIRACLSuccess<CrossDeviceSession, CrossDeviceSessionException>) result).getValue();
+            Assert.assertEquals(projectId, crossDeviceSession.getProjectId());
+        });
+        testCoroutineDispatcher.getScheduler().advanceUntilIdle();
+    }
+
+    @Test
+    public void testAbortCrossDeviceSession() {
+        String qrCode = MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL();
+        miraclTrust.getCrossDeviceSessionFromQRCode(qrCode, result -> {
+            Assert.assertTrue(result instanceof MIRACLSuccess);
+
+            CrossDeviceSession crossDeviceSession =
+                    ((MIRACLSuccess<CrossDeviceSession, CrossDeviceSessionException>) result).getValue();
+            miraclTrust.abortCrossDeviceSession(crossDeviceSession, abortSessionResult -> {
+                Assert.assertTrue(abortSessionResult instanceof MIRACLSuccess);
             });
         });
         testCoroutineDispatcher.getScheduler().advanceUntilIdle();
