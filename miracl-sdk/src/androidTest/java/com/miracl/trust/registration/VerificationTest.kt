@@ -13,6 +13,8 @@ import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.User
 import com.miracl.trust.session.AuthenticationSessionDetails
 import com.miracl.trust.session.AuthenticationSessionException
+import com.miracl.trust.session.CrossDeviceSession
+import com.miracl.trust.session.CrossDeviceSessionException
 import com.miracl.trust.util.secondsSince1970
 import com.miracl.trust.utilities.GmailService
 import com.miracl.trust.utilities.MIRACLService
@@ -138,6 +140,48 @@ class VerificationTest {
         val activationTokenResponse = (result as MIRACLSuccess).value
         Assert.assertEquals(email, activationTokenResponse.userId)
         Assert.assertEquals(authenticationSessionDetails.accessId, activationTokenResponse.accessId)
+    }
+
+    @Test
+    fun testDefaultVerificationWithCrossDeviceSession() = runBlocking {
+        // Send verification email
+        val addressParts = USER_ID.split("@")
+        val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
+
+        val qrCode = MIRACLService.obtainAccessId(dvProjectId).qrURL
+        var crossDeviceSessionResult:
+                MIRACLResult<CrossDeviceSession, CrossDeviceSessionException>? = null
+        miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) { result ->
+            crossDeviceSessionResult = result
+        }
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+
+        Assert.assertTrue(crossDeviceSessionResult is MIRACLSuccess)
+        val crossDeviceSession =
+            (crossDeviceSessionResult as MIRACLSuccess).value
+
+        var sendEmailResult: MIRACLResult<VerificationResponse, VerificationException>? = null
+        val timestamp = getUnixTime()
+        miraclTrust.sendVerificationEmail(
+            userId = email,
+            crossDeviceSession = crossDeviceSession
+        ) { sendEmailResult = it }
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        Assert.assertTrue(sendEmailResult is MIRACLSuccess)
+
+        // Fetch the verification URL from the email
+        val context = InstrumentationRegistry.getInstrumentation().context
+        val verificationUrl = GmailService.getVerificationUrl(context, USER_ID, email, timestamp)
+        Assert.assertNotNull(verificationUrl)
+
+        // Get activation token
+        var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
+        miraclTrust.getActivationToken(Uri.parse(verificationUrl)) { result = it }
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        Assert.assertTrue(result is MIRACLSuccess)
+        val activationTokenResponse = (result as MIRACLSuccess).value
+        Assert.assertEquals(email, activationTokenResponse.userId)
+        Assert.assertEquals(crossDeviceSession.sessionId, activationTokenResponse.accessId)
     }
 
     @Test

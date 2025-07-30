@@ -14,6 +14,7 @@ import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
 import com.miracl.trust.registration.RegistrationException
 import com.miracl.trust.registration.Registrator
+import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.session.SessionApi
 import com.miracl.trust.storage.UserDto
 import com.miracl.trust.storage.UserStorage
@@ -863,6 +864,108 @@ class AuthenticatorUnitTest {
             // Assert
             Assert.assertTrue(result is MIRACLSuccess)
         }
+
+    @Test
+    fun `authenticateWithCrossDeviceSession should return MIRACLSuccess when user is successfully authenticated`() =
+        runTest {
+            // Arrange
+            val authenticatorSpy = spyk(authenticator)
+            val user = createUser()
+            val scope = arrayOf(AuthenticatorScopes.OIDC.value)
+            val crossDeviceSession = mockk<CrossDeviceSession>()
+
+            every { crossDeviceSession.sessionId } returns accessId
+
+            // Act
+            val result =
+                authenticatorSpy.authenticateWithCrossDeviceSession(
+                    user,
+                    crossDeviceSession,
+                    pinProviderMock,
+                    scope,
+                    deviceName
+                )
+
+            // Assert
+            coVerify {
+                authenticatorSpy.authenticate(
+                    user,
+                    accessId,
+                    pinProviderMock,
+                    scope,
+                    deviceName
+                )
+            }
+            Assert.assertTrue(result is MIRACLSuccess)
+        }
+
+    @Test
+    fun `authenticateWithCrossDeviceSession should return MIRACLError when authentication fails`() {
+        runTest {
+            // Arrange
+            val user = createUser()
+            val scope = arrayOf(AuthenticatorScopes.OIDC.value)
+            val crossDeviceSession = mockk<CrossDeviceSession>()
+            val authenticationException = AuthenticationException.AuthenticationFail(null)
+
+            every { crossDeviceSession.sessionId } returns accessId
+
+            coEvery {
+                authenticationApiMock.executeAuthenticateRequest(
+                    any(),
+                    any()
+                )
+            } returns MIRACLError(authenticationException)
+
+            // Act
+            val result =
+                authenticator.authenticateWithCrossDeviceSession(
+                    user,
+                    crossDeviceSession,
+                    pinProviderMock,
+                    scope,
+                    deviceName
+                )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(authenticationException, (result as MIRACLError).value)
+        }
+    }
+
+    @Test
+    fun `authenticateWithCrossDeviceSession should return correct error when authentication returns InvalidAuthenticationSession`() {
+        runTest {
+            // Arrange
+            val user = createUser()
+            val scope = arrayOf(AuthenticatorScopes.OIDC.value)
+            val crossDeviceSession = mockk<CrossDeviceSession>()
+            val authenticationException = AuthenticationException.InvalidAuthenticationSession
+
+            every { crossDeviceSession.sessionId } returns accessId
+
+            coEvery {
+                authenticationApiMock.executeAuthenticateRequest(
+                    any(),
+                    any()
+                )
+            } returns MIRACLError(authenticationException)
+
+            // Act
+            val result =
+                authenticator.authenticateWithCrossDeviceSession(
+                    user,
+                    crossDeviceSession,
+                    pinProviderMock,
+                    scope,
+                    deviceName
+                )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertTrue((result as MIRACLError).value is AuthenticationException.InvalidCrossDeviceSession)
+        }
+    }
 
     @Test
     fun `authenticateWithAppLink should return MIRACLSuccess when user is successfully authenticated`() =

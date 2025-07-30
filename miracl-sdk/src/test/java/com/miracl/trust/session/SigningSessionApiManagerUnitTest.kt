@@ -32,15 +32,16 @@ class SigningSessionApiManagerUnitTest {
     )
 
     private val sessionId = randomUuidString()
+    private val timestamp = Date().secondsSince1970()
     private val signature = Signature(
         mpinId = randomHexString(),
         U = randomHexString(),
         V = randomHexString(),
         publicKey = randomHexString(),
         dtas = randomUuidString(),
-        hash = randomHexString()
+        hash = randomHexString(),
+        timestamp = timestamp
     )
-    private val timestamp = Date().secondsSince1970()
 
     @Before
     fun setUp() {

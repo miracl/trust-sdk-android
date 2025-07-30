@@ -27,8 +27,10 @@ public final class com/miracl/trust/MIRACLTrust {
 	public static final field Companion Lcom/miracl/trust/MIRACLTrust$Companion;
 	public synthetic fun <init> (Landroid/content/Context;Lcom/miracl/trust/configuration/Configuration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun abortAuthenticationSession (Lcom/miracl/trust/session/AuthenticationSessionDetails;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun abortCrossDeviceSession (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun abortSigningSession (Lcom/miracl/trust/session/SigningSessionDetails;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun authenticate (Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun authenticate (Lcom/miracl/trust/model/User;Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun authenticateWithAppLink (Lcom/miracl/trust/model/User;Landroid/net/Uri;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun authenticateWithNotificationPayload (Ljava/util/Map;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun authenticateWithQRCode (Lcom/miracl/trust/model/User;Ljava/lang/String;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
@@ -41,6 +43,9 @@ public final class com/miracl/trust/MIRACLTrust {
 	public final fun getAuthenticationSessionDetailsFromAppLink (Landroid/net/Uri;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun getAuthenticationSessionDetailsFromNotificationPayload (Ljava/util/Map;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun getAuthenticationSessionDetailsFromQRCode (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun getCrossDeviceSessionFromAppLink (Landroid/net/Uri;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun getCrossDeviceSessionFromNotificationPayload (Ljava/util/Map;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun getCrossDeviceSessionFromQRCode (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public static final fun getInstance ()Lcom/miracl/trust/MIRACLTrust;
 	public final fun getProjectId ()Ljava/lang/String;
 	public final fun getSigningSessionDetailsFromAppLink (Landroid/net/Uri;Lcom/miracl/trust/delegate/ResultHandler;)V
@@ -54,7 +59,9 @@ public final class com/miracl/trust/MIRACLTrust {
 	public static synthetic fun register$default (Lcom/miracl/trust/MIRACLTrust;Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/delegate/PinProvider;Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;ILjava/lang/Object;)V
 	public final fun sendVerificationEmail (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun sendVerificationEmail (Ljava/lang/String;Lcom/miracl/trust/session/AuthenticationSessionDetails;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun sendVerificationEmail (Ljava/lang/String;Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun setProjectId (Ljava/lang/String;)V
+	public final fun sign (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/session/SigningSessionDetails;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 }
@@ -79,6 +86,10 @@ public final class com/miracl/trust/authentication/AuthenticationException$Inval
 
 public final class com/miracl/trust/authentication/AuthenticationException$InvalidAuthenticationSession : com/miracl/trust/authentication/AuthenticationException {
 	public static final field INSTANCE Lcom/miracl/trust/authentication/AuthenticationException$InvalidAuthenticationSession;
+}
+
+public final class com/miracl/trust/authentication/AuthenticationException$InvalidCrossDeviceSession : com/miracl/trust/authentication/AuthenticationException {
+	public static final field INSTANCE Lcom/miracl/trust/authentication/AuthenticationException$InvalidCrossDeviceSession;
 }
 
 public final class com/miracl/trust/authentication/AuthenticationException$InvalidPin : com/miracl/trust/authentication/AuthenticationException {
@@ -442,6 +453,52 @@ public final class com/miracl/trust/session/AuthenticationSessionException$Inval
 	public static final field INSTANCE Lcom/miracl/trust/session/AuthenticationSessionException$InvalidSessionDetails;
 }
 
+public final class com/miracl/trust/session/CrossDeviceSession {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILcom/miracl/trust/session/VerificationMethod;Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/session/IdentityType;Ljava/lang/String;ZZLjava/lang/String;)V
+	public final fun getIdentityType ()Lcom/miracl/trust/session/IdentityType;
+	public final fun getIdentityTypeLabel ()Ljava/lang/String;
+	public final fun getLimitQuickCodeRegistration ()Z
+	public final fun getPinLength ()I
+	public final fun getProjectId ()Ljava/lang/String;
+	public final fun getProjectLogoUrl ()Ljava/lang/String;
+	public final fun getProjectName ()Ljava/lang/String;
+	public final fun getQuickCodeEnabled ()Z
+	public final fun getSessionDescription ()Ljava/lang/String;
+	public final fun getSessionId ()Ljava/lang/String;
+	public final fun getSigningHash ()Ljava/lang/String;
+	public final fun getUserId ()Ljava/lang/String;
+	public final fun getVerificationCustomText ()Ljava/lang/String;
+	public final fun getVerificationMethod ()Lcom/miracl/trust/session/VerificationMethod;
+	public final fun getVerificationUrl ()Ljava/lang/String;
+}
+
+public abstract class com/miracl/trust/session/CrossDeviceSessionException : java/lang/Exception {
+	public synthetic fun <init> (Ljava/lang/Exception;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/Exception;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/miracl/trust/session/CrossDeviceSessionException$AbortCrossDeviceSessionFail : com/miracl/trust/session/CrossDeviceSessionException {
+}
+
+public final class com/miracl/trust/session/CrossDeviceSessionException$GetCrossDeviceSessionFail : com/miracl/trust/session/CrossDeviceSessionException {
+}
+
+public final class com/miracl/trust/session/CrossDeviceSessionException$InvalidAppLink : com/miracl/trust/session/CrossDeviceSessionException {
+	public static final field INSTANCE Lcom/miracl/trust/session/CrossDeviceSessionException$InvalidAppLink;
+}
+
+public final class com/miracl/trust/session/CrossDeviceSessionException$InvalidCrossDeviceSession : com/miracl/trust/session/CrossDeviceSessionException {
+	public static final field INSTANCE Lcom/miracl/trust/session/CrossDeviceSessionException$InvalidCrossDeviceSession;
+}
+
+public final class com/miracl/trust/session/CrossDeviceSessionException$InvalidNotificationPayload : com/miracl/trust/session/CrossDeviceSessionException {
+	public static final field INSTANCE Lcom/miracl/trust/session/CrossDeviceSessionException$InvalidNotificationPayload;
+}
+
+public final class com/miracl/trust/session/CrossDeviceSessionException$InvalidQRCode : com/miracl/trust/session/CrossDeviceSessionException {
+	public static final field INSTANCE Lcom/miracl/trust/session/CrossDeviceSessionException$InvalidQRCode;
+}
+
 public final class com/miracl/trust/session/IdentityType : java/lang/Enum {
 	public static final field Alphanumeric Lcom/miracl/trust/session/IdentityType;
 	public static final field Companion Lcom/miracl/trust/session/IdentityType$Companion;
@@ -541,6 +598,7 @@ public final class com/miracl/trust/signing/Signature {
 	public final fun getHash ()Ljava/lang/String;
 	public final fun getMpinId ()Ljava/lang/String;
 	public final fun getPublicKey ()Ljava/lang/String;
+	public final fun getTimestamp ()I
 	public final fun getU ()Ljava/lang/String;
 	public final fun getV ()Ljava/lang/String;
 }

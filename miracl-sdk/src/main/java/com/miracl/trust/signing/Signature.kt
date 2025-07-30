@@ -10,5 +10,6 @@ public class Signature internal constructor(
     @SerialName("v") public val V: String,
     @SerialName("publicKey") public val publicKey: String,
     @SerialName("dtas") public val dtas: String,
-    @SerialName("hash") public val hash: String
+    @SerialName("hash") public val hash: String,
+    @SerialName("timestamp") public val timestamp: Int
 )
