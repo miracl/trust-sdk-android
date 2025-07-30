@@ -82,6 +82,7 @@ public class MIRACLTrust private constructor(
     private val userStorage: UserStorage
     private val sessionManager: SessionManagerContract
     private val signingSessionManager: SigningSessionManagerContract
+    private val crossDeviceSessionManager: CrossDeviceSessionManagerContract
 
     private val miraclTrustScope: CoroutineScope
 
@@ -144,6 +145,15 @@ public class MIRACLTrust private constructor(
 
         sessionManager = componentFactory.createSessionManager(sessionApi)
 
+        val crossDeviceSessionApi = CrossDeviceSessionApiManager(
+            apiRequestExecutor,
+            KotlinxSerializationJsonUtil,
+            apiSettings
+        )
+
+        crossDeviceSessionManager =
+            componentFactory.createCrossDeviceSessionManager(crossDeviceSessionApi)
+
         authenticator =
             componentFactory.createAuthenticator(
                 authenticationApi,
@@ -165,8 +175,12 @@ public class MIRACLTrust private constructor(
             SigningSessionApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
         signingSessionManager = componentFactory.createSigningSessionManager(signingSessionApi)
 
-        documentSigner =
-            componentFactory.createDocumentSigner(authenticator, userStorage, signingSessionApi)
+        documentSigner = componentFactory.createDocumentSigner(
+            authenticator = authenticator,
+            userStorage = userStorage,
+            signingSessionApi = signingSessionApi,
+            crossDeviceSessionApi = crossDeviceSessionApi
+        )
     }
     //endregion
 
@@ -409,6 +423,129 @@ public class MIRACLTrust private constructor(
     }
     //endregion
 
+    //region CrossDeviceSession management
+    /**
+     * Get [CrossDeviceSession] for an AppLink.
+     *
+     * @param appLink a URI provided by the Intent.
+     * @param resultHandler a callback to handle the result of getting details for the session.
+     * - If successful, the result is [MIRACLSuccess] with the [CrossDeviceSession].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun getCrossDeviceSessionFromAppLink(
+        appLink: Uri,
+        resultHandler: ResultHandler<CrossDeviceSession, CrossDeviceSessionException>
+    ) {
+        miraclTrustScope.launch {
+            crossDeviceSessionManager.getCrossDeviceSessionFromAppLink(appLink).also { result ->
+                if (result is MIRACLError) {
+                    logError(
+                        LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG,
+                        result.value
+                    )
+                }
+
+                withContext(resultHandlerDispatcher) {
+                    resultHandler.onResult(result)
+                }
+            }
+        }
+    }
+
+    /**
+     * Get [CrossDeviceSession] for a QR code.
+     *
+     * @param qrCode a string read from the QR code.
+     * @param resultHandler a callback to handle the result of getting details for the session.
+     * - If successful, the result is [MIRACLSuccess] with the [CrossDeviceSession].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun getCrossDeviceSessionFromQRCode(
+        qrCode: String,
+        resultHandler: ResultHandler<CrossDeviceSession, CrossDeviceSessionException>
+    ) {
+        miraclTrustScope.launch {
+            crossDeviceSessionManager.getCrossDeviceSessionFromQRCode(qrCode).also { result ->
+                if (result is MIRACLError) {
+                    logError(
+                        LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG,
+                        result.value
+                    )
+                }
+
+                withContext(resultHandlerDispatcher) {
+                    resultHandler.onResult(result)
+                }
+            }
+        }
+    }
+
+    /**
+     * Get [CrossDeviceSession] from a notification payload.
+     *
+     * @param payload key-value data provided by the notification.
+     * @param resultHandler a callback to handle the result of getting details for the session.
+     * - If successful, the result is [MIRACLSuccess] with the [CrossDeviceSession].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun getCrossDeviceSessionFromNotificationPayload(
+        payload: Map<String, String>,
+        resultHandler: ResultHandler<CrossDeviceSession, CrossDeviceSessionException>
+    ) {
+        miraclTrustScope.launch {
+            crossDeviceSessionManager.getCrossDeviceSessionFromNotificationPayload(payload)
+                .also { result ->
+                    if (result is MIRACLError) {
+                        logError(
+                            LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG,
+                            result.value
+                        )
+                    }
+
+                    withContext(resultHandlerDispatcher) {
+                        resultHandler.onResult(result)
+                    }
+                }
+        }
+    }
+
+    /**
+     * Cancel the [CrossDeviceSession].
+     *
+     * @param crossDeviceSession the session to cancel.
+     * @param resultHandler a callback to handle the result of session abort.
+     * - If successful, the result is [MIRACLSuccess].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun abortCrossDeviceSession(
+        crossDeviceSession: CrossDeviceSession,
+        resultHandler: ResultHandler<Unit, CrossDeviceSessionException>
+    ) {
+        miraclTrustScope.launch {
+            crossDeviceSessionManager.abortSession(crossDeviceSession).also { result ->
+                if (result is MIRACLError) {
+                    logError(
+                        LoggerConstants.SESSION_MANAGER_TAG,
+                        result.value
+                    )
+                }
+
+                withContext(resultHandlerDispatcher) {
+                    resultHandler.onResult(result)
+                }
+            }
+        }
+    }
+    //endregion
+
     //region Verification
     /**
      * Default method to verify user identity against the MIRACL platform. In the current
@@ -468,6 +605,45 @@ public class MIRACLTrust private constructor(
                 projectId = projectId,
                 deviceName = deviceName,
                 authenticationSessionDetails = authenticationSessionDetails
+            ).also { result ->
+                if (result is MIRACLError) {
+                    logError(
+                        LoggerConstants.VERIFICATOR_TAG,
+                        result.value
+                    )
+                }
+
+                withContext(resultHandlerDispatcher) {
+                    resultHandler.onResult(result)
+                }
+            }
+        }
+    }
+
+    /**
+     * Default method to verify user identity against the MIRACL Trust platform. In the current
+     * implementation it is done by sending an email message.
+     *
+     * @param userId identifier of the user identity. To verify identity this identifier
+     * needs to be valid email address.
+     * @param crossDeviceSession the session from which the verification is started.
+     * @param resultHandler a callback to handle the result of the verification.
+     * - If successful, the result is [MIRACLSuccess] with the [VerificationResponse].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun sendVerificationEmail(
+        userId: String,
+        crossDeviceSession: CrossDeviceSession,
+        resultHandler: ResultHandler<VerificationResponse, VerificationException>
+    ) {
+        miraclTrustScope.launch {
+            verificator.sendVerificationEmail(
+                userId = userId,
+                projectId = projectId,
+                deviceName = deviceName,
+                crossDeviceSession = crossDeviceSession
             ).also { result ->
                 if (result is MIRACLError) {
                     logError(
@@ -670,6 +846,57 @@ public class MIRACLTrust private constructor(
                             } else {
                                 resultHandler.onResult(MIRACLError(AuthenticationException.AuthenticationFail()))
                             }
+                        }
+                    }
+
+                    is MIRACLError -> {
+                        logError(
+                            LoggerConstants.AUTHENTICATOR_TAG,
+                            result.value
+                        )
+
+                        withContext(resultHandlerDispatcher) {
+                            resultHandler.onResult(MIRACLError(result.value))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Authenticates identity in the MIRACL Trust platform.
+     *
+     * Use this method to authenticate another device or application with the usage of
+     * [CrossDeviceSession].
+     *
+     * @param user the user to authenticate with.
+     * @param crossDeviceSession details for the authentication operation.
+     * @param pinProvider a callback called from the SDK, when the identity PIN is required.
+     * @param resultHandler a callback to handle the result of the authentication.
+     * - If successful, the result is [MIRACLSuccess].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun authenticate(
+        user: User,
+        crossDeviceSession: CrossDeviceSession,
+        pinProvider: PinProvider,
+        resultHandler: ResultHandler<Unit, AuthenticationException>
+    ) {
+        miraclTrustScope.launch {
+            authenticator.authenticateWithCrossDeviceSession(
+                user,
+                crossDeviceSession,
+                pinProvider,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            ).also { result ->
+                when (result) {
+                    is MIRACLSuccess -> {
+                        withContext(resultHandlerDispatcher) {
+                            resultHandler.onResult(MIRACLSuccess(Unit))
                         }
                     }
 
@@ -903,6 +1130,48 @@ public class MIRACLTrust private constructor(
                     pinProvider,
                     deviceName,
                     signingSessionDetails
+                )
+                .also { result ->
+                    if (result is MIRACLError) {
+                        logError(
+                            LoggerConstants.DOCUMENT_SIGNER_TAG,
+                            result.value
+                        )
+                    }
+
+                    withContext(resultHandlerDispatcher) {
+                        resultHandler.onResult(result)
+                    }
+                }
+        }
+    }
+
+    /**
+     * Generates a signature for a hash provided by the [crossDeviceSession] parameter and updates
+     * the session.
+     *
+     * @param crossDeviceSession details for the signing operation.
+     * @param user an user to sign with.
+     * @param pinProvider a callback called from the SDK, when the signing identity PIN is required.
+     * @param resultHandler a callback to handle the result of the signing.
+     * - If successful, the result is [MIRACLSuccess].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun sign(
+        crossDeviceSession: CrossDeviceSession,
+        user: User,
+        pinProvider: PinProvider,
+        resultHandler: ResultHandler<Unit, SigningException>
+    ) {
+        miraclTrustScope.launch {
+            documentSigner
+                .sign(
+                    crossDeviceSession = crossDeviceSession,
+                    user = user,
+                    pinProvider = pinProvider,
+                    deviceName = deviceName
                 )
                 .also { result ->
                     if (result is MIRACLError) {

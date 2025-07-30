@@ -26,6 +26,9 @@ public sealed class AuthenticationException(cause: Throwable? = null) : Exceptio
     /** Invalid or expired authentication session. */
     public object InvalidAuthenticationSession : AuthenticationException()
 
+    /** Invalid or expired cross-device session. */
+    public object InvalidCrossDeviceSession : AuthenticationException()
+
     /** The authentication was not successful. */
     public object UnsuccessfulAuthentication : AuthenticationException()
 

@@ -16,6 +16,8 @@ import com.miracl.trust.randomHexString
 import com.miracl.trust.randomNumericPin
 import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
+import com.miracl.trust.session.CrossDeviceSession
+import com.miracl.trust.session.CrossDeviceSessionApi
 import com.miracl.trust.session.IdentityType
 import com.miracl.trust.session.SigningSessionApi
 import com.miracl.trust.session.SigningSessionDetails
@@ -26,6 +28,7 @@ import com.miracl.trust.session.VerificationMethod
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.toHexString
 import com.miracl.trust.util.toUserDto
+import io.mockk.CapturingSlot
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -55,6 +58,7 @@ class DocumentSignerUnitTest {
     private val pinProviderMock = PinProvider { it.consume(pin) }
     private val userStorageMock = mockk<UserStorage>()
     private val signingSessionApiMock = mockk<SigningSessionApi>()
+    private val crossDeviceSessionApiMock = mockk<CrossDeviceSessionApi>()
 
     @Before
     fun resetMocks() {
@@ -96,7 +100,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -157,7 +162,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -200,7 +206,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -232,7 +239,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -264,7 +272,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -296,7 +305,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -340,7 +350,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -384,7 +395,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -415,7 +427,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -447,7 +460,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -480,7 +494,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -510,7 +525,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -540,7 +556,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -570,7 +587,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -610,7 +628,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -650,7 +669,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -692,7 +712,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -744,7 +765,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -795,7 +817,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -845,7 +868,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -903,7 +927,8 @@ class DocumentSignerUnitTest {
                 cryptoMock,
                 authenticatorContractMock,
                 userStorageMock,
-                signingSessionApiMock
+                signingSessionApiMock,
+                crossDeviceSessionApiMock
             )
 
             // Act
@@ -966,7 +991,8 @@ class DocumentSignerUnitTest {
                 cryptoMock,
                 authenticatorContractMock,
                 userStorageMock,
-                signingSessionApiMock
+                signingSessionApiMock,
+                crossDeviceSessionApiMock
             )
 
             // Act
@@ -1027,7 +1053,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
                 )
 
             // Act
@@ -1045,6 +1072,139 @@ class DocumentSignerUnitTest {
                 SigningException.InvalidSigningSession,
                 (result as MIRACLError).value
             )
+        }
+
+    @Test
+    fun `sign with CrossDeviceSession should return MIRACLSuccess on success`() =
+        runTest {
+            // Arrange
+            val signingUser = createSigningUser()
+            val crossDeviceSession = createCrossDeviceSession()
+            val message = crossDeviceSession.signingHash.toByteArray()
+
+            coEvery {
+                authenticatorContractMock.authenticate(
+                    signingUser,
+                    any(),
+                    any(),
+                    arrayOf(AuthenticatorScopes.SIGNING_AUTHENTICATION.value),
+                    deviceName
+                )
+            } returns MIRACLSuccess(mockk())
+
+            val u = randomByteArray()
+            val v = randomByteArray()
+            coEvery {
+                cryptoMock.sign(
+                    message,
+                    mpinId.plus(publicKey),
+                    token,
+                    any(),
+                    pin.toInt()
+                )
+            } returns MIRACLSuccess(SigningResult(u, v))
+
+            coEvery {
+                crossDeviceSessionApiMock.executeUpdateCrossDeviceSessionForSigningRequest(
+                    any(),
+                    any()
+                )
+            } returns MIRACLSuccess(Unit)
+
+            val documentSigner =
+                DocumentSigner(
+                    cryptoMock,
+                    authenticatorContractMock,
+                    userStorageMock,
+                    signingSessionApiMock,
+                    crossDeviceSessionApiMock
+                )
+
+            // Act
+            val result = documentSigner.sign(
+                crossDeviceSession = crossDeviceSession,
+                user = signingUser,
+                pinProvider = pinProviderMock,
+                deviceName = deviceName,
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+
+            val capturingSlot = CapturingSlot<Signature>()
+            coVerify {
+                crossDeviceSessionApiMock.executeUpdateCrossDeviceSessionForSigningRequest(
+                    sessionId = crossDeviceSession.sessionId,
+                    signature = capture(capturingSlot)
+                )
+            }
+
+            val signature = capturingSlot.captured
+            Assert.assertEquals(message.toHexString(), signature.hash)
+            Assert.assertEquals(u.toHexString(), signature.U)
+            Assert.assertEquals(v.toHexString(), signature.V)
+            Assert.assertEquals(dtas, signature.dtas)
+            Assert.assertEquals(mpinId.toHexString(), signature.mpinId)
+            Assert.assertEquals(publicKey.toHexString(), signature.publicKey)
+        }
+
+    @Test
+    fun `sign with CrossDeviceSession should return MIRACLError when updateSigningSessionRequest fails`() =
+        runTest {
+            // Arrange
+            val signingUser = createSigningUser()
+            val crossDeviceSession = createCrossDeviceSession()
+
+            coEvery {
+                authenticatorContractMock.authenticate(
+                    signingUser,
+                    any(),
+                    any(),
+                    arrayOf(AuthenticatorScopes.SIGNING_AUTHENTICATION.value),
+                    deviceName
+                )
+            } returns MIRACLSuccess(mockk())
+
+            val u = randomByteArray()
+            val v = randomByteArray()
+            coEvery {
+                cryptoMock.sign(
+                    crossDeviceSession.signingHash.toByteArray(),
+                    mpinId.plus(publicKey),
+                    token,
+                    any(),
+                    any()
+                )
+            } returns MIRACLSuccess(SigningResult(u, v))
+
+            val exception = SigningSessionException.CompleteSigningSessionFail(null)
+            coEvery {
+                crossDeviceSessionApiMock.executeUpdateCrossDeviceSessionForSigningRequest(
+                    sessionId = crossDeviceSession.sessionId,
+                    signature = any()
+                )
+            } returns MIRACLError(exception)
+
+            val documentSigner = DocumentSigner(
+                cryptoMock,
+                authenticatorContractMock,
+                userStorageMock,
+                signingSessionApiMock,
+                crossDeviceSessionApiMock
+            )
+
+            // Act
+            val result = documentSigner.sign(
+                crossDeviceSession = crossDeviceSession,
+                user = signingUser,
+                pinProvider = pinProviderMock,
+                deviceName = deviceName
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertTrue((result as MIRACLError).value is SigningException.SigningFail)
+            Assert.assertEquals(exception, result.value.cause)
         }
 
     private fun createSigningUser() =
@@ -1098,4 +1258,38 @@ class DocumentSignerUnitTest {
             limitQuickCodeRegistration = limitQuickCodeRegistration
         )
     }
+
+    private fun createCrossDeviceSession(
+        sessionId: String = randomUuidString(),
+        description: String = randomUuidString(),
+        userId: String = this.userId,
+        projectId: String = this.projectId,
+        projectName: String = randomUuidString(),
+        projectLogoUrl: String = randomUuidString(),
+        pinLength: Int = this.pinLength,
+        verificationMethod: VerificationMethod = VerificationMethod.FullCustom,
+        verificationUrl: String = randomUuidString(),
+        verificationCustomText: String = randomUuidString(),
+        identityType: IdentityType = IdentityType.Email,
+        identityTypeLabel: String = randomUuidString(),
+        quickCodeEnabled: Boolean = Random.nextBoolean(),
+        limitQuickCodeRegistration: Boolean = Random.nextBoolean(),
+        hash: String = randomHexString()
+    ) = CrossDeviceSession(
+        sessionId = sessionId,
+        sessionDescription = description,
+        userId = userId,
+        projectId = projectId,
+        projectName = projectName,
+        projectLogoUrl = projectLogoUrl,
+        pinLength = pinLength,
+        verificationMethod = verificationMethod,
+        verificationUrl = verificationUrl,
+        verificationCustomText = verificationCustomText,
+        identityType = identityType,
+        identityTypeLabel = identityTypeLabel,
+        quickCodeEnabled = quickCodeEnabled,
+        limitQuickCodeRegistration = limitQuickCodeRegistration,
+        signingHash = hash,
+    )
 }

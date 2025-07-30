@@ -52,9 +52,10 @@ internal class ComponentFactory(
     fun createDocumentSigner(
         authenticator: AuthenticatorContract,
         userStorage: UserStorage,
-        signingSessionApi: SigningSessionApi
+        signingSessionApi: SigningSessionApi,
+        crossDeviceSessionApi: CrossDeviceSessionApi
     ): DocumentSigner =
-        DocumentSigner(crypto, authenticator, userStorage, signingSessionApi)
+        DocumentSigner(crypto, authenticator, userStorage, signingSessionApi, crossDeviceSessionApi)
 
     fun createSessionManager(
         sessionApi: SessionApi
@@ -65,4 +66,9 @@ internal class ComponentFactory(
         signingSessionApi: SigningSessionApi
     ): SigningSessionManagerContract =
         SigningSessionManager(signingSessionApi)
+
+    fun createCrossDeviceSessionManager(
+        crossDeviceSessionApi: CrossDeviceSessionApi
+    ): CrossDeviceSessionManagerContract =
+        CrossDeviceSessionManager(crossDeviceSessionApi)
 }

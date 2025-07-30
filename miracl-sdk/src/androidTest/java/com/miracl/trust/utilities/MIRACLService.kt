@@ -19,7 +19,9 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class SessionRequestBody(
     val projectId: String,
-    val userId: String?
+    val userId: String?,
+    val description: String? = null,
+    val hash: String? = null
 )
 
 @Serializable
@@ -70,14 +72,17 @@ object MIRACLService {
         ignoreUnknownKeys = true
     }
 
+    @JvmOverloads
     fun obtainAccessId(
         projectId: String = BuildConfig.CUV_PROJECT_ID,
-        userId: String? = null
+        userId: String? = null,
+        description: String? = null,
+        hash: String? = null
     ): AccessIdResponse = runBlocking {
         val apiRequest = ApiRequest(
             method = HttpMethod.POST,
             headers = null,
-            body = json.encodeToString(SessionRequestBody(projectId, userId)),
+            body = json.encodeToString(SessionRequestBody(projectId, userId, description, hash)),
             params = null,
             url = "${BuildConfig.BASE_URL}/rps/v2/session"
         )

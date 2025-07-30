@@ -10,17 +10,23 @@ import com.miracl.trust.configuration.Configuration
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.User
 import com.miracl.trust.registration.RegistrationException
+import com.miracl.trust.session.CrossDeviceSession
+import com.miracl.trust.session.IdentityType
+import com.miracl.trust.session.VerificationMethod
 import com.miracl.trust.utilities.JwtHelper
 import com.miracl.trust.utilities.MIRACLService
 import com.miracl.trust.utilities.USER_ID
 import com.miracl.trust.utilities.WRONG_FORMAT_PIN
 import com.miracl.trust.utilities.generateWrongPin
 import com.miracl.trust.utilities.randomNumericPin
+import com.miracl.trust.utilities.randomPinLength
+import com.miracl.trust.utilities.randomUuidString
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
+import kotlin.random.Random
 
 class AuthenticationTest {
     private val projectId = BuildConfig.CUV_PROJECT_ID
@@ -78,6 +84,66 @@ class AuthenticationTest {
 
         val claims = JwtHelper.parseSignedClaims(token)
         Assert.assertTrue(claims.payload.audience.contains(projectId))
+    }
+
+    @Test
+    fun testSuccessfulAuthenticationWithCrossDeviceSession() = runTest {
+        // Arrange
+        val qrCode = MIRACLService.obtainAccessId().qrURL
+        var crossDeviceSession: CrossDeviceSession? = null
+        miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) {
+            crossDeviceSession = (it as MIRACLSuccess).value
+        }
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        var result: MIRACLResult<Unit, AuthenticationException>? = null
+
+        // Act
+        miraclTrust.authenticate(
+            user = user,
+            crossDeviceSession = crossDeviceSession!!,
+            pinProvider = pinProvider,
+            resultHandler = { result = it }
+        )
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert
+        Assert.assertTrue(result is MIRACLSuccess)
+    }
+
+    @Test
+    fun testAuthenticationWithCrossDeviceSessionFailOnInvalidSession() {
+        // Arrange
+        val crossDeviceSession = CrossDeviceSession(
+            sessionId = "invalidSessionId",
+            sessionDescription = randomUuidString(),
+            userId = randomUuidString(),
+            projectId = randomUuidString(),
+            projectName = randomUuidString(),
+            projectLogoUrl = randomUuidString(),
+            pinLength = randomPinLength(),
+            verificationMethod = VerificationMethod.StandardEmail,
+            verificationUrl = randomUuidString(),
+            verificationCustomText = randomUuidString(),
+            identityType = IdentityType.Email,
+            identityTypeLabel = randomUuidString(),
+            quickCodeEnabled = Random.nextBoolean(),
+            limitQuickCodeRegistration = Random.nextBoolean(),
+            signingHash = ""
+        )
+        var result: MIRACLResult<Unit, AuthenticationException>? = null
+
+        // Act
+        miraclTrust.authenticate(user, crossDeviceSession, pinProvider) {
+            result = it
+        }
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert
+        Assert.assertTrue(result is MIRACLError)
+        Assert.assertEquals(
+            AuthenticationException.InvalidCrossDeviceSession,
+            (result as MIRACLError).value
+        )
     }
 
     @Test

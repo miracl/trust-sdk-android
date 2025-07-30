@@ -10,6 +10,7 @@ import com.miracl.trust.model.User
 import com.miracl.trust.model.isEmpty
 import com.miracl.trust.model.revoke
 import com.miracl.trust.registration.RegistratorContract
+import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.session.SessionApi
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.acquirePin
@@ -31,6 +32,14 @@ internal interface AuthenticatorContract {
     suspend fun authenticate(
         user: User,
         accessId: String?,
+        pinProvider: PinProvider,
+        scope: Array<String>,
+        deviceName: String
+    ): MIRACLResult<AuthenticateResponse, AuthenticationException>
+
+    suspend fun authenticateWithCrossDeviceSession(
+        user: User,
+        crossDeviceSession: CrossDeviceSession,
         pinProvider: PinProvider,
         scope: Array<String>,
         deviceName: String
@@ -236,6 +245,23 @@ internal class Authenticator(
         } catch (ex: Exception) {
             return MIRACLError(AuthenticationException.AuthenticationFail(ex))
         }
+    }
+
+    override suspend fun authenticateWithCrossDeviceSession(
+        user: User,
+        crossDeviceSession: CrossDeviceSession,
+        pinProvider: PinProvider,
+        scope: Array<String>,
+        deviceName: String
+    ): MIRACLResult<AuthenticateResponse, AuthenticationException> {
+        val result =
+            authenticate(user, crossDeviceSession.sessionId, pinProvider, scope, deviceName)
+
+        if (result is MIRACLError && result.value is AuthenticationException.InvalidAuthenticationSession) {
+            return MIRACLError(AuthenticationException.InvalidCrossDeviceSession)
+        }
+
+        return result
     }
 
     override suspend fun authenticateWithAppLink(
