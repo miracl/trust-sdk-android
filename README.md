@@ -382,8 +382,8 @@ MIRACL Trust SDK offers two options:
 
 The
 [authenticate](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate.html)
-method generates a [JWT](https://jwt.io) authentication token for а registered
-user.
+method generates a [JWT](https://datatracker.ietf.org/doc/html/rfc7519)
+authentication token for а registered user.
 
 Use [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
 the same way it is used during registration.
@@ -426,10 +426,7 @@ miraclTrust.authenticate(
 ```
 
 After the JWT authentication token is generated, it needs to be sent to the
-application server for verification. Then, the application server verifies the
-token signature using the MIRACL Trust
-[JWKS](https://api.mpin.io/.well-known/jwks) endpoint and the `audience` claim,
-which in this case is the application Project ID.
+application server for [verification](https://miracl.com/resources/docs/guides/authentication/jwt-verification/).
 
 #### Authenticate users on another application
 

@@ -632,15 +632,13 @@ public class MIRACLTrust private constructor(
 
     //region Authentication
     /**
-     * Authenticate identity to the MIRACL Trust platform by generating a [JWT](https://jwt.io)
-     * authentication token.
+     * Authenticate identity to the MIRACL Trust platform by generating a
+     * [JWT](https://datatracker.ietf.org/doc/html/rfc7519) authentication token.
      *
      * Use this method to authenticate within your application.
      *
      * After the JWT authentication token is generated, it needs to be sent to the application
-     * server for verification. When received, the application server should verify the
-     * token signature using the MIRACL Trust [JWKS](https://api.mpin.io/.well-known/jwks)
-     * endpoint and the `audience` claim which in this case is the application project ID.
+     * server for [verification](https://miracl.com/resources/docs/guides/authentication/jwt-verification/).
      *
      * @param user the user to authenticate.
      * @param pinProvider a callback called from the SDK, when the identity PIN is required.
