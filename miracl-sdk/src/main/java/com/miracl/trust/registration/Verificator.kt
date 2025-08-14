@@ -13,6 +13,7 @@ import com.miracl.trust.model.QuickCode
 import com.miracl.trust.model.User
 import com.miracl.trust.network.ApiException
 import com.miracl.trust.session.AuthenticationSessionDetails
+import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.log.Loggable
 import com.miracl.trust.util.log.LoggerConstants
@@ -27,7 +28,8 @@ internal class Verificator(
         userId: String,
         projectId: String,
         deviceName: String,
-        authenticationSessionDetails: AuthenticationSessionDetails? = null
+        authenticationSessionDetails: AuthenticationSessionDetails? = null,
+        crossDeviceSession: CrossDeviceSession? = null
     ): MIRACLResult<VerificationResponse, VerificationException> {
         logOperation(LoggerConstants.FLOW_STARTED)
 
@@ -41,7 +43,7 @@ internal class Verificator(
             projectId,
             userId,
             deviceName,
-            authenticationSessionDetails?.accessId,
+            authenticationSessionDetails?.accessId ?: crossDeviceSession?.sessionId,
             mpinId
         )
 

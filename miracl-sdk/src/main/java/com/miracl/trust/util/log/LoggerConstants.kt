@@ -7,6 +7,7 @@ internal object LoggerConstants {
     internal const val DOCUMENT_SIGNER_TAG = "DocumentSigner"
     internal const val SESSION_MANAGER_TAG = "SessionManager"
     internal const val SIGNING_SESSION_MANAGER_TAG = "SigningSessionManager"
+    internal const val CROSS_DEVICE_SESSION_MANAGER_TAG = "CrossDeviceSessionManager"
 
     internal const val FLOW_STARTED = "Flow started."
     internal const val FLOW_FINISHED = "Flow finished."
@@ -51,7 +52,10 @@ internal object LoggerConstants {
 
     object DocumentSignerOperations {
         internal const val SIGNING = "Signing."
-        internal const val UPDATE_SESSION_REQUEST = "Executing update signing session request."
+        internal const val UPDATE_SIGNING_SESSION_REQUEST =
+            "Executing update signing session request."
+        internal const val UPDATE_CROSS_DEVICE_SESSION_REQUEST =
+            "Executing update cross-device session request."
     }
 
     object SessionManagementOperations {
