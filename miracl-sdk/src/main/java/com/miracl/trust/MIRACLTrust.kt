@@ -196,8 +196,8 @@ public class MIRACLTrust private constructor(
      * @param appLink a URI provided by the Intent.
      * @param resultHandler a callback to handle the result of getting session details.
      * - If successful, the result is [MIRACLSuccess] with the [AuthenticationSessionDetails].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getAuthenticationSessionDetailsFromAppLink(
         appLink: Uri,
@@ -228,8 +228,8 @@ public class MIRACLTrust private constructor(
      * @param qrCode a string read from the QR code.
      * @param resultHandler a callback to handle the result of getting session details.
      * - If successful, the result is [MIRACLSuccess] with the [AuthenticationSessionDetails].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getAuthenticationSessionDetailsFromQRCode(
         qrCode: String,
@@ -260,8 +260,8 @@ public class MIRACLTrust private constructor(
      * @param payload key-value data provided by the notification.
      * @param resultHandler a callback to handle the result of getting session details.
      * - If successful, the result is [MIRACLSuccess] with the [AuthenticationSessionDetails].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getAuthenticationSessionDetailsFromNotificationPayload(
         payload: Map<String, String>,
@@ -289,8 +289,8 @@ public class MIRACLTrust private constructor(
      * @param authenticationSessionDetails details for authentication session.
      * @param resultHandler a callback to handle the result of session abort.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun abortAuthenticationSession(
         authenticationSessionDetails: AuthenticationSessionDetails,
@@ -323,8 +323,8 @@ public class MIRACLTrust private constructor(
      * @param appLink a URI provided by the Intent.
      * @param resultHandler a callback to handle the result of getting signing session details.
      * - If successful, the result is [MIRACLSuccess] with the [SigningSessionDetails].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getSigningSessionDetailsFromAppLink(
         appLink: Uri,
@@ -355,8 +355,8 @@ public class MIRACLTrust private constructor(
      * @param qrCode a string read from the QR code.
      * @param resultHandler a callback to handle the result of getting signing session details.
      * - If successful, the result is [MIRACLSuccess] with the [SigningSessionDetails].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getSigningSessionDetailsFromQRCode(
         qrCode: String,
@@ -384,8 +384,8 @@ public class MIRACLTrust private constructor(
      * @param signingSessionDetails details for the signing session.
      * @param resultHandler a callback to handle the result of session abort.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun abortSigningSession(
         signingSessionDetails: SigningSessionDetails,
@@ -418,8 +418,8 @@ public class MIRACLTrust private constructor(
      * needs to be valid email address.
      * @param resultHandler a callback to handle the result of the verification.
      * - If successful, the result is [MIRACLSuccess] with the [VerificationResponse].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun sendVerificationEmail(
         userId: String,
@@ -454,8 +454,8 @@ public class MIRACLTrust private constructor(
      * @param authenticationSessionDetails details for authentication session.
      * @param resultHandler a callback to handle the result of the verification.
      * - If successful, the result is [MIRACLSuccess] with the [VerificationResponse].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun sendVerificationEmail(
         userId: String,
@@ -490,8 +490,8 @@ public class MIRACLTrust private constructor(
      * @param pinProvider a callback called from the SDK, when the user PIN is required.
      * @param resultHandler a callback to handle the result of the `QuickCode` generation.
      * - If successful, the result is [MIRACLSuccess] with the [QuickCode].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun generateQuickCode(
         user: User,
@@ -524,8 +524,8 @@ public class MIRACLTrust private constructor(
      * @param verificationUri a verification URI received as part of the verification process.
      * @param resultHandler a callback to handle the result of the verification.
      * - If successful, the result is [MIRACLSuccess] with the [ActivationTokenResponse].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getActivationToken(
         verificationUri: Uri,
@@ -556,8 +556,8 @@ public class MIRACLTrust private constructor(
      * @param code the verification code sent to the user email.
      * @param resultHandler a callback to handle the result of the verification.
      * - If successful, the result is [MIRACLSuccess] with the [ActivationTokenResponse].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getActivationToken(
         userId: String,
@@ -595,8 +595,8 @@ public class MIRACLTrust private constructor(
      * when push notifications for authentication are enabled in the platform.
      * @param resultHandler a callback to handle the result of the registration.
      * - If successful, the result is [MIRACLSuccess] with value of the registered user.
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     @JvmOverloads
     public fun register(
@@ -646,8 +646,8 @@ public class MIRACLTrust private constructor(
      * @param pinProvider a callback called from the SDK, when the identity PIN is required.
      * @param resultHandler a callback to handle the result of the authentication.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun authenticate(
         user: User,
@@ -701,8 +701,8 @@ public class MIRACLTrust private constructor(
      * @param pinProvider a callback called from the SDK, when the identity PIN is required.
      * @param resultHandler a callback to handle the result of the authentication.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun authenticateWithAppLink(
         user: User,
@@ -751,8 +751,8 @@ public class MIRACLTrust private constructor(
      * @param pinProvider a callback called from the SDK, when the identity PIN is required.
      * @param resultHandler a callback to handle the result of the authentication.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun authenticateWithQRCode(
         user: User,
@@ -800,8 +800,8 @@ public class MIRACLTrust private constructor(
      * @param pinProvider a callback called from the SDK, when the identity PIN is required.
      * @param resultHandler a callback to handle the result of the authentication.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun authenticateWithNotificationPayload(
         payload: Map<String, String>,
@@ -846,8 +846,8 @@ public class MIRACLTrust private constructor(
      * @param pinProvider a callback called from the SDK, when the signing identity PIN is required.
      * @param resultHandler a callback to handle the result of the signing.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun sign(
         message: ByteArray,
@@ -886,8 +886,8 @@ public class MIRACLTrust private constructor(
      * @param pinProvider a callback called from the SDK, when the signing identity PIN is required.
      * @param resultHandler a callback to handle the result of the signing.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      * @suppress
      */
     public fun sign(
