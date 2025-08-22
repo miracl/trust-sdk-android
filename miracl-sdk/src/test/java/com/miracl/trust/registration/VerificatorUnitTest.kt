@@ -15,6 +15,7 @@ import com.miracl.trust.randomByteArray
 import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
 import com.miracl.trust.session.AuthenticationSessionDetails
+import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.storage.UserDto
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.toHexString
@@ -110,6 +111,46 @@ class VerificatorUnitTest {
                 projectId = projectId,
                 deviceName = deviceName,
                 authenticationSessionDetails = authenticationSessionDetails
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+            Assert.assertEquals(backoff, (result as MIRACLSuccess).value.backoff)
+            Assert.assertEquals(method, result.value.method)
+        }
+
+    @Test
+    fun `sendVerificationEmail should return MIRACLSuccess when CrossDeviceSession is passed`() =
+        runTest {
+            // Arrange
+            val userId = randomUuidString()
+            val projectId = randomUuidString()
+            val deviceName = randomUuidString()
+            val sessionId = randomUuidString()
+            val backoff: Long = Random.nextLong()
+            val method = EmailVerificationMethod.Link
+
+            val crossDeviceSession = mockkClass(CrossDeviceSession::class)
+            every { crossDeviceSession.sessionId } returns sessionId
+
+            coEvery {
+                verificationApiMock.executeVerificationRequest(
+                    VerificationRequestBody(
+                        userId = userId,
+                        projectId = projectId,
+                        deviceName = deviceName,
+                        accessId = sessionId,
+                        mpinId = null
+                    )
+                )
+            } returns MIRACLSuccess(VerificationRequestResponse(backoff, method.toString()))
+
+            // Act
+            val result = verificator.sendVerificationEmail(
+                userId = userId,
+                projectId = projectId,
+                deviceName = deviceName,
+                crossDeviceSession = crossDeviceSession
             )
 
             // Assert

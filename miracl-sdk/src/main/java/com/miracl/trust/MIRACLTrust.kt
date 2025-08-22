@@ -82,6 +82,7 @@ public class MIRACLTrust private constructor(
     private val userStorage: UserStorage
     private val sessionManager: SessionManagerContract
     private val signingSessionManager: SigningSessionManagerContract
+    private val crossDeviceSessionManager: CrossDeviceSessionManagerContract
 
     private val miraclTrustScope: CoroutineScope
 
@@ -144,6 +145,15 @@ public class MIRACLTrust private constructor(
 
         sessionManager = componentFactory.createSessionManager(sessionApi)
 
+        val crossDeviceSessionApi = CrossDeviceSessionApiManager(
+            apiRequestExecutor,
+            KotlinxSerializationJsonUtil,
+            apiSettings
+        )
+
+        crossDeviceSessionManager =
+            componentFactory.createCrossDeviceSessionManager(crossDeviceSessionApi)
+
         authenticator =
             componentFactory.createAuthenticator(
                 authenticationApi,
@@ -165,8 +175,12 @@ public class MIRACLTrust private constructor(
             SigningSessionApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
         signingSessionManager = componentFactory.createSigningSessionManager(signingSessionApi)
 
-        documentSigner =
-            componentFactory.createDocumentSigner(authenticator, userStorage, signingSessionApi)
+        documentSigner = componentFactory.createDocumentSigner(
+            authenticator = authenticator,
+            userStorage = userStorage,
+            signingSessionApi = signingSessionApi,
+            crossDeviceSessionApi = crossDeviceSessionApi
+        )
     }
     //endregion
 
@@ -196,8 +210,8 @@ public class MIRACLTrust private constructor(
      * @param appLink a URI provided by the Intent.
      * @param resultHandler a callback to handle the result of getting session details.
      * - If successful, the result is [MIRACLSuccess] with the [AuthenticationSessionDetails].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getAuthenticationSessionDetailsFromAppLink(
         appLink: Uri,
@@ -228,8 +242,8 @@ public class MIRACLTrust private constructor(
      * @param qrCode a string read from the QR code.
      * @param resultHandler a callback to handle the result of getting session details.
      * - If successful, the result is [MIRACLSuccess] with the [AuthenticationSessionDetails].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getAuthenticationSessionDetailsFromQRCode(
         qrCode: String,
@@ -260,8 +274,8 @@ public class MIRACLTrust private constructor(
      * @param payload key-value data provided by the notification.
      * @param resultHandler a callback to handle the result of getting session details.
      * - If successful, the result is [MIRACLSuccess] with the [AuthenticationSessionDetails].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getAuthenticationSessionDetailsFromNotificationPayload(
         payload: Map<String, String>,
@@ -289,8 +303,8 @@ public class MIRACLTrust private constructor(
      * @param authenticationSessionDetails details for authentication session.
      * @param resultHandler a callback to handle the result of session abort.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun abortAuthenticationSession(
         authenticationSessionDetails: AuthenticationSessionDetails,
@@ -323,8 +337,8 @@ public class MIRACLTrust private constructor(
      * @param appLink a URI provided by the Intent.
      * @param resultHandler a callback to handle the result of getting signing session details.
      * - If successful, the result is [MIRACLSuccess] with the [SigningSessionDetails].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getSigningSessionDetailsFromAppLink(
         appLink: Uri,
@@ -355,8 +369,8 @@ public class MIRACLTrust private constructor(
      * @param qrCode a string read from the QR code.
      * @param resultHandler a callback to handle the result of getting signing session details.
      * - If successful, the result is [MIRACLSuccess] with the [SigningSessionDetails].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getSigningSessionDetailsFromQRCode(
         qrCode: String,
@@ -384,8 +398,8 @@ public class MIRACLTrust private constructor(
      * @param signingSessionDetails details for the signing session.
      * @param resultHandler a callback to handle the result of session abort.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun abortSigningSession(
         signingSessionDetails: SigningSessionDetails,
@@ -409,6 +423,129 @@ public class MIRACLTrust private constructor(
     }
     //endregion
 
+    //region CrossDeviceSession management
+    /**
+     * Get [CrossDeviceSession] for an AppLink.
+     *
+     * @param appLink a URI provided by the Intent.
+     * @param resultHandler a callback to handle the result of getting details for the session.
+     * - If successful, the result is [MIRACLSuccess] with the [CrossDeviceSession].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun getCrossDeviceSessionFromAppLink(
+        appLink: Uri,
+        resultHandler: ResultHandler<CrossDeviceSession, CrossDeviceSessionException>
+    ) {
+        miraclTrustScope.launch {
+            crossDeviceSessionManager.getCrossDeviceSessionFromAppLink(appLink).also { result ->
+                if (result is MIRACLError) {
+                    logError(
+                        LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG,
+                        result.value
+                    )
+                }
+
+                withContext(resultHandlerDispatcher) {
+                    resultHandler.onResult(result)
+                }
+            }
+        }
+    }
+
+    /**
+     * Get [CrossDeviceSession] for a QR code.
+     *
+     * @param qrCode a string read from the QR code.
+     * @param resultHandler a callback to handle the result of getting details for the session.
+     * - If successful, the result is [MIRACLSuccess] with the [CrossDeviceSession].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun getCrossDeviceSessionFromQRCode(
+        qrCode: String,
+        resultHandler: ResultHandler<CrossDeviceSession, CrossDeviceSessionException>
+    ) {
+        miraclTrustScope.launch {
+            crossDeviceSessionManager.getCrossDeviceSessionFromQRCode(qrCode).also { result ->
+                if (result is MIRACLError) {
+                    logError(
+                        LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG,
+                        result.value
+                    )
+                }
+
+                withContext(resultHandlerDispatcher) {
+                    resultHandler.onResult(result)
+                }
+            }
+        }
+    }
+
+    /**
+     * Get [CrossDeviceSession] from a notification payload.
+     *
+     * @param payload key-value data provided by the notification.
+     * @param resultHandler a callback to handle the result of getting details for the session.
+     * - If successful, the result is [MIRACLSuccess] with the [CrossDeviceSession].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun getCrossDeviceSessionFromNotificationPayload(
+        payload: Map<String, String>,
+        resultHandler: ResultHandler<CrossDeviceSession, CrossDeviceSessionException>
+    ) {
+        miraclTrustScope.launch {
+            crossDeviceSessionManager.getCrossDeviceSessionFromNotificationPayload(payload)
+                .also { result ->
+                    if (result is MIRACLError) {
+                        logError(
+                            LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG,
+                            result.value
+                        )
+                    }
+
+                    withContext(resultHandlerDispatcher) {
+                        resultHandler.onResult(result)
+                    }
+                }
+        }
+    }
+
+    /**
+     * Cancel the [CrossDeviceSession].
+     *
+     * @param crossDeviceSession the session to cancel.
+     * @param resultHandler a callback to handle the result of session abort.
+     * - If successful, the result is [MIRACLSuccess].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun abortCrossDeviceSession(
+        crossDeviceSession: CrossDeviceSession,
+        resultHandler: ResultHandler<Unit, CrossDeviceSessionException>
+    ) {
+        miraclTrustScope.launch {
+            crossDeviceSessionManager.abortSession(crossDeviceSession).also { result ->
+                if (result is MIRACLError) {
+                    logError(
+                        LoggerConstants.SESSION_MANAGER_TAG,
+                        result.value
+                    )
+                }
+
+                withContext(resultHandlerDispatcher) {
+                    resultHandler.onResult(result)
+                }
+            }
+        }
+    }
+    //endregion
+
     //region Verification
     /**
      * Default method to verify user identity against the MIRACL platform. In the current
@@ -418,8 +555,8 @@ public class MIRACLTrust private constructor(
      * needs to be valid email address.
      * @param resultHandler a callback to handle the result of the verification.
      * - If successful, the result is [MIRACLSuccess] with the [VerificationResponse].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun sendVerificationEmail(
         userId: String,
@@ -454,8 +591,8 @@ public class MIRACLTrust private constructor(
      * @param authenticationSessionDetails details for authentication session.
      * @param resultHandler a callback to handle the result of the verification.
      * - If successful, the result is [MIRACLSuccess] with the [VerificationResponse].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun sendVerificationEmail(
         userId: String,
@@ -484,14 +621,53 @@ public class MIRACLTrust private constructor(
     }
 
     /**
+     * Default method to verify user identity against the MIRACL Trust platform. In the current
+     * implementation it is done by sending an email message.
+     *
+     * @param userId identifier of the user identity. To verify identity this identifier
+     * needs to be valid email address.
+     * @param crossDeviceSession the session from which the verification is started.
+     * @param resultHandler a callback to handle the result of the verification.
+     * - If successful, the result is [MIRACLSuccess] with the [VerificationResponse].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun sendVerificationEmail(
+        userId: String,
+        crossDeviceSession: CrossDeviceSession,
+        resultHandler: ResultHandler<VerificationResponse, VerificationException>
+    ) {
+        miraclTrustScope.launch {
+            verificator.sendVerificationEmail(
+                userId = userId,
+                projectId = projectId,
+                deviceName = deviceName,
+                crossDeviceSession = crossDeviceSession
+            ).also { result ->
+                if (result is MIRACLError) {
+                    logError(
+                        LoggerConstants.VERIFICATOR_TAG,
+                        result.value
+                    )
+                }
+
+                withContext(resultHandlerDispatcher) {
+                    resultHandler.onResult(result)
+                }
+            }
+        }
+    }
+
+    /**
      * Generate [QuickCode](https://miracl.com/resources/docs/guides/built-in-user-verification/quickcode/)
      * for a registered user.
      * @param user the user to generate `QuickCode` for.
      * @param pinProvider a callback called from the SDK, when the user PIN is required.
      * @param resultHandler a callback to handle the result of the `QuickCode` generation.
      * - If successful, the result is [MIRACLSuccess] with the [QuickCode].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun generateQuickCode(
         user: User,
@@ -524,8 +700,8 @@ public class MIRACLTrust private constructor(
      * @param verificationUri a verification URI received as part of the verification process.
      * @param resultHandler a callback to handle the result of the verification.
      * - If successful, the result is [MIRACLSuccess] with the [ActivationTokenResponse].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getActivationToken(
         verificationUri: Uri,
@@ -556,8 +732,8 @@ public class MIRACLTrust private constructor(
      * @param code the verification code sent to the user email.
      * @param resultHandler a callback to handle the result of the verification.
      * - If successful, the result is [MIRACLSuccess] with the [ActivationTokenResponse].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun getActivationToken(
         userId: String,
@@ -595,8 +771,8 @@ public class MIRACLTrust private constructor(
      * when push notifications for authentication are enabled in the platform.
      * @param resultHandler a callback to handle the result of the registration.
      * - If successful, the result is [MIRACLSuccess] with value of the registered user.
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     @JvmOverloads
     public fun register(
@@ -644,8 +820,8 @@ public class MIRACLTrust private constructor(
      * @param pinProvider a callback called from the SDK, when the identity PIN is required.
      * @param resultHandler a callback to handle the result of the authentication.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun authenticate(
         user: User,
@@ -689,6 +865,57 @@ public class MIRACLTrust private constructor(
     }
 
     /**
+     * Authenticates identity in the MIRACL Trust platform.
+     *
+     * Use this method to authenticate another device or application with the usage of
+     * [CrossDeviceSession].
+     *
+     * @param user the user to authenticate with.
+     * @param crossDeviceSession details for the authentication operation.
+     * @param pinProvider a callback called from the SDK, when the identity PIN is required.
+     * @param resultHandler a callback to handle the result of the authentication.
+     * - If successful, the result is [MIRACLSuccess].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun authenticate(
+        user: User,
+        crossDeviceSession: CrossDeviceSession,
+        pinProvider: PinProvider,
+        resultHandler: ResultHandler<Unit, AuthenticationException>
+    ) {
+        miraclTrustScope.launch {
+            authenticator.authenticateWithCrossDeviceSession(
+                user,
+                crossDeviceSession,
+                pinProvider,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            ).also { result ->
+                when (result) {
+                    is MIRACLSuccess -> {
+                        withContext(resultHandlerDispatcher) {
+                            resultHandler.onResult(MIRACLSuccess(Unit))
+                        }
+                    }
+
+                    is MIRACLError -> {
+                        logError(
+                            LoggerConstants.AUTHENTICATOR_TAG,
+                            result.value
+                        )
+
+                        withContext(resultHandlerDispatcher) {
+                            resultHandler.onResult(MIRACLError(result.value))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Authenticate identity in the MIRACL platform.
      *
      * Use this method to authenticate another device or application with the usage of
@@ -699,8 +926,8 @@ public class MIRACLTrust private constructor(
      * @param pinProvider a callback called from the SDK, when the identity PIN is required.
      * @param resultHandler a callback to handle the result of the authentication.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun authenticateWithAppLink(
         user: User,
@@ -749,8 +976,8 @@ public class MIRACLTrust private constructor(
      * @param pinProvider a callback called from the SDK, when the identity PIN is required.
      * @param resultHandler a callback to handle the result of the authentication.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun authenticateWithQRCode(
         user: User,
@@ -798,8 +1025,8 @@ public class MIRACLTrust private constructor(
      * @param pinProvider a callback called from the SDK, when the identity PIN is required.
      * @param resultHandler a callback to handle the result of the authentication.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun authenticateWithNotificationPayload(
         payload: Map<String, String>,
@@ -844,8 +1071,8 @@ public class MIRACLTrust private constructor(
      * @param pinProvider a callback called from the SDK, when the signing identity PIN is required.
      * @param resultHandler a callback to handle the result of the signing.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      */
     public fun sign(
         message: ByteArray,
@@ -884,8 +1111,8 @@ public class MIRACLTrust private constructor(
      * @param pinProvider a callback called from the SDK, when the signing identity PIN is required.
      * @param resultHandler a callback to handle the result of the signing.
      * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with a message. On exception,
-     * the exception object is also passed.
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
      * @suppress
      */
     public fun sign(
@@ -903,6 +1130,48 @@ public class MIRACLTrust private constructor(
                     pinProvider,
                     deviceName,
                     signingSessionDetails
+                )
+                .also { result ->
+                    if (result is MIRACLError) {
+                        logError(
+                            LoggerConstants.DOCUMENT_SIGNER_TAG,
+                            result.value
+                        )
+                    }
+
+                    withContext(resultHandlerDispatcher) {
+                        resultHandler.onResult(result)
+                    }
+                }
+        }
+    }
+
+    /**
+     * Generates a signature for a hash provided by the [crossDeviceSession] parameter and updates
+     * the session.
+     *
+     * @param crossDeviceSession details for the signing operation.
+     * @param user an user to sign with.
+     * @param pinProvider a callback called from the SDK, when the signing identity PIN is required.
+     * @param resultHandler a callback to handle the result of the signing.
+     * - If successful, the result is [MIRACLSuccess].
+     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun sign(
+        crossDeviceSession: CrossDeviceSession,
+        user: User,
+        pinProvider: PinProvider,
+        resultHandler: ResultHandler<Unit, SigningException>
+    ) {
+        miraclTrustScope.launch {
+            documentSigner
+                .sign(
+                    crossDeviceSession = crossDeviceSession,
+                    user = user,
+                    pinProvider = pinProvider,
+                    deviceName = deviceName
                 )
                 .also { result ->
                     if (result is MIRACLError) {

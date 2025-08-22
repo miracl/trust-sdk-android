@@ -17,6 +17,9 @@ import com.miracl.trust.network.ApiSettings
 import com.miracl.trust.network.HttpsURLConnectionRequestExecutor
 import com.miracl.trust.registration.RegistrationApiManager
 import com.miracl.trust.registration.Registrator
+import com.miracl.trust.session.CrossDeviceSession
+import com.miracl.trust.session.CrossDeviceSessionApiManager
+import com.miracl.trust.session.CrossDeviceSessionManager
 import com.miracl.trust.session.IdentityType
 import com.miracl.trust.session.SessionApiManager
 import com.miracl.trust.session.SigningSessionApiManager
@@ -41,7 +44,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import java.util.Date
 import kotlin.random.Random
 
 class DocumentSigningTest {
@@ -55,6 +57,7 @@ class DocumentSigningTest {
 
     private lateinit var userStorage: RoomUserStorage
     private lateinit var signingSessionManager: SigningSessionManager
+    private lateinit var crossDeviceSessionManager: CrossDeviceSessionManager
     private lateinit var documentSigner: DocumentSigner
 
     private lateinit var pin: String
@@ -78,6 +81,13 @@ class DocumentSigningTest {
             SigningSessionApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
         signingSessionManager = SigningSessionManager(signingSessionApi)
 
+        val crossDeviceSessionApi = CrossDeviceSessionApiManager(
+            apiRequestExecutor,
+            KotlinxSerializationJsonUtil,
+            apiSettings
+        )
+        crossDeviceSessionManager = CrossDeviceSessionManager(crossDeviceSessionApi)
+
         val sessionApi =
             SessionApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
 
@@ -89,7 +99,13 @@ class DocumentSigningTest {
             AuthenticationApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
         val authenticator =
             Authenticator(authenticationApi, sessionApi, crypto, registrator, userStorage)
-        documentSigner = DocumentSigner(crypto, authenticator, userStorage, signingSessionApi)
+        documentSigner = DocumentSigner(
+            crypto,
+            authenticator,
+            userStorage,
+            signingSessionApi,
+            crossDeviceSessionApi
+        )
 
         pin = randomNumericPin()
         pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
@@ -154,6 +170,23 @@ class DocumentSigningTest {
             timestamp = signingResult.timestamp.secondsSince1970()
         )
         Assert.assertTrue(signatureVerified)
+    }
+
+    @Test
+    fun testSuccessfulDocumentSigningWithCrossDeviceSession() = runBlocking {
+        // Arrange
+        val crossDeviceSession = createCrossDeviceSession()
+
+        // Act
+        val result = documentSigner.sign(
+            crossDeviceSession = crossDeviceSession,
+            user = user,
+            pinProvider = pinProvider,
+            deviceName = Build.MODEL
+        )
+
+        // Assert
+        Assert.assertTrue(result is MIRACLSuccess)
     }
 
     @Test
@@ -384,6 +417,24 @@ class DocumentSigningTest {
 
         val getSigningSessionDetailsResult =
             signingSessionManager.getSigningSessionDetailsFromQRCode(qrCode)
+        Assert.assertTrue(getSigningSessionDetailsResult is MIRACLSuccess)
+
+        return (getSigningSessionDetailsResult as MIRACLSuccess).value
+    }
+
+    private suspend fun createCrossDeviceSession(
+        hash: String = randomUuidString(),
+        description: String = randomUuidString()
+    ): CrossDeviceSession {
+        val qrCode = MIRACLService.obtainAccessId(
+            projectId = projectId,
+            userId = USER_ID,
+            hash = hash,
+            description = description
+        ).qrURL
+
+        val getSigningSessionDetailsResult =
+            crossDeviceSessionManager.getCrossDeviceSessionFromQRCode(qrCode)
         Assert.assertTrue(getSigningSessionDetailsResult is MIRACLSuccess)
 
         return (getSigningSessionDetailsResult as MIRACLSuccess).value
