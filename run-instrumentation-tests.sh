@@ -11,8 +11,11 @@ echo $GMAIL_TOKEN > "${TEST_CREDENTIALS_DIR}/token.json"
   -Pmiracltrust.cuvClientId="$TEST_CUV_CLIENT_ID" \
   -Pmiracltrust.cuvClientSecret="$TEST_CUV_CLIENT_SECRET" \
   -Pmiracltrust.cuvProjectId="$TEST_CUV_PROJECT_ID" \
+  -Pmiracltrust.cuvProjectUrl="$TEST_CUV_PROJECT_URL" \
   -Pmiracltrust.dvProjectId="$TEST_DV_PROJECT_ID" \
-  -Pmiracltrust.ecvProjectId="$TEST_ECV_PROJECT_ID"
+  -Pmiracltrust.dvProjectUrl="$TEST_DV_PROJECT_URL" \
+  -Pmiracltrust.ecvProjectId="$TEST_ECV_PROJECT_ID" \
+  -Pmiracltrust.ecvProjectUrl="$TEST_ECV_PROJECT_URL"
 
 GRADLE_EXIT_CODE=$?
 

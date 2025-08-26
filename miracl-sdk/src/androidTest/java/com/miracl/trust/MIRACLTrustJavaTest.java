@@ -54,6 +54,7 @@ import kotlinx.coroutines.test.TestDispatcher;
 
 public class MIRACLTrustJavaTest {
     private final String projectId = BuildConfig.CUV_PROJECT_ID;
+    private final String projectUrl = BuildConfig.CUV_PROJECT_URL;
     private final String clientId = BuildConfig.CUV_CLIENT_ID;
     private final String clientSecret = BuildConfig.CUV_CLIENT_SECRET;
 
@@ -64,8 +65,7 @@ public class MIRACLTrustJavaTest {
 
     @Before
     public void setUp() throws ConfigurationException {
-        Configuration configuration = new Configuration.Builder(projectId)
-                .platformUrl(BuildConfig.BASE_URL)
+        Configuration configuration = new Configuration.Builder(projectId, projectUrl)
                 .coroutineContext$miracl_sdk_debug(testCoroutineDispatcher)
                 .build();
         MIRACLTrust.configure(InstrumentationRegistry.getInstrumentation().getContext(), configuration);
@@ -77,7 +77,7 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testDefaultVerification() throws ConfigurationException {
-        miraclTrust.setProjectId(BuildConfig.DV_PROJECT_ID);
+        miraclTrust.updateProjectSettings(BuildConfig.DV_PROJECT_ID, BuildConfig.DV_PROJECT_URL);
 
         long timestamp = getUnixTime();
         miraclTrust.sendVerificationEmail(USER_ID, result -> {
@@ -104,6 +104,7 @@ public class MIRACLTrustJavaTest {
     @Test
     public void testCustomVerification() {
         String verificationUrl = MIRACLService.INSTANCE.getVerificationUrl(
+                BuildConfig.CUV_PROJECT_URL,
                 BuildConfig.CUV_CLIENT_ID,
                 BuildConfig.CUV_CLIENT_SECRET,
                 USER_ID,
@@ -150,6 +151,7 @@ public class MIRACLTrustJavaTest {
     @Test
     public void testRegistration() {
         String activationToken = MIRACLService.INSTANCE.obtainActivationToken(
+                BuildConfig.CUV_PROJECT_URL,
                 BuildConfig.CUV_CLIENT_ID,
                 BuildConfig.CUV_CLIENT_SECRET,
                 USER_ID
@@ -172,7 +174,7 @@ public class MIRACLTrustJavaTest {
             Assert.assertTrue(result instanceof MIRACLSuccess);
 
             String token = ((MIRACLSuccess<String, AuthenticationException>) result).getValue();
-            Jws<Claims> claims = JwtHelper.INSTANCE.parseSignedClaims(token);
+            Jws<Claims> claims = JwtHelper.INSTANCE.parseSignedClaims(token, projectUrl);
             Assert.assertTrue(claims.getPayload().getAudience().contains(projectId));
         }));
         testCoroutineDispatcher.getScheduler().advanceUntilIdle();
@@ -180,7 +182,7 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testAuthenticationWithCrossDeviceSession() {
-        String qrCode = MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL();
+        String qrCode = MIRACLService.INSTANCE.obtainAccessId().getQrURL();
         miraclTrust.getCrossDeviceSessionFromQRCode(qrCode, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
 
@@ -195,7 +197,7 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testAppLinkAuthentication() {
-        Uri appLink = Uri.parse(MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL());
+        Uri appLink = Uri.parse(MIRACLService.INSTANCE.obtainAccessId().getQrURL());
         createUser(user -> miraclTrust.authenticateWithAppLink(user, appLink, pinProvider, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
         }));
@@ -204,7 +206,7 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testQRCodeAuthentication() {
-        String qrCode = MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL();
+        String qrCode = MIRACLService.INSTANCE.obtainAccessId().getQrURL();
         createUser(user -> miraclTrust.authenticateWithQRCode(user, qrCode, pinProvider, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
         }));
@@ -213,7 +215,7 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testNotificationAuthentication() {
-        String qrUrl = MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL();
+        String qrUrl = MIRACLService.INSTANCE.obtainAccessId().getQrURL();
         Map<String, String> payload = new HashMap<String, String>() {
             {
                 put("projectID", projectId);
@@ -236,7 +238,7 @@ public class MIRACLTrustJavaTest {
             SigningResult signingResult = ((MIRACLSuccess<SigningResult, SigningException>) result).getValue();
             Signature signature = signingResult.getSignature();
             int timestamp = (int) (signingResult.getTimestamp().getTime() / 1000);
-            boolean signatureVerified = MIRACLService.INSTANCE.verifySignature(projectId, clientId, clientSecret, signature, timestamp);
+            boolean signatureVerified = MIRACLService.INSTANCE.verifySignature(projectId, projectUrl, clientId, clientSecret, signature, timestamp);
             Assert.assertTrue(signatureVerified);
         }));
         testCoroutineDispatcher.getScheduler().advanceUntilIdle();
@@ -275,7 +277,7 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testGetAuthenticationSessionDetailsFromAppLink() {
-        Uri appLink = Uri.parse(MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL());
+        Uri appLink = Uri.parse(MIRACLService.INSTANCE.obtainAccessId().getQrURL());
         miraclTrust.getAuthenticationSessionDetailsFromAppLink(appLink, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
 
@@ -288,7 +290,7 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testGetAuthenticationSessionDetailsFromQRCode() {
-        String qrCode = MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL();
+        String qrCode = MIRACLService.INSTANCE.obtainAccessId().getQrURL();
         miraclTrust.getAuthenticationSessionDetailsFromQRCode(qrCode, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
 
@@ -301,7 +303,7 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testGetAuthenticationSessionDetailsFromNotificationPayload() {
-        String qrUrl = MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL();
+        String qrUrl = MIRACLService.INSTANCE.obtainAccessId().getQrURL();
         Map<String, String> payload = new HashMap<String, String>() {
             {
                 put("projectID", projectId);
@@ -322,7 +324,7 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testAbortAuthenticationSession() {
-        String qrCode = MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL();
+        String qrCode = MIRACLService.INSTANCE.obtainAccessId().getQrURL();
         miraclTrust.getAuthenticationSessionDetailsFromQRCode(qrCode, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
 
@@ -340,7 +342,7 @@ public class MIRACLTrustJavaTest {
         String hash = randomUuidString();
         String description = randomUuidString();
         SigningSessionCreateResponse signingSessionCreateResponse =
-                MIRACLService.INSTANCE.createSigningSession(projectId, USER_ID, hash, description);
+                MIRACLService.INSTANCE.createSigningSession(projectId, projectUrl, USER_ID, hash, description);
         Uri appLink = Uri.parse(signingSessionCreateResponse.getQrURL());
         miraclTrust.getSigningSessionDetailsFromAppLink(appLink, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
@@ -360,7 +362,7 @@ public class MIRACLTrustJavaTest {
         String hash = randomUuidString();
         String description = randomUuidString();
         SigningSessionCreateResponse signingSessionCreateResponse =
-                MIRACLService.INSTANCE.createSigningSession(projectId, USER_ID, hash, description);
+                MIRACLService.INSTANCE.createSigningSession(projectId, projectUrl, USER_ID, hash, description);
         String qrCode = signingSessionCreateResponse.getQrURL();
         miraclTrust.getSigningSessionDetailsFromQRCode(qrCode, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
@@ -379,7 +381,7 @@ public class MIRACLTrustJavaTest {
     public void testAbortSigningSession() {
         String hash = randomUuidString();
         String description = randomUuidString();
-        Uri appLink = Uri.parse(MIRACLService.INSTANCE.createSigningSession(projectId, USER_ID, hash, description).getQrURL());
+        Uri appLink = Uri.parse(MIRACLService.INSTANCE.createSigningSession(projectId, projectUrl, USER_ID, hash, description).getQrURL());
         miraclTrust.getSigningSessionDetailsFromAppLink(appLink, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
 
@@ -394,7 +396,7 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testGetCrossDeviceSessionFromAppLink() {
-        Uri appLink = Uri.parse(MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL());
+        Uri appLink = Uri.parse(MIRACLService.INSTANCE.obtainAccessId().getQrURL());
         miraclTrust.getCrossDeviceSessionFromAppLink(appLink, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
 
@@ -407,7 +409,7 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testGetCrossDeviceSessionFromQRCode() {
-        String qrCode = MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL();
+        String qrCode = MIRACLService.INSTANCE.obtainAccessId().getQrURL();
         miraclTrust.getCrossDeviceSessionFromQRCode(qrCode, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
 
@@ -420,7 +422,7 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testGetCrossDeviceSessionFromNotificationPayload() {
-        String qrUrl = MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL();
+        String qrUrl = MIRACLService.INSTANCE.obtainAccessId().getQrURL();
         Map<String, String> payload = new HashMap<String, String>() {
             {
                 put("projectID", projectId);
@@ -441,7 +443,7 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testAbortCrossDeviceSession() {
-        String qrCode = MIRACLService.INSTANCE.obtainAccessId(projectId, USER_ID).getQrURL();
+        String qrCode = MIRACLService.INSTANCE.obtainAccessId().getQrURL();
         miraclTrust.getCrossDeviceSessionFromQRCode(qrCode, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
 
@@ -456,6 +458,7 @@ public class MIRACLTrustJavaTest {
 
     private void createUser(Consumer<User> callback) {
         String activationToken = MIRACLService.INSTANCE.obtainActivationToken(
+                BuildConfig.CUV_PROJECT_URL,
                 BuildConfig.CUV_CLIENT_ID,
                 BuildConfig.CUV_CLIENT_SECRET,
                 USER_ID

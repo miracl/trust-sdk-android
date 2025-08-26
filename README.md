@@ -47,14 +47,14 @@ The MIRACL Trust Android SDK provides the following functionalities:
 
 To configure the SDK:
 
-1. Create an application in the MIRACL Trust platform. For information about how
+1. Create an account in the MIRACL Trust platform. For information about how
    to do it, see the
    [Getting Started](https://miracl.com/resources/docs/guides/get-started/)
    guide.
-2. Call the
+1. Call the
    [configure](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/configure.html)
    method with a configuration created by the [Configuration.Builder](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.configuration/-configuration/-builder/index.html)
-   class:
+   class using [your project properties](https://miracl.com/resources/docs/get-started/create-project/#project-properties):
 
 Kotlin:
 
@@ -62,7 +62,7 @@ Kotlin:
 class YourApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        val configuration = Configuration.Builder(YOUR_PROJECT_ID).build()
+        val configuration = Configuration.Builder(PROJECT_ID, PROJECT_URL).build()
         MIRACLTrust.configure(applicationContext, configuration)
     }
 }
@@ -75,7 +75,7 @@ public class YourApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Configuration configuration = new Configuration.Builder(YOUR_PROJECT_ID).build();
+        Configuration configuration = new Configuration.Builder(PROJECT_ID, PROJECT_URL).build();
         MIRACLTrust.configure(getApplicationContext(), configuration);
     }
 }

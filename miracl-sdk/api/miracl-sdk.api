@@ -64,6 +64,7 @@ public final class com/miracl/trust/MIRACLTrust {
 	public final fun sign (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/session/SigningSessionDetails;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final fun updateProjectSettings (Ljava/lang/String;Ljava/lang/String;)V
 }
 
 public final class com/miracl/trust/MIRACLTrust$Companion {
@@ -130,6 +131,8 @@ public final class com/miracl/trust/configuration/Configuration {
 
 public final class com/miracl/trust/configuration/Configuration$Builder {
 	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun applicationInfo (Ljava/lang/String;)Lcom/miracl/trust/configuration/Configuration$Builder;
 	public final fun build ()Lcom/miracl/trust/configuration/Configuration;
 	public final fun connectTimeout (I)Lcom/miracl/trust/configuration/Configuration$Builder;
@@ -137,7 +140,6 @@ public final class com/miracl/trust/configuration/Configuration$Builder {
 	public final fun httpRequestExecutor (Lcom/miracl/trust/network/HttpRequestExecutor;)Lcom/miracl/trust/configuration/Configuration$Builder;
 	public final fun logger (Lcom/miracl/trust/util/log/Logger;)Lcom/miracl/trust/configuration/Configuration$Builder;
 	public final fun loggingLevel (Lcom/miracl/trust/util/log/Logger$LoggingLevel;)Lcom/miracl/trust/configuration/Configuration$Builder;
-	public final fun platformUrl (Ljava/lang/String;)Lcom/miracl/trust/configuration/Configuration$Builder;
 	public final fun readTimeout (I)Lcom/miracl/trust/configuration/Configuration$Builder;
 	public final fun userStorage (Lcom/miracl/trust/storage/UserStorage;)Lcom/miracl/trust/configuration/Configuration$Builder;
 }
@@ -147,6 +149,10 @@ public abstract class com/miracl/trust/configuration/ConfigurationException : ja
 
 public final class com/miracl/trust/configuration/ConfigurationException$EmptyProjectId : com/miracl/trust/configuration/ConfigurationException {
 	public static final field INSTANCE Lcom/miracl/trust/configuration/ConfigurationException$EmptyProjectId;
+}
+
+public final class com/miracl/trust/configuration/ConfigurationException$InvalidProjectUrl : com/miracl/trust/configuration/ConfigurationException {
+	public static final field INSTANCE Lcom/miracl/trust/configuration/ConfigurationException$InvalidProjectUrl;
 }
 
 public abstract class com/miracl/trust/crypto/CryptoException : java/lang/Exception {

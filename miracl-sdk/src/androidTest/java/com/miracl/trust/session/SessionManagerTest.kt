@@ -20,13 +20,14 @@ import kotlin.random.Random
 
 class SessionManagerTest {
     private val projectId = BuildConfig.CUV_PROJECT_ID
+    private val projectUrl = BuildConfig.CUV_PROJECT_URL
 
     private lateinit var sessionManager: SessionManager
 
     @Before
     fun setUp() = runBlocking {
         val httpRequestExecutor = HttpsURLConnectionRequestExecutor(10, 10)
-        val apiSettings = ApiSettings(BuildConfig.BASE_URL)
+        val apiSettings = ApiSettings(projectUrl)
         val apiRequestExecutor =
             ApiRequestExecutor(httpRequestExecutor, KotlinxSerializationJsonUtil)
 
@@ -182,6 +183,6 @@ class SessionManagerTest {
     }
 
     private suspend fun getQRCode(): AccessIdResponse {
-        return MIRACLService.obtainAccessId(projectId)
+        return MIRACLService.obtainAccessId(projectId, projectUrl)
     }
 }

@@ -1,13 +1,18 @@
 package com.miracl.trust.session
 
-import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
-import com.miracl.trust.network.*
+import com.miracl.trust.network.ApiException
+import com.miracl.trust.network.ApiRequest
+import com.miracl.trust.network.ApiRequestExecutor
+import com.miracl.trust.network.ApiSettings
+import com.miracl.trust.network.HttpMethod
 import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
-import io.mockk.*
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
@@ -19,7 +24,7 @@ import kotlin.random.Random
 @ExperimentalCoroutinesApi
 class SessionApiManagerUnitTest {
     private val httpRequestExecutorMock = mockk<ApiRequestExecutor>()
-    private val apiSettings = ApiSettings(BuildConfig.BASE_URL)
+    private val apiSettings = ApiSettings(randomUuidString())
 
     private val apiManager = SessionApiManager(
         apiRequestExecutor = httpRequestExecutorMock,

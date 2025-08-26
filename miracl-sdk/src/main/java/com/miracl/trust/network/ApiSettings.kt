@@ -1,6 +1,6 @@
 package com.miracl.trust.network
 
-internal class ApiSettings(platformUrl: String) {
+internal class ApiSettings(var projectUrl: String) {
     companion object {
         const val REGISTER_URL = "/registration"
         const val PASS1_URL = "/rps/v2/pass1"
@@ -14,25 +14,35 @@ internal class ApiSettings(platformUrl: String) {
         const val SIGNING_SESSION_DETAILS_PATH = "/dvs/session/details"
     }
 
-    val registerUrl = platformUrl.appendPath(REGISTER_URL)
+    val registerUrl
+        get() = projectUrl.appendPath(REGISTER_URL)
 
-    val pass1Url = platformUrl.appendPath(PASS1_URL)
+    val pass1Url
+        get() = projectUrl.appendPath(PASS1_URL)
 
-    val pass2Url = platformUrl.appendPath(PASS2_URL)
+    val pass2Url
+        get() = projectUrl.appendPath(PASS2_URL)
 
-    val authenticateUrl = platformUrl.appendPath(AUTHENTICATE_URL)
+    val authenticateUrl
+        get() = projectUrl.appendPath(AUTHENTICATE_URL)
 
-    val verificationUrl = platformUrl.appendPath(VERIFICATION_URL)
+    val verificationUrl
+        get() = projectUrl.appendPath(VERIFICATION_URL)
 
-    val quickCodeVerificationUrl = platformUrl.appendPath(QUICK_CODE_VERIFICATION_URL)
+    val quickCodeVerificationUrl
+        get() = projectUrl.appendPath(QUICK_CODE_VERIFICATION_URL)
 
-    val verificationConfirmationUrl = platformUrl.appendPath(VERIFICATION_CONFIRMATION_URL)
+    val verificationConfirmationUrl
+        get() = projectUrl.appendPath(VERIFICATION_CONFIRMATION_URL)
 
-    val codeStatusUrl = platformUrl.appendPath(CODE_STATUS_URL)
+    val codeStatusUrl
+        get() = projectUrl.appendPath(CODE_STATUS_URL)
 
-    val signingSessionUrl = platformUrl.appendPath(SIGNING_SESSION_PATH)
+    val signingSessionUrl
+        get() = projectUrl.appendPath(SIGNING_SESSION_PATH)
 
-    val signingSessionDetailsUrl = platformUrl.appendPath(SIGNING_SESSION_DETAILS_PATH)
+    val signingSessionDetailsUrl
+        get() = projectUrl.appendPath(SIGNING_SESSION_DETAILS_PATH)
 }
 
 internal fun String.appendPath(path: String): String {

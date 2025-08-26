@@ -21,13 +21,14 @@ import kotlin.random.Random
 
 class SigningSessionManagerTest {
     private val projectId = BuildConfig.CUV_PROJECT_ID
+    private val projectUrl = BuildConfig.CUV_PROJECT_URL
 
     private lateinit var signingSessionManager: SigningSessionManager
 
     @Before
     fun setUp() = runBlocking {
         val httpRequestExecutor = HttpsURLConnectionRequestExecutor(10, 10)
-        val apiSettings = ApiSettings(BuildConfig.BASE_URL)
+        val apiSettings = ApiSettings(projectUrl)
         val apiRequestExecutor =
             ApiRequestExecutor(httpRequestExecutor, KotlinxSerializationJsonUtil)
 
@@ -174,6 +175,7 @@ class SigningSessionManagerTest {
     ): SigningSessionCreateResponse {
         return MIRACLService.createSigningSession(
             projectId,
+            projectUrl,
             USER_ID,
             hash,
             description

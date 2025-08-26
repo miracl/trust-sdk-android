@@ -5,4 +5,7 @@ public sealed class ConfigurationException : Exception() {
 
     /** Empty project ID. */
     public object EmptyProjectId : ConfigurationException()
+
+    /** Invalid Project URL. */
+    public object InvalidProjectUrl: ConfigurationException()
 }

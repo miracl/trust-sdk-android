@@ -1,29 +1,35 @@
 package com.miracl.trust.session
 
-import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
-import com.miracl.trust.network.*
+import com.miracl.trust.network.ApiException
+import com.miracl.trust.network.ApiRequest
+import com.miracl.trust.network.ApiRequestExecutor
+import com.miracl.trust.network.ApiSettings
+import com.miracl.trust.network.ClientErrorData
+import com.miracl.trust.network.HttpMethod
 import com.miracl.trust.randomHexString
 import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
 import com.miracl.trust.signing.Signature
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import com.miracl.trust.util.secondsSince1970
-import io.mockk.*
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.SerializationException
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import java.util.*
+import java.util.Date
 import kotlin.random.Random
 
 @ExperimentalCoroutinesApi
 class SigningSessionApiManagerUnitTest {
     private val httpRequestExecutorMock = mockk<ApiRequestExecutor>()
-    private val apiSettings = ApiSettings(BuildConfig.BASE_URL)
+    private val apiSettings = ApiSettings(randomUuidString())
 
     private val apiManager = SigningSessionApiManager(
         apiRequestExecutor = httpRequestExecutorMock,
