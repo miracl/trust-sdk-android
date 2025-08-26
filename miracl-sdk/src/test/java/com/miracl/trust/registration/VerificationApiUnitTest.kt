@@ -1,6 +1,5 @@
 package com.miracl.trust.registration
 
-import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.network.*
@@ -20,7 +19,7 @@ import kotlin.random.nextInt
 @ExperimentalCoroutinesApi
 class VerificationApiUnitTest {
     private val httpRequestExecutorMock = mockk<ApiRequestExecutor>()
-    private val apiSettings = ApiSettings(BuildConfig.BASE_URL)
+    private val apiSettings = ApiSettings(randomUuidString())
 
     private val apiManager =
         VerificationApiManager(

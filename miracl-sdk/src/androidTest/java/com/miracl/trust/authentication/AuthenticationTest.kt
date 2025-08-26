@@ -30,6 +30,7 @@ import kotlin.random.Random
 
 class AuthenticationTest {
     private val projectId = BuildConfig.CUV_PROJECT_ID
+    private val projectUrl = BuildConfig.CUV_PROJECT_URL
     private val clientId = BuildConfig.CUV_CLIENT_ID
     private val clientSecret = BuildConfig.CUV_CLIENT_SECRET
 
@@ -42,8 +43,7 @@ class AuthenticationTest {
 
     @Before
     fun setUp() = runTest {
-        val configuration = Configuration.Builder(projectId)
-            .platformUrl(BuildConfig.BASE_URL)
+        val configuration = Configuration.Builder(projectId, projectUrl)
             .coroutineContext(testCoroutineDispatcher)
             .build()
 
@@ -53,7 +53,8 @@ class AuthenticationTest {
 
         pin = randomNumericPin()
         pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
-        val activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        val activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
 
         var registrationResult: MIRACLResult<User, RegistrationException>? = null
         miraclTrust.register(
@@ -82,7 +83,7 @@ class AuthenticationTest {
         Assert.assertTrue(result is MIRACLSuccess)
         val token = (result as MIRACLSuccess).value
 
-        val claims = JwtHelper.parseSignedClaims(token)
+        val claims = JwtHelper.parseSignedClaims(token, projectUrl)
         Assert.assertTrue(claims.payload.audience.contains(projectId))
     }
 

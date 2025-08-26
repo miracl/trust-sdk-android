@@ -89,8 +89,11 @@ jobs:
           TEST_CUV_CLIENT_SECRET: ${{ secrets.TEST_CUV_CLIENT_SECRET }}
           TEST_CUV_CLIENT_ID: ${{ vars.TEST_CUV_CLIENT_ID }}
           TEST_CUV_PROJECT_ID: ${{ vars.TEST_CUV_PROJECT_ID }}
+          TEST_CUV_PROJECT_URL: ${{ vars.TEST_CUV_PROJECT_URL }}
           TEST_DV_PROJECT_ID: ${{ vars.TEST_DV_PROJECT_ID }}
+          TEST_DV_PROJECT_URL: ${{ vars.TEST_DV_PROJECT_URL }}
           TEST_ECV_PROJECT_ID: ${{ vars.TEST_ECV_PROJECT_ID }}
+          TEST_ECV_PROJECT_URL: ${{ vars.TEST_ECV_PROJECT_URL }}
           GMAIL_CREDENTIALS: ${{ secrets.GMAIL_CREDENTIALS }}
           GMAIL_TOKEN: ${{ secrets.GMAIL_TOKEN }}
         with:

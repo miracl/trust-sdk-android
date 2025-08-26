@@ -51,8 +51,9 @@ class DocumentSigningTest {
         private val HASH_RANGE = 1..10
     }
 
-    private val clientId = BuildConfig.CUV_CLIENT_ID
     private val projectId = BuildConfig.CUV_PROJECT_ID
+    private val projectUrl = BuildConfig.CUV_PROJECT_URL
+    private val clientId = BuildConfig.CUV_CLIENT_ID
     private val clientSecret = BuildConfig.CUV_CLIENT_SECRET
 
     private lateinit var userStorage: RoomUserStorage
@@ -67,7 +68,7 @@ class DocumentSigningTest {
     @Before
     fun setUp() = runBlocking {
         val httpRequestExecutor = HttpsURLConnectionRequestExecutor(10, 10)
-        val apiSettings = ApiSettings(BuildConfig.BASE_URL)
+        val apiSettings = ApiSettings(projectUrl)
         val apiRequestExecutor =
             ApiRequestExecutor(httpRequestExecutor, KotlinxSerializationJsonUtil)
 
@@ -109,7 +110,8 @@ class DocumentSigningTest {
 
         pin = randomNumericPin()
         pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
-        val activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        val activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
 
         val registrationResult = registrator.register(
             userId = USER_ID,
@@ -139,6 +141,7 @@ class DocumentSigningTest {
         val signingResult = (result as MIRACLSuccess).value
         val signatureVerified = MIRACLService.verifySignature(
             projectId = projectId,
+            projectUrl = projectUrl,
             clientId = clientId,
             clientSecret = clientSecret,
             signature = signingResult.signature,
@@ -164,6 +167,7 @@ class DocumentSigningTest {
         val signingResult = (result as MIRACLSuccess).value
         val signatureVerified = MIRACLService.verifySignature(
             projectId = projectId,
+            projectUrl = projectUrl,
             clientId = clientId,
             clientSecret = clientSecret,
             signature = signingResult.signature,
@@ -410,6 +414,7 @@ class DocumentSigningTest {
     ): SigningSessionDetails {
         val qrCode = MIRACLService.createSigningSession(
             projectId = projectId,
+            projectUrl = projectUrl,
             userId = USER_ID,
             hash = hash,
             description = description
@@ -428,6 +433,7 @@ class DocumentSigningTest {
     ): CrossDeviceSession {
         val qrCode = MIRACLService.obtainAccessId(
             projectId = projectId,
+            projectUrl = projectUrl,
             userId = USER_ID,
             hash = hash,
             description = description

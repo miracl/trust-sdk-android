@@ -31,10 +31,12 @@ class RegistrationTest {
     }
 
     private val projectId = BuildConfig.CUV_PROJECT_ID
+    private val projectUrl = BuildConfig.CUV_PROJECT_URL
     private val clientId = BuildConfig.CUV_CLIENT_ID
     private val clientSecret = BuildConfig.CUV_CLIENT_SECRET
 
     private val dvProjectId = BuildConfig.DV_PROJECT_ID
+    private val dvProjectUrl = BuildConfig.DV_PROJECT_URL
 
     private val testCoroutineDispatcher = StandardTestDispatcher()
 
@@ -43,7 +45,7 @@ class RegistrationTest {
 
     @Before
     fun setUp() = runTest {
-        val configuration = Configuration.Builder(projectId)
+        val configuration = Configuration.Builder(projectId, projectUrl)
             .coroutineContext(testCoroutineDispatcher)
             .build()
 
@@ -56,7 +58,8 @@ class RegistrationTest {
 
     @Test
     fun testSuccessfulRegistration() = runTest {
-        val activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        val activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
         val result = register(activationToken)
 
         Assert.assertTrue(result is MIRACLSuccess)
@@ -66,7 +69,7 @@ class RegistrationTest {
     @Test
     fun testSuccessfulRegistrationDefaultVerification() = runTest {
         // Send verification email
-        miraclTrust.setProjectId(dvProjectId)
+        miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
         val timestamp = getUnixTime()
         val sendEmailResult = sendVerificationEmail()
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
@@ -92,7 +95,7 @@ class RegistrationTest {
     @Test
     fun testSuccessfulRegistrationCustomVerification() = runTest {
         // Get verification URL
-        val verificationUrl = MIRACLService.getVerificationUrl(clientId, clientSecret, USER_ID)
+        val verificationUrl = MIRACLService.getVerificationUrl(projectUrl, clientId, clientSecret)
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
@@ -113,7 +116,8 @@ class RegistrationTest {
         // Register with CUV
         val pin = randomNumericPin()
         val pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
-        var activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        var activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
         var result = register(activationToken = activationToken, pinProvider = pinProvider)
         Assert.assertTrue(result is MIRACLSuccess)
         val user = (result as MIRACLSuccess).value
@@ -144,7 +148,8 @@ class RegistrationTest {
     @Test
     fun testRegistrationOverride() = runTest {
         // Registration
-        var activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        var activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
         var result = register(activationToken)
         Assert.assertTrue(result is MIRACLSuccess)
         Assert.assertEquals(USER_ID, (result as MIRACLSuccess).value.userId)
@@ -152,7 +157,8 @@ class RegistrationTest {
         // Override registration
         val pin = randomNumericPin()
         val pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
-        activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
         result = register(activationToken = activationToken, pinProvider = pinProvider)
         Assert.assertTrue(result is MIRACLSuccess)
         val user = (result as MIRACLSuccess).value
@@ -166,7 +172,8 @@ class RegistrationTest {
     @Test
     fun testRegistrationOverrideForRevokedUser() = runTest {
         // Registration
-        var activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        var activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
         val pin = randomNumericPin()
         val pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
         var result = register(activationToken = activationToken, pinProvider = pinProvider)
@@ -195,7 +202,8 @@ class RegistrationTest {
         // Override registration
         val newPin = randomNumericPin()
         val newPinProvider = PinProvider { pinConsumer -> pinConsumer.consume(newPin) }
-        activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
         result = register(activationToken = activationToken, pinProvider = newPinProvider)
         Assert.assertTrue(result is MIRACLSuccess)
         user = (result as MIRACLSuccess).value
@@ -211,7 +219,8 @@ class RegistrationTest {
     fun testRegistrationFailOnEmptyUserId() = runTest {
         // Arrange
         val emptyUserId = ""
-        val activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        val activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
 
         // Act
         val result = register(activationToken, emptyUserId)
@@ -259,9 +268,9 @@ class RegistrationTest {
     @Test
     fun testRegistrationFailOnProjectMismatch() = runTest {
         // Arrange
-        val differentProjectId = "differentProjectId"
-        miraclTrust.setProjectId(differentProjectId)
-        val activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
+        val activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
 
         // Act
         val result = register(activationToken)
@@ -274,7 +283,8 @@ class RegistrationTest {
     @Test
     fun testRegistrationFailOnEmptyPin() = runTest {
         // Arrange
-        val activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        val activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
         val pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(null) }
 
         // Act
@@ -288,7 +298,8 @@ class RegistrationTest {
     @Test
     fun testRegistrationFailOnShorterPinLength() = runTest {
         // Arrange
-        val activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        val activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
         val pin = randomNumericPin(Registrator.MIN_PIN_LENGTH - 1)
         val pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
 
@@ -303,7 +314,8 @@ class RegistrationTest {
     @Test
     fun testRegistrationFailOnLongerPinLength() = runTest {
         // Arrange
-        val activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        val activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
         val pin = randomNumericPin(Registrator.MAX_PIN_LENGTH + 1)
         val pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
 
@@ -318,7 +330,8 @@ class RegistrationTest {
     @Test
     fun testRegistrationFailOnWrongFormatPin() = runTest {
         // Arrange
-        val activationToken = MIRACLService.obtainActivationToken(clientId, clientSecret, USER_ID)
+        val activationToken =
+            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
         val pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(WRONG_FORMAT_PIN) }
 
         // Act

@@ -1,7 +1,6 @@
 package com.miracl.trust.session
 
 import android.util.Base64
-import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.network.ApiException
@@ -30,7 +29,7 @@ import kotlin.random.Random
 
 class CrossDeviceSessionApiManagerUnitTest {
     private val httpRequestExecutorMock = mockk<ApiRequestExecutor>()
-    private val apiSettings = ApiSettings(BuildConfig.BASE_URL)
+    private val apiSettings = ApiSettings(randomUuidString())
 
     private val apiManager = CrossDeviceSessionApiManager(
         apiRequestExecutor = httpRequestExecutorMock,

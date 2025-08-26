@@ -34,6 +34,7 @@ import kotlin.random.nextInt
 class MIRACLTrustUnitTest {
     private val deviceName = randomUuidString()
     private val projectId = randomUuidString()
+    private val projectUrl = "https://project.miracl.io"
     private val activationToken = randomUuidString()
 
     private val componentFactoryMock = mockk<ComponentFactory>()
@@ -90,7 +91,7 @@ class MIRACLTrustUnitTest {
     @Test
     fun `is created on init when httpRequestExecutor is passed to the MIRACLTrust`() = runTest {
         // Arrange
-        val config = Configuration.Builder(projectId)
+        val config = Configuration.Builder(projectId, projectUrl)
             .deviceName(deviceName)
             .componentFactory(componentFactoryMock)
             .httpRequestExecutor(httpRequestExecutorMock)
@@ -120,18 +121,55 @@ class MIRACLTrustUnitTest {
         Assert.assertEquals(projectId, miraclTrust.projectId)
     }
 
-    @Test
+    @Test(expected = ConfigurationException.EmptyProjectId::class)
     fun `setProjectId throws when projectId is blank`() {
         // Arrange
         val projectId = "   "
 
-        try {
-            // Act
-            miraclTrust.setProjectId(projectId)
-        } catch (ex: ConfigurationException) {
-            // Assert
-            Assert.assertEquals(ConfigurationException.EmptyProjectId, ex)
-        }
+        // Act
+        miraclTrust.setProjectId(projectId)
+    }
+
+    @Test
+    fun `updateProjectSettings should update project settings`() {
+        // Arrange
+        val projectId = randomUuidString()
+        val projectUrl = "https://new-project.miracl.io"
+        // Act
+        miraclTrust.updateProjectSettings(projectId, projectUrl)
+
+        // Assert
+        Assert.assertEquals(projectId, miraclTrust.projectId)
+    }
+
+    @Test(expected = ConfigurationException.EmptyProjectId::class)
+    fun `updateProjectSettings throws when projectId is blank`() {
+        // Arrange
+        val projectId = "   "
+        val projectUrl = "https://new-project.miracl.io"
+
+        // Act
+        miraclTrust.updateProjectSettings(projectId, projectUrl)
+    }
+
+    @Test(expected = ConfigurationException.InvalidProjectUrl::class)
+    fun `updateProjectSettings throws when projectUrl is blank`() {
+        // Arrange
+        val projectId = randomUuidString()
+        val projectUrl = "   "
+
+        // Act
+        miraclTrust.updateProjectSettings(projectId, projectUrl)
+    }
+
+    @Test(expected = ConfigurationException.InvalidProjectUrl::class)
+    fun `updateProjectSettings throws when projectUrl is invalid`() {
+        // Arrange
+        val projectId = randomUuidString()
+        val projectUrl = "invalidProjectUrl"
+
+        // Act
+        miraclTrust.updateProjectSettings(projectId, projectUrl)
     }
 
     @Test
@@ -2401,7 +2439,7 @@ class MIRACLTrustUnitTest {
         // Arrange
         every { loggerMock.error(any(), any()) } just runs
 
-        val config = Configuration.Builder(this.projectId)
+        val config = Configuration.Builder(this.projectId, this.projectUrl)
             .deviceName(this.deviceName)
             .componentFactory(componentFactoryMock)
             .userStorage(userStorageMock)
@@ -2447,7 +2485,7 @@ class MIRACLTrustUnitTest {
     }
 
     private fun createConfiguration(): Configuration {
-        return Configuration.Builder(projectId)
+        return Configuration.Builder(projectId, projectUrl)
             .deviceName(deviceName)
             .componentFactory(componentFactoryMock)
             .userStorage(userStorageMock)

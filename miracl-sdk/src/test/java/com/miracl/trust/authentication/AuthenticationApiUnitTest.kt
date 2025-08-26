@@ -1,6 +1,5 @@
 package com.miracl.trust.authentication
 
-import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.network.ApiException
@@ -27,7 +26,7 @@ class AuthenticationApiUnitTest {
     private val authenticationApiManager = AuthenticationApiManager(
         apiRequestExecutor = httpRequestExecutorMock,
         jsonUtil = KotlinxSerializationJsonUtil,
-        apiSettings = ApiSettings(BuildConfig.BASE_URL)
+        apiSettings = ApiSettings(randomUuidString())
     )
 
     @Before

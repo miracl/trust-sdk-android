@@ -1,6 +1,5 @@
 package com.miracl.trust.registration
 
-import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.crypto.SupportedEllipticCurves
@@ -28,7 +27,7 @@ import org.junit.Test
 class RegistrationApiUnitTest {
     private val httpRequestExecutorMock = mockk<ApiRequestExecutor>()
     private val jsonUtil = KotlinxSerializationJsonUtil
-    private val apiSettings = ApiSettings(BuildConfig.BASE_URL)
+    private val apiSettings = ApiSettings(randomUuidString())
 
     private val registrationApi =
         RegistrationApiManager(httpRequestExecutorMock, jsonUtil, apiSettings)

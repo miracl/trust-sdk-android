@@ -24,6 +24,7 @@ import com.miracl.trust.session.SigningSessionManagerContract
 import com.miracl.trust.signing.*
 import com.miracl.trust.storage.UserStorageException
 import com.miracl.trust.storage.UserStorage
+import com.miracl.trust.util.UrlValidator
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import com.miracl.trust.util.log.DefaultLogger
 import com.miracl.trust.util.log.Logger
@@ -75,6 +76,7 @@ public class MIRACLTrust private constructor(
     }
 
     //region Properties
+    private val apiSettings: ApiSettings
     private val verificator: Verificator
     private val registrator: RegistratorContract
     private val documentSigner: DocumentSigner
@@ -117,7 +119,7 @@ public class MIRACLTrust private constructor(
         )
 
         val componentFactory = configuration.componentFactory ?: ComponentFactory(context)
-        val apiSettings = ApiSettings(configuration.platformUrl)
+        apiSettings = ApiSettings(configuration.projectUrl)
 
         miraclTrustScope = CoroutineScope(SupervisorJob() + configuration.miraclCoroutineContext)
 
@@ -197,6 +199,26 @@ public class MIRACLTrust private constructor(
         }
 
         this.projectId = projectId
+    }
+
+    /**
+     * Configures new project settings when the SDK have to work with a different project.
+     *
+     * @param projectId The unique identifier for your MIRACL Trust project.
+     * @param projectUrl MIRACL Trust Project URL that is used for communication with the MIRACL Trust API.
+     */
+    @Throws(ConfigurationException::class)
+    public fun updateProjectSettings(projectId: String, projectUrl: String) {
+        if (projectId.isBlank()) {
+            throw ConfigurationException.EmptyProjectId
+        }
+
+        if (!UrlValidator.isValid(projectUrl)) {
+            throw ConfigurationException.InvalidProjectUrl
+        }
+
+        this.projectId = projectId
+        this.apiSettings.projectUrl = projectUrl
     }
     //endregion
 

@@ -34,11 +34,15 @@ import java.util.UUID
 
 class VerificationTest {
     private val projectId = BuildConfig.CUV_PROJECT_ID
+    private val projectUrl = BuildConfig.CUV_PROJECT_URL
     private val clientId = BuildConfig.CUV_CLIENT_ID
     private val clientSecret = BuildConfig.CUV_CLIENT_SECRET
 
     private val dvProjectId = BuildConfig.DV_PROJECT_ID
+    private val dvProjectUrl = BuildConfig.DV_PROJECT_URL
+
     private val evcProjectId = BuildConfig.ECV_PROJECT_ID
+    private val evcProjectUrl = BuildConfig.ECV_PROJECT_URL
 
     private val testCoroutineDispatcher = StandardTestDispatcher()
 
@@ -46,8 +50,7 @@ class VerificationTest {
 
     @Before
     fun setUp() = runBlocking {
-        val configuration = Configuration.Builder(dvProjectId)
-            .platformUrl(BuildConfig.BASE_URL)
+        val configuration = Configuration.Builder(projectId, projectUrl)
             .coroutineContext(testCoroutineDispatcher)
             .build()
 
@@ -59,6 +62,7 @@ class VerificationTest {
     @Test
     fun testDefaultVerification() {
         // Send verification email
+        miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
@@ -84,6 +88,7 @@ class VerificationTest {
     @Test
     fun testDefaultVerificationBackoff() {
         // Send verification email
+        miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
@@ -103,10 +108,11 @@ class VerificationTest {
     @Test
     fun testDefaultVerificationWithSessionDetails() = runBlocking {
         // Send verification email
+        miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
-        val qrCode = MIRACLService.obtainAccessId(dvProjectId).qrURL
+        val qrCode = MIRACLService.obtainAccessId(dvProjectId, dvProjectUrl).qrURL
         var authenticationSessionDetailsResult:
                 MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException>? = null
         miraclTrust.getAuthenticationSessionDetailsFromQRCode(qrCode) { result ->
@@ -145,10 +151,11 @@ class VerificationTest {
     @Test
     fun testDefaultVerificationWithCrossDeviceSession() = runBlocking {
         // Send verification email
+        miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
-        val qrCode = MIRACLService.obtainAccessId(dvProjectId).qrURL
+        val qrCode = MIRACLService.obtainAccessId(dvProjectId, dvProjectUrl).qrURL
         var crossDeviceSessionResult:
                 MIRACLResult<CrossDeviceSession, CrossDeviceSessionException>? = null
         miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) { result ->
@@ -187,6 +194,7 @@ class VerificationTest {
     @Test
     fun testDefaultVerificationWithMpinId() {
         // Send verification email
+        miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
@@ -234,7 +242,7 @@ class VerificationTest {
     @Test
     fun testEmailCodeVerification() {
         // Send verification email
-        miraclTrust.setProjectId(evcProjectId)
+        miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
@@ -260,7 +268,7 @@ class VerificationTest {
     @Test
     fun testEmailCodeVerificationWithMpinId() {
         // Send verification email
-        miraclTrust.setProjectId(evcProjectId)
+        miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
@@ -308,7 +316,7 @@ class VerificationTest {
     @Test
     fun testEmailCodeVerificationWithoutMpinId() = runTest {
         // Send verification email
-        miraclTrust.setProjectId(evcProjectId)
+        miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
@@ -360,7 +368,7 @@ class VerificationTest {
     @Test
     fun testEmailCodeVerificationWithRevokedMpinId() {
         // Send verification email
-        miraclTrust.setProjectId(evcProjectId)
+        miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
@@ -414,7 +422,7 @@ class VerificationTest {
     @Test
     fun testCustomVerification() = runBlocking {
         // Get verification URL
-        val verificationUrl = MIRACLService.getVerificationUrl(clientId, clientSecret, USER_ID)
+        val verificationUrl = MIRACLService.getVerificationUrl(projectUrl, clientId, clientSecret)
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
@@ -429,7 +437,7 @@ class VerificationTest {
 
     @Test
     fun testCustomVerificationWithSessionDetails() = runBlocking {
-        val qrCode = MIRACLService.obtainAccessId(projectId).qrURL
+        val qrCode = MIRACLService.obtainAccessId(projectId, projectUrl).qrURL
         var authenticationSessionDetailsResult:
                 MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException>? = null
 
@@ -444,7 +452,7 @@ class VerificationTest {
 
         // Get verification URL
         val verificationUrl =
-            MIRACLService.getVerificationUrl(clientId, clientSecret, USER_ID, accessId)
+            MIRACLService.getVerificationUrl(projectUrl, clientId, clientSecret, USER_ID, accessId)
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
@@ -463,9 +471,15 @@ class VerificationTest {
         // Get verification URL
         val expirationMillis = 5000L
         val expiration = Date(Date().time + expirationMillis).secondsSince1970()
-        val accessId = URL(MIRACLService.obtainAccessId(projectId).qrURL).ref
-        val verificationUrl =
-            MIRACLService.getVerificationUrl(clientId, clientSecret, USER_ID, accessId, expiration)
+        val accessId = URL(MIRACLService.obtainAccessId(projectId, projectUrl).qrURL).ref
+        val verificationUrl = MIRACLService.getVerificationUrl(
+            projectUrl = projectUrl,
+            clientId = clientId,
+            clientSecret = clientSecret,
+            userId = USER_ID,
+            accessId = accessId,
+            expiration = expiration
+        )
         Assert.assertNotNull(verificationUrl)
 
         Thread.sleep(expirationMillis + 1000)
@@ -490,7 +504,7 @@ class VerificationTest {
     @Test
     fun testCustomVerificationInvalidVerificationCode() = runBlocking {
         // Get verification URL
-        val verificationUrl = MIRACLService.getVerificationUrl(clientId, clientSecret, USER_ID)
+        val verificationUrl = MIRACLService.getVerificationUrl(projectUrl, clientId, clientSecret)
         Assert.assertNotNull(verificationUrl)
 
         val verificationUri = Uri.parse(verificationUrl)
@@ -515,7 +529,7 @@ class VerificationTest {
     fun testConfirmationFailOnEmptyUserId() {
         // Arrange
         val verificationUri =
-            Uri.parse("${BuildConfig.BASE_URL}/verification/confirmation?code=testCode")
+            Uri.parse("$projectUrl/verification/confirmation?code=testCode")
 
         // Act
         var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
@@ -534,7 +548,7 @@ class VerificationTest {
     fun testConfirmationFailOnInvalidCode() {
         // Arrange
         val verificationUri =
-            Uri.parse("${BuildConfig.BASE_URL}/verification/confirmation?user_id=$USER_ID&code=invalidCode")
+            Uri.parse("$projectUrl/verification/confirmation?user_id=$USER_ID&code=invalidCode")
 
         // Act
         var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
@@ -552,7 +566,7 @@ class VerificationTest {
     fun testConfirmationFailOnEmptyCode() {
         // Arrange
         val verificationUri =
-            Uri.parse("${BuildConfig.BASE_URL}/verification/confirmation?user_id=asd@dsa.asd")
+            Uri.parse("$projectUrl/verification/confirmation?user_id=asd@dsa.asd")
 
         // Act
         var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null

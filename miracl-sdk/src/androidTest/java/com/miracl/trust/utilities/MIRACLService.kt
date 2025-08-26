@@ -75,6 +75,7 @@ object MIRACLService {
     @JvmOverloads
     fun obtainAccessId(
         projectId: String = BuildConfig.CUV_PROJECT_ID,
+        projectUrl: String = BuildConfig.CUV_PROJECT_URL,
         userId: String? = null,
         description: String? = null,
         hash: String? = null
@@ -84,7 +85,7 @@ object MIRACLService {
             headers = null,
             body = json.encodeToString(SessionRequestBody(projectId, userId, description, hash)),
             params = null,
-            url = "${BuildConfig.BASE_URL}/rps/v2/session"
+            url = "$projectUrl/rps/v2/session"
         )
 
         val result = requestExecutor.execute(apiRequest)
@@ -92,6 +93,7 @@ object MIRACLService {
     }
 
     fun getVerificationUrl(
+        projectUrl: String,
         clientId: String,
         clientSecret: String,
         userId: String = USER_ID,
@@ -115,7 +117,7 @@ object MIRACLService {
                 )
             ),
             params = null,
-            url = "${BuildConfig.BASE_URL}/verification"
+            url = "$projectUrl/verification"
         )
 
         val result = requestExecutor.execute(apiRequest)
@@ -125,11 +127,13 @@ object MIRACLService {
     }
 
     fun obtainActivationToken(
+        projectUrl: String,
         clientId: String,
         clientSecret: String,
         userId: String
     ): String = runBlocking {
-        val verificationUri = Uri.parse(getVerificationUrl(clientId, clientSecret, userId))
+        val verificationUri =
+            Uri.parse(getVerificationUrl(projectUrl, clientId, clientSecret, userId))
         val userId = verificationUri.getQueryParameter("user_id")!!
         val code = verificationUri.getQueryParameter("code")!!
 
@@ -138,7 +142,7 @@ object MIRACLService {
             headers = null,
             body = json.encodeToString(ConfirmationRequestBody(userId, code)),
             params = null,
-            url = "${BuildConfig.BASE_URL}/verification/confirmation"
+            url = "$projectUrl/verification/confirmation"
         )
 
         val result = requestExecutor.execute(apiRequest)
@@ -147,13 +151,13 @@ object MIRACLService {
         activateInitiateResponse.actToken
     }
 
-    suspend fun getJwkSet(): MIRACLResult<String, HttpRequestExecutorException> {
+    suspend fun getJwkSet(projectUrl: String): MIRACLResult<String, HttpRequestExecutorException> {
         val apiRequest = ApiRequest(
             method = HttpMethod.GET,
             headers = null,
             body = null,
             params = null,
-            url = "${BuildConfig.BASE_URL}/.well-known/jwks"
+            url = "$projectUrl/.well-known/jwks"
         )
 
         return requestExecutor.execute(apiRequest)
@@ -161,6 +165,7 @@ object MIRACLService {
 
     fun createSigningSession(
         projectId: String,
+        projectUrl: String,
         userId: String,
         hash: String,
         description: String
@@ -177,7 +182,7 @@ object MIRACLService {
                 )
             ),
             params = null,
-            url = "${BuildConfig.BASE_URL}/dvs/session"
+            url = "$projectUrl/dvs/session"
         )
 
         val result = requestExecutor.execute(apiRequest)
@@ -186,6 +191,7 @@ object MIRACLService {
 
     fun verifySignature(
         projectId: String,
+        projectUrl: String,
         clientId: String,
         clientSecret: String,
         signature: Signature,
@@ -201,7 +207,7 @@ object MIRACLService {
             headers = mapOf("Authorization" to "Basic $base64AuthToken"),
             body = json.encodeToString(VerifySignatureRequestBody(signature, timestamp)),
             params = mapOf("project_id" to projectId),
-            url = "${BuildConfig.BASE_URL}/dvs/verify"
+            url = "$projectUrl/dvs/verify"
         )
 
         val result = requestExecutor.execute(apiRequest)

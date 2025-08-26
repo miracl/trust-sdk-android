@@ -15,15 +15,15 @@ import org.junit.Assert
 import java.security.Key
 
 object JwtHelper {
-    fun parseSignedClaims(token: String): Jws<Claims> = runBlocking {
+    fun parseSignedClaims(token: String, projectUrl: String): Jws<Claims> = runBlocking {
         Jwts.parser()
-            .keyLocator(getKeyLocator())
+            .keyLocator(getKeyLocator(projectUrl))
             .build()
             .parseSignedClaims(token)
     }
 
-    private suspend fun getKeyLocator(): Locator<Key> {
-        val result = MIRACLService.getJwkSet()
+    private suspend fun getKeyLocator(projectUrl: String): Locator<Key> {
+        val result = MIRACLService.getJwkSet(projectUrl)
         Assert.assertTrue(result is MIRACLSuccess)
 
         val json = (result as MIRACLSuccess).value

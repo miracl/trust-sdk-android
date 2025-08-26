@@ -1,9 +1,9 @@
 package com.miracl.trust.configuration
 
-import com.miracl.trust.configuration.Configuration.Builder
 import com.miracl.trust.factory.ComponentFactory
 import com.miracl.trust.network.HttpRequestExecutor
 import com.miracl.trust.storage.UserStorage
+import com.miracl.trust.util.UrlValidator
 import com.miracl.trust.util.log.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
@@ -17,7 +17,7 @@ import kotlin.jvm.Throws
  */
 public class Configuration private constructor(
     internal val projectId: String,
-    internal val platformUrl: String,
+    internal val projectUrl: String,
     internal val applicationInfo: String? = null,
     internal val deviceName: String? = null,
     internal val httpRequestExecutor: HttpRequestExecutor? = null,
@@ -38,7 +38,7 @@ public class Configuration private constructor(
     private constructor(builder: Builder) :
             this(
                 builder.projectId,
-                builder.platformUrl,
+                builder.projectUrl,
                 builder.applicationInfo,
                 builder.deviceName,
                 builder.httpRequestExecutor,
@@ -52,13 +52,15 @@ public class Configuration private constructor(
             )
 
     /**
-     * @param projectId required to link the SDK with the project on the MIRACLTrust platform.
+     * Builds a [Configuration] object.
+     *
+     * @param projectId The unique identifier for your MIRACL Trust project.
+     * @param projectUrl MIRACL Trust Project URL that is used for communication with the MIRACL Trust API.
      */
-    public class Builder(
+    public class Builder @JvmOverloads constructor(
         internal val projectId: String,
+        internal val projectUrl: String = DEFAULT_PLATFORM_URL
     ) {
-        internal var platformUrl: String = DEFAULT_PLATFORM_URL
-            private set
         internal var applicationInfo: String? = null
             private set
         internal var deviceName: String? = null
@@ -85,12 +87,6 @@ public class Configuration private constructor(
 
         internal fun coroutineContext(coroutineContext: CoroutineContext) =
             apply { this.coroutineContext = coroutineContext }
-
-        /**
-         * Sets custom MIRACL platform URL.
-         */
-        public fun platformUrl(platformUrl: String): Builder =
-            apply { this.platformUrl = platformUrl }
 
         /**
          * Sets additional information that will be sent via X-MIRACL-CLIENT HTTP header.
@@ -155,10 +151,15 @@ public class Configuration private constructor(
         public fun readTimeout(readTimeout: Int): Builder =
             apply { this.readTimeout = readTimeout }
 
+        /** Returns a [com.miracl.trust.configuration.Configuration] object. */
         @Throws(ConfigurationException::class)
         public fun build(): Configuration {
             if (projectId.isBlank()) {
                 throw ConfigurationException.EmptyProjectId
+            }
+
+            if (!UrlValidator.isValid(projectUrl)) {
+                throw ConfigurationException.InvalidProjectUrl
             }
 
             return Configuration(this)

@@ -22,6 +22,7 @@ class CrossDeviceSessionManagementTest {
     private val testCoroutineDispatcher = StandardTestDispatcher()
 
     private val projectId = BuildConfig.CUV_PROJECT_ID
+    private val projectUrl = BuildConfig.CUV_PROJECT_URL
     private val userId = randomUuidString()
     private val description = randomUuidString()
     private val hash = randomUuidString()
@@ -31,8 +32,7 @@ class CrossDeviceSessionManagementTest {
 
     @Before
     fun setUp() = runTest {
-        val configuration = Configuration.Builder(projectId)
-            .platformUrl(BuildConfig.BASE_URL)
+        val configuration = Configuration.Builder(projectId, projectUrl)
             .coroutineContext(testCoroutineDispatcher)
             .build()
 
@@ -40,7 +40,8 @@ class CrossDeviceSessionManagementTest {
         miraclTrust = MIRACLTrust.getInstance()
         miraclTrust.resultHandlerDispatcher = testCoroutineDispatcher
 
-        qrCode = MIRACLService.obtainAccessId(projectId, userId, description, hash).qrURL
+        qrCode =
+            MIRACLService.obtainAccessId(projectId, projectUrl, userId, description, hash).qrURL
     }
 
     @Test
