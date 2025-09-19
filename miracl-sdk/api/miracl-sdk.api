@@ -609,7 +609,7 @@ public final class com/miracl/trust/signing/Signature {
 	public final fun getV ()Ljava/lang/String;
 }
 
-public synthetic class com/miracl/trust/signing/Signature$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public final synthetic class com/miracl/trust/signing/Signature$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Lcom/miracl/trust/signing/Signature$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
 	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcom/miracl/trust/signing/Signature;
