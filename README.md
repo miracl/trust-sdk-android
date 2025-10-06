@@ -89,7 +89,7 @@ method before that; otherwise assertion will be triggered.
 
 ### Obtain instance of the SDK
 
-To obtain an instance of the SDK, call the [getInsatnce](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/get-instance.html)
+To obtain an instance of the SDK, call the [getInstance](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/get-instance.html)
 method:
 
 Kotlin:
