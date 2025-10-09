@@ -74,10 +74,6 @@ class SessionManagerUnitTest {
                 codeStatusResponse.quickCodeEnabled,
                 result.value.quickCodeEnabled
             )
-            Assert.assertEquals(
-                codeStatusResponse.limitQuickCodeRegistration,
-                result.value.limitQuickCodeRegistration
-            )
         }
 
     @Test
@@ -362,8 +358,7 @@ class SessionManagerUnitTest {
             verificationCustomText = verificationCustomText,
             identityType = identityType,
             identityTypeLabel = identityTypeLabel,
-            quickCodeEnabled = quickCodeEnabled,
-            limitQuickCodeRegistration = limitQuickCodeRegistration
+            quickCodeEnabled = quickCodeEnabled
         )
     }
 
@@ -378,7 +373,6 @@ class SessionManagerUnitTest {
         verificationCustomText = randomUuidString(),
         identityType = IdentityType.Email.name,
         identityTypeLabel = randomUuidString(),
-        quickCodeEnabled = Random.nextBoolean(),
-        limitQuickCodeRegistration = Random.nextBoolean()
+        quickCodeEnabled = Random.nextBoolean()
     )
 }

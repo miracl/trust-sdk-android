@@ -34,8 +34,7 @@ internal data class SigningSessionDetailsResponse(
     @SerialName("identityType") val identityType: String,
     @SerialName("identityTypeLabel") val identityTypeLabel: String,
     @SerialName("pinLength") val pinLength: Int,
-    @SerialName("enableRegistrationCode") val quickCodeEnabled: Boolean,
-    @SerialName("limitRegCodeVerified") val limitQuickCodeRegistration: Boolean
+    @SerialName("enableRegistrationCode") val quickCodeEnabled: Boolean
 )
 
 @Serializable

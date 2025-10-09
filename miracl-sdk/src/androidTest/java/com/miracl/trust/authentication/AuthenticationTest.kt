@@ -128,7 +128,6 @@ class AuthenticationTest {
             identityType = IdentityType.Email,
             identityTypeLabel = randomUuidString(),
             quickCodeEnabled = Random.nextBoolean(),
-            limitQuickCodeRegistration = Random.nextBoolean(),
             signingHash = ""
         )
         var result: MIRACLResult<Unit, AuthenticationException>? = null

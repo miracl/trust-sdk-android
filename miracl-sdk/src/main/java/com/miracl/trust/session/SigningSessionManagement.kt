@@ -45,8 +45,7 @@ internal class SigningSessionManager(
             verificationCustomText = signingSessionDetailsResponse.verificationCustomText,
             identityType = IdentityType.fromString(signingSessionDetailsResponse.identityType),
             identityTypeLabel = signingSessionDetailsResponse.identityTypeLabel,
-            quickCodeEnabled = signingSessionDetailsResponse.quickCodeEnabled,
-            limitQuickCodeRegistration = signingSessionDetailsResponse.limitQuickCodeRegistration
+            quickCodeEnabled = signingSessionDetailsResponse.quickCodeEnabled
         )
 
         logOperation(LoggerConstants.FLOW_FINISHED)

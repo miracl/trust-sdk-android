@@ -2558,7 +2558,6 @@ class MIRACLTrustUnitTest {
         identityType: IdentityType = IdentityType.Email,
         identityTypeLabel: String = randomUuidString(),
         quickCodeEnabled: Boolean = Random.nextBoolean(),
-        limitQuickCodeRegistration: Boolean = Random.nextBoolean(),
         hash: String = randomHexString()
     ) = CrossDeviceSession(
         sessionId = sessionId,
@@ -2574,7 +2573,6 @@ class MIRACLTrustUnitTest {
         identityType = identityType,
         identityTypeLabel = identityTypeLabel,
         quickCodeEnabled = quickCodeEnabled,
-        limitQuickCodeRegistration = limitQuickCodeRegistration,
         signingHash = hash,
     )
 }

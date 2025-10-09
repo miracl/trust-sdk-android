@@ -78,7 +78,6 @@ internal class AuthenticationApiManager(
         const val EXPIRED_MPINID = "EXPIRED_MPINID"
         const val MPINID_REVOKED = "MPINID_REVOKED"
         const val REVOKED_MPINID = "REVOKED_MPINID"
-        const val LIMITED_QUICKCODE_GENERATION = "LIMITED_QUICKCODE_GENERATION"
     }
 
     override suspend fun executePass1Request(
