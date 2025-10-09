@@ -387,8 +387,7 @@ class DocumentSigningTest {
             verificationCustomText = randomUuidString(),
             identityType = IdentityType.Email,
             identityTypeLabel = randomUuidString(),
-            quickCodeEnabled = Random.nextBoolean(),
-            limitQuickCodeRegistration = Random.nextBoolean()
+            quickCodeEnabled = Random.nextBoolean()
         )
 
         // Act

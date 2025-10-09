@@ -51,8 +51,7 @@ internal class SessionManager(
             verificationCustomText = codeStatusResponse.verificationCustomText,
             identityType = IdentityType.fromString(codeStatusResponse.identityType),
             identityTypeLabel = codeStatusResponse.identityTypeLabel,
-            quickCodeEnabled = codeStatusResponse.quickCodeEnabled,
-            limitQuickCodeRegistration = codeStatusResponse.limitQuickCodeRegistration
+            quickCodeEnabled = codeStatusResponse.quickCodeEnabled
         )
 
         logOperation(LoggerConstants.FLOW_FINISHED)

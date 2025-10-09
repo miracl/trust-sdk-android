@@ -260,7 +260,6 @@ class SessionApiManagerUnitTest {
         verificationCustomText = randomUuidString(),
         identityType = IdentityType.Email.name,
         identityTypeLabel = randomUuidString(),
-        quickCodeEnabled = Random.nextBoolean(),
-        limitQuickCodeRegistration = Random.nextBoolean()
+        quickCodeEnabled = Random.nextBoolean()
     )
 }

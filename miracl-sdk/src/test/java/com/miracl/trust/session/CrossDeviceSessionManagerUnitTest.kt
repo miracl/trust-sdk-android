@@ -81,10 +81,6 @@ class CrossDeviceSessionManagerUnitTest {
                 crossDeviceSessionResponse.quickCodeEnabled,
                 result.value.quickCodeEnabled
             )
-            Assert.assertEquals(
-                crossDeviceSessionResponse.limitQuickCodeRegistration,
-                result.value.limitQuickCodeRegistration
-            )
             Assert.assertEquals(crossDeviceSessionResponse.hash, result.value.signingHash)
         }
 
@@ -372,7 +368,6 @@ class CrossDeviceSessionManagerUnitTest {
             identityType = identityType,
             identityTypeLabel = identityTypeLabel,
             quickCodeEnabled = quickCodeEnabled,
-            limitQuickCodeRegistration = limitQuickCodeRegistration,
             signingHash = hash
         )
     }
@@ -390,7 +385,6 @@ class CrossDeviceSessionManagerUnitTest {
         identityType = IdentityType.Email.name,
         identityTypeLabel = randomUuidString(),
         quickCodeEnabled = Random.nextBoolean(),
-        limitQuickCodeRegistration = Random.nextBoolean(),
         hash = randomUuidString()
     )
 }

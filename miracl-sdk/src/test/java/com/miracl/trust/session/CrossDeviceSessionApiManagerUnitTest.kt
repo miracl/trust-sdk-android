@@ -274,7 +274,6 @@ class CrossDeviceSessionApiManagerUnitTest {
         identityType = IdentityType.Email.name,
         identityTypeLabel = randomUuidString(),
         quickCodeEnabled = Random.nextBoolean(),
-        limitQuickCodeRegistration = Random.nextBoolean(),
         hash = randomUuidString()
     )
 

@@ -14,7 +14,6 @@ package com.miracl.trust.session
  * @property identityType Identity type which will be used for identity verification.
  * @property identityTypeLabel Label of the identity which will be used for identity verification.
  * @property quickCodeEnabled Indicates whether the QuickCode is enabled for the project or not.
- * @property limitQuickCodeRegistration Indicates whether registration with QuickCode is allowed for identities registered also with QuickCode.
  */
 public class AuthenticationSessionDetails internal constructor(
     public val accessId: String,
@@ -28,8 +27,7 @@ public class AuthenticationSessionDetails internal constructor(
     verificationCustomText: String,
     identityType: IdentityType,
     identityTypeLabel: String,
-    quickCodeEnabled: Boolean,
-    limitQuickCodeRegistration: Boolean
+    quickCodeEnabled: Boolean
 ) : SessionDetails(
     userId,
     projectId,
@@ -41,6 +39,5 @@ public class AuthenticationSessionDetails internal constructor(
     verificationCustomText,
     identityType,
     identityTypeLabel,
-    quickCodeEnabled,
-    limitQuickCodeRegistration
+    quickCodeEnabled
 )
