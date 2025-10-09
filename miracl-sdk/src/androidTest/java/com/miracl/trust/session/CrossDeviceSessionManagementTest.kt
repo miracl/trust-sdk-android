@@ -208,7 +208,6 @@ class CrossDeviceSessionManagementTest {
             identityType = IdentityType.Email,
             identityTypeLabel = randomUuidString(),
             quickCodeEnabled = Random.nextBoolean(),
-            limitQuickCodeRegistration = Random.nextBoolean(),
             signingHash = randomUuidString()
         )
         var result: MIRACLResult<Unit, CrossDeviceSessionException>? = null

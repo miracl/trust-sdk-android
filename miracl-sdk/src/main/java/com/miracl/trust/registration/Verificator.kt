@@ -4,14 +4,12 @@ import android.net.Uri
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
-import com.miracl.trust.authentication.AuthenticationApiManager
 import com.miracl.trust.authentication.AuthenticationException
 import com.miracl.trust.authentication.AuthenticatorContract
 import com.miracl.trust.authentication.AuthenticatorScopes
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.QuickCode
 import com.miracl.trust.model.User
-import com.miracl.trust.network.ApiException
 import com.miracl.trust.session.AuthenticationSessionDetails
 import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.storage.UserStorage
@@ -79,13 +77,8 @@ internal class Verificator(
         )
 
         if (authenticateResponse is MIRACLError) {
-            val authenticationError = authenticateResponse.value
-            if ((authenticationError.cause as? ApiException.ClientError)?.clientErrorData?.code == AuthenticationApiManager.LIMITED_QUICKCODE_GENERATION) {
-                return MIRACLError(QuickCodeException.LimitedQuickCodeGeneration)
-            }
-
             return MIRACLError(
-                when (authenticationError) {
+                when (authenticateResponse.value) {
                     is AuthenticationException.InvalidPin -> QuickCodeException.InvalidPin
                     is AuthenticationException.PinCancelled -> QuickCodeException.PinCancelled
                     is AuthenticationException.UnsuccessfulAuthentication -> QuickCodeException.UnsuccessfulAuthentication

@@ -42,7 +42,6 @@ internal data class CrossDeviceSessionResponse(
     @SerialName("identityType") val identityType: String,
     @SerialName("identityTypeLabel") val identityTypeLabel: String,
     @SerialName("enableRegistrationCode") val quickCodeEnabled: Boolean,
-    @SerialName("limitRegCodeVerified") val limitQuickCodeRegistration: Boolean,
     @SerialName("hash") val hash: String
 )
 

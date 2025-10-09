@@ -378,7 +378,6 @@ class SigningSessionApiManagerUnitTest {
         identityType = IdentityType.Email.name,
         identityTypeLabel = randomUuidString(),
         pinLength = randomPinLength(),
-        quickCodeEnabled = Random.nextBoolean(),
-        limitQuickCodeRegistration = Random.nextBoolean()
+        quickCodeEnabled = Random.nextBoolean()
     )
 }

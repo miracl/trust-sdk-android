@@ -46,7 +46,6 @@ internal class CrossDeviceSessionManager(
             identityType = IdentityType.fromString(codeStatusResponse.identityType),
             identityTypeLabel = codeStatusResponse.identityTypeLabel,
             quickCodeEnabled = codeStatusResponse.quickCodeEnabled,
-            limitQuickCodeRegistration = codeStatusResponse.limitQuickCodeRegistration,
             signingHash = codeStatusResponse.hash
         )
 

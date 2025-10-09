@@ -31,8 +31,7 @@ internal data class CodeStatusResponse(
     @SerialName("verificationCustomText") val verificationCustomText: String,
     @SerialName("identityType") val identityType: String,
     @SerialName("identityTypeLabel") val identityTypeLabel: String,
-    @SerialName("enableRegistrationCode") val quickCodeEnabled: Boolean,
-    @SerialName("limitRegCodeVerified") val limitQuickCodeRegistration: Boolean
+    @SerialName("enableRegistrationCode") val quickCodeEnabled: Boolean
 )
 
 @Keep

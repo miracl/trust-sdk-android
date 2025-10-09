@@ -97,10 +97,6 @@ class SigningSessionManagerUnitTest {
                 signingSessionDetailsResponse.quickCodeEnabled,
                 result.value.quickCodeEnabled
             )
-            Assert.assertEquals(
-                signingSessionDetailsResponse.limitQuickCodeRegistration,
-                result.value.limitQuickCodeRegistration
-            )
         }
 
     @Test
@@ -298,8 +294,7 @@ class SigningSessionManagerUnitTest {
             verificationCustomText = verificationCustomText,
             identityType = identityType,
             identityTypeLabel = identityTypeLabel,
-            quickCodeEnabled = quickCodeEnabled,
-            limitQuickCodeRegistration = limitQuickCodeRegistration
+            quickCodeEnabled = quickCodeEnabled
         )
     }
 
@@ -318,7 +313,6 @@ class SigningSessionManagerUnitTest {
         identityType = IdentityType.Email.name,
         identityTypeLabel = randomUuidString(),
         pinLength = randomPinLength(),
-        quickCodeEnabled = Random.nextBoolean(),
-        limitQuickCodeRegistration = Random.nextBoolean()
+        quickCodeEnabled = Random.nextBoolean()
     )
 }

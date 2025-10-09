@@ -18,7 +18,6 @@ package com.miracl.trust.session
  * @property identityTypeLabel Label of the identity which will be used for identity verification.
  * @property quickCodeEnabled Indicates whether [QuickCode](https://miracl.com/resources/docs/guides/built-in-user-verification/quickcode/)
  * is enabled for the project or not.
- * @property limitQuickCodeRegistration Indicates whether registration with QuickCode is allowed for identities registered also with QuickCode.
  * @property signingHash Hash of the transaction that needs to be signed if any.
  */
 public class CrossDeviceSession(
@@ -35,6 +34,5 @@ public class CrossDeviceSession(
     public val identityType: IdentityType,
     public val identityTypeLabel: String,
     public val quickCodeEnabled: Boolean,
-    public val limitQuickCodeRegistration: Boolean,
     public val signingHash: String
 )

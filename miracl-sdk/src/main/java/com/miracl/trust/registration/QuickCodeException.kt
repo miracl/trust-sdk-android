@@ -10,9 +10,6 @@ public sealed class QuickCodeException(cause: Throwable? = null) : Exception(cau
     /** The authentication was not successful. */
     public object UnsuccessfulAuthentication : QuickCodeException()
 
-    /** Generating QuickCode from this registration is not allowed. */
-    public object LimitedQuickCodeGeneration : QuickCodeException()
-
     /** The user is revoked because of too many unsuccessful authentication attempts or has not been
      *  used in a substantial amount of time. The device needs to be re-registered.
      */

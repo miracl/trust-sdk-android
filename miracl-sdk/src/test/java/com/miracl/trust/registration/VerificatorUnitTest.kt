@@ -9,8 +9,6 @@ import com.miracl.trust.authentication.AuthenticatorContract
 import com.miracl.trust.authentication.AuthenticatorScopes
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.User
-import com.miracl.trust.network.ApiException
-import com.miracl.trust.network.ClientErrorData
 import com.miracl.trust.randomByteArray
 import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
@@ -359,35 +357,6 @@ class VerificatorUnitTest {
             Assert.assertTrue(result is MIRACLError)
             Assert.assertTrue((result as MIRACLError).value is QuickCodeException.GenerationFail)
             Assert.assertEquals(authenticationException, result.value.cause)
-        }
-
-    @Test
-    fun `generateQuickCode should return correct MIRACLError when authentication fails because of limited QuickCode generation`() =
-        runTest {
-            // Arrange
-            val authenticationException = AuthenticationException.AuthenticationFail(
-                ApiException.ClientError(
-                    clientErrorData = ClientErrorData(
-                        code = "LIMITED_QUICKCODE_GENERATION",
-                        info = "Generating QuickCode from this registration is not allowed.",
-                        context = null
-                    )
-                )
-            )
-            coEvery {
-                authenticatorMock.authenticate(any(), any(), any(), any(), any())
-            } returns MIRACLError(authenticationException)
-
-            // Act
-            val result = verificator.generateQuickCode(
-                user = mockk<User>(),
-                pinProvider = mockk<PinProvider>(),
-                deviceName = randomUuidString()
-            )
-
-            // Assert
-            Assert.assertTrue(result is MIRACLError)
-            Assert.assertTrue((result as MIRACLError).value is QuickCodeException.LimitedQuickCodeGeneration)
         }
 
     @Test

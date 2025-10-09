@@ -1236,7 +1236,6 @@ class DocumentSignerUnitTest {
         identityType: IdentityType = IdentityType.Email,
         identityTypeLabel: String = randomUuidString(),
         quickCodeEnabled: Boolean = Random.nextBoolean(),
-        limitQuickCodeRegistration: Boolean = Random.nextBoolean()
     ): SigningSessionDetails {
         return SigningSessionDetails(
             sessionId = sessionId,
@@ -1254,8 +1253,7 @@ class DocumentSignerUnitTest {
             verificationCustomText = verificationCustomText,
             identityType = identityType,
             identityTypeLabel = identityTypeLabel,
-            quickCodeEnabled = quickCodeEnabled,
-            limitQuickCodeRegistration = limitQuickCodeRegistration
+            quickCodeEnabled = quickCodeEnabled
         )
     }
 
@@ -1273,7 +1271,6 @@ class DocumentSignerUnitTest {
         identityType: IdentityType = IdentityType.Email,
         identityTypeLabel: String = randomUuidString(),
         quickCodeEnabled: Boolean = Random.nextBoolean(),
-        limitQuickCodeRegistration: Boolean = Random.nextBoolean(),
         hash: String = randomHexString()
     ) = CrossDeviceSession(
         sessionId = sessionId,
@@ -1289,7 +1286,6 @@ class DocumentSignerUnitTest {
         identityType = identityType,
         identityTypeLabel = identityTypeLabel,
         quickCodeEnabled = quickCodeEnabled,
-        limitQuickCodeRegistration = limitQuickCodeRegistration,
-        signingHash = hash,
+        signingHash = hash
     )
 }
