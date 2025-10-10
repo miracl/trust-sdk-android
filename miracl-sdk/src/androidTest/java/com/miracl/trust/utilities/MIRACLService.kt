@@ -13,7 +13,6 @@ import com.miracl.trust.test.BuildConfig
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Serializable
@@ -26,7 +25,19 @@ data class SessionRequestBody(
 
 @Serializable
 data class AccessIdResponse(
-    val qrURL: String
+    val qrURL: String,
+    val webOTT: String
+)
+
+@Serializable
+data class SessionStatusRequestBody(
+    val webOTT: String
+)
+
+@Serializable
+data class SessionStatusResponse(
+    val status: String,
+    val signature: String
 )
 
 @Serializable
@@ -90,6 +101,19 @@ object MIRACLService {
 
         val result = requestExecutor.execute(apiRequest)
         json.decodeFromString<AccessIdResponse>((result as MIRACLSuccess).value)
+    }
+
+    fun getSessionStatus(projectUrl: String, webOTT: String): SessionStatusResponse = runBlocking {
+        val apiRequest = ApiRequest(
+            method = HttpMethod.POST,
+            headers = null,
+            body = json.encodeToString(SessionStatusRequestBody(webOTT)),
+            params = null,
+            url = "$projectUrl/rps/v2/access"
+        )
+
+        val result = requestExecutor.execute(apiRequest)
+        json.decodeFromString<SessionStatusResponse>((result as MIRACLSuccess).value)
     }
 
     fun getVerificationUrl(

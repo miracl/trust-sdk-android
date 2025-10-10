@@ -2,6 +2,7 @@ package com.miracl.trust.signing
 
 import android.content.Context
 import android.os.Build
+import android.util.Base64
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.miracl.trust.BuildConfig
@@ -17,7 +18,6 @@ import com.miracl.trust.network.ApiSettings
 import com.miracl.trust.network.HttpsURLConnectionRequestExecutor
 import com.miracl.trust.registration.RegistrationApiManager
 import com.miracl.trust.registration.Registrator
-import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.session.CrossDeviceSessionApiManager
 import com.miracl.trust.session.CrossDeviceSessionManager
 import com.miracl.trust.session.IdentityType
@@ -29,8 +29,10 @@ import com.miracl.trust.session.SigningSessionStatus
 import com.miracl.trust.session.VerificationMethod
 import com.miracl.trust.storage.room.RoomUserStorage
 import com.miracl.trust.storage.room.UserDatabase
+import com.miracl.trust.util.hexStringToByteArray
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import com.miracl.trust.util.secondsSince1970
+import com.miracl.trust.util.toHexString
 import com.miracl.trust.util.toUser
 import com.miracl.trust.utilities.MIRACLService
 import com.miracl.trust.utilities.USER_ID
@@ -155,7 +157,7 @@ class DocumentSigningTest {
         // Sign
         val signingSessionDetails = createSigningSession()
         val result = documentSigner.sign(
-            message = signingSessionDetails.signingHash.toByteArray(),
+            message = signingSessionDetails.signingHash.hexStringToByteArray(),
             user = user,
             pinProvider = pinProvider,
             deviceName = Build.MODEL,
@@ -165,6 +167,8 @@ class DocumentSigningTest {
 
         // Verify the signature
         val signingResult = (result as MIRACLSuccess).value
+        Assert.assertEquals(signingSessionDetails.signingHash, signingResult.signature.hash)
+
         val signatureVerified = MIRACLService.verifySignature(
             projectId = projectId,
             projectUrl = projectUrl,
@@ -179,7 +183,19 @@ class DocumentSigningTest {
     @Test
     fun testSuccessfulDocumentSigningWithCrossDeviceSession() = runBlocking {
         // Arrange
-        val crossDeviceSession = createCrossDeviceSession()
+        val createSessionResponse = MIRACLService.obtainAccessId(
+            projectId = projectId,
+            projectUrl = projectUrl,
+            userId = USER_ID,
+            hash = randomHash().toHexString(),
+            description = randomUuidString()
+        )
+
+        val getCrossDeviceSessionResult =
+            crossDeviceSessionManager.getCrossDeviceSessionFromQRCode(createSessionResponse.qrURL)
+        Assert.assertTrue(getCrossDeviceSessionResult is MIRACLSuccess)
+
+        val crossDeviceSession = (getCrossDeviceSessionResult as MIRACLSuccess).value
 
         // Act
         val result = documentSigner.sign(
@@ -191,6 +207,23 @@ class DocumentSigningTest {
 
         // Assert
         Assert.assertTrue(result is MIRACLSuccess)
+
+        val sessionStatusResponse =
+            MIRACLService.getSessionStatus(projectUrl, createSessionResponse.webOTT)
+
+        val signatureJson = String(Base64.decode(sessionStatusResponse.signature, Base64.NO_WRAP))
+        val signature = KotlinxSerializationJsonUtil.fromJsonString<Signature>(signatureJson)
+        Assert.assertEquals(crossDeviceSession.signingHash, signature.hash)
+
+        val verified = MIRACLService.verifySignature(
+            projectId = projectId,
+            projectUrl = projectUrl,
+            clientId = clientId,
+            clientSecret = clientSecret,
+            signature = signature,
+            timestamp = signature.timestamp
+        )
+        Assert.assertTrue(verified)
     }
 
     @Test
@@ -408,7 +441,7 @@ class DocumentSigningTest {
     }
 
     private suspend fun createSigningSession(
-        hash: String = randomUuidString(),
+        hash: String = randomHash().toHexString(),
         description: String = randomUuidString()
     ): SigningSessionDetails {
         val qrCode = MIRACLService.createSigningSession(
@@ -421,25 +454,6 @@ class DocumentSigningTest {
 
         val getSigningSessionDetailsResult =
             signingSessionManager.getSigningSessionDetailsFromQRCode(qrCode)
-        Assert.assertTrue(getSigningSessionDetailsResult is MIRACLSuccess)
-
-        return (getSigningSessionDetailsResult as MIRACLSuccess).value
-    }
-
-    private suspend fun createCrossDeviceSession(
-        hash: String = randomUuidString(),
-        description: String = randomUuidString()
-    ): CrossDeviceSession {
-        val qrCode = MIRACLService.obtainAccessId(
-            projectId = projectId,
-            projectUrl = projectUrl,
-            userId = USER_ID,
-            hash = hash,
-            description = description
-        ).qrURL
-
-        val getSigningSessionDetailsResult =
-            crossDeviceSessionManager.getCrossDeviceSessionFromQRCode(qrCode)
         Assert.assertTrue(getSigningSessionDetailsResult is MIRACLSuccess)
 
         return (getSigningSessionDetailsResult as MIRACLSuccess).value

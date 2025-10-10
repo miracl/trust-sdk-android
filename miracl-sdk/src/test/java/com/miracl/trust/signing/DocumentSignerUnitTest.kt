@@ -26,6 +26,7 @@ import com.miracl.trust.session.SigningSessionStatus
 import com.miracl.trust.session.SigningSessionUpdateResponse
 import com.miracl.trust.session.VerificationMethod
 import com.miracl.trust.storage.UserStorage
+import com.miracl.trust.util.hexStringToByteArray
 import com.miracl.trust.util.toHexString
 import com.miracl.trust.util.toUserDto
 import io.mockk.CapturingSlot
@@ -1080,7 +1081,7 @@ class DocumentSignerUnitTest {
             // Arrange
             val signingUser = createSigningUser()
             val crossDeviceSession = createCrossDeviceSession()
-            val message = crossDeviceSession.signingHash.toByteArray()
+            val message = crossDeviceSession.signingHash.hexStringToByteArray()
 
             coEvery {
                 authenticatorContractMock.authenticate(
@@ -1169,7 +1170,7 @@ class DocumentSignerUnitTest {
             val v = randomByteArray()
             coEvery {
                 cryptoMock.sign(
-                    crossDeviceSession.signingHash.toByteArray(),
+                    crossDeviceSession.signingHash.hexStringToByteArray(),
                     mpinId.plus(publicKey),
                     token,
                     any(),
