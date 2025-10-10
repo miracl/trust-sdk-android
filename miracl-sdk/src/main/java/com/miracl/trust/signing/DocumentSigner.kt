@@ -19,6 +19,7 @@ import com.miracl.trust.session.SigningSessionException
 import com.miracl.trust.session.SigningSessionStatus
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.acquirePin
+import com.miracl.trust.util.hexStringToByteArray
 import com.miracl.trust.util.log.Loggable
 import com.miracl.trust.util.log.LoggerConstants
 import com.miracl.trust.util.secondsSince1970
@@ -119,8 +120,12 @@ internal class DocumentSigner(
         pinProvider: PinProvider,
         deviceName: String
     ): MIRACLResult<Unit, SigningException> {
-        val signingResult =
-            sign(crossDeviceSession.signingHash.toByteArray(), user, pinProvider, deviceName)
+        val signingResult = sign(
+            message = crossDeviceSession.signingHash.hexStringToByteArray(),
+            user = user,
+            pinProvider = pinProvider,
+            deviceName = deviceName
+        )
 
         if (signingResult is MIRACLError) {
             return MIRACLError(signingResult.value)
