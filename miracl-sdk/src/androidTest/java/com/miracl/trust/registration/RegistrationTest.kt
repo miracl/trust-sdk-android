@@ -12,12 +12,14 @@ import com.miracl.trust.configuration.Configuration
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.QuickCode
 import com.miracl.trust.model.User
+import com.miracl.trust.network.ApiException
 import com.miracl.trust.utilities.GmailService
 import com.miracl.trust.utilities.MIRACLService
 import com.miracl.trust.utilities.USER_ID
 import com.miracl.trust.utilities.generateWrongPin
 import com.miracl.trust.utilities.getUnixTime
 import com.miracl.trust.utilities.randomNumericPin
+import com.miracl.trust.utilities.randomUuidString
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
@@ -252,7 +254,8 @@ class RegistrationTest {
     @Test
     fun testRegistrationFailOnInvalidActivationToken() = runTest {
         // Arrange
-        val invalidActivationToken = "invalidActivationToken"
+        val invalidActivationToken =
+            "eyJhbGciOiJSUzI1NiIsImtpZCI6Ikg0OEJsaXRza0M5b2ZnaVdsY0Z3MzJ5QzhLZnF0X3RVWENaOGowTkxyT1k9IiwidHlwIjoiSldUIn0.eyJkZXZpY2VOYW1lIjoiaU9TIiwiZXhwIjoxNzYyMjUyMzQ0LCJpYXQiOjE3NjIyNTIyNTQsImlzcyI6Imh0dHBzOi8vYXBpLm1waW4uaW8iLCJqdGkiOiJmMDUwODNiOC0wMzM4LTQ2MDgtODAwZS0wOTAwZTdhOGFkM2YiLCJwcm9qZWN0SUQiOiJiMTg3ZThiYi0yN2FjLTQzMDAtYWQ2My1jMmUwMmU1YmJjZDMiLCJzY29wZSI6InZlcmlmaWNhdGlvbiIsInN1YiI6ImludEBtaXJhY2wuY29tIn0.5JEOwgkWYuAVQKU2oQCCnLx9NzbtvMtLIe4JRzoTa4LF-y3QM7pI-Vr2laEpR-0WZJKhRmr0ZipARYGuU-7CPFwZB2x8r6sgwHaUYb82UKWndycA3mt2svFoqRxi9WyhP-BFLYLqsBZBD74nhwdSwZwaGqUtezUSlmosgVatBjcpqUI9dNSgKfP-seeqgOKgPgVTIrJMufz7c7Nk-i6-ydfgYNsuYdFcUqnUKugtS2kbRf2Yi46aCmWl3cu1du1KR4RJtde10yfEqFNACFXO1QnX8v4Gq8lLbfGzVKHu_s1TCc4gIWbYC0N5-hg-gcTykXgwpBahiHwXhLF_Ek2ygw"
 
         // Act
         val result = register(invalidActivationToken)
@@ -263,6 +266,23 @@ class RegistrationTest {
             RegistrationException.InvalidActivationToken,
             (result as MIRACLError).value
         )
+    }
+
+    @Test
+    fun testRegistrationFailOnRandomActivationToken() = runTest {
+        // Arrange
+        val randomActivationToken = randomUuidString()
+
+        // Act
+        val result = register(randomActivationToken)
+
+        // Assert
+        Assert.assertTrue(result is MIRACLError)
+        Assert.assertTrue((result as MIRACLError).value is RegistrationException.RegistrationFail)
+
+        val clientErrorData = (result.value.cause as ApiException.ClientError).clientErrorData
+        Assert.assertEquals("INVALID_REQUEST_PARAMETERS", clientErrorData?.code)
+        Assert.assertEquals("activationToken", clientErrorData?.context?.get("params"))
     }
 
     @Test
