@@ -72,8 +72,7 @@ data class SigningSessionCreateResponse(val id: String, val qrURL: String, val e
 @Serializable
 data class VerifySignatureRequestBody(
     val signature: Signature,
-    val timestamp: Int,
-    val type: String = "verification"
+    val timestamp: Int
 )
 
 object MIRACLService {
