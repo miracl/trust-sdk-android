@@ -54,6 +54,21 @@ public class Configuration private constructor(
                 builder.readTimeout
             )
 
+    override fun toString(): String {
+        return "Configuration(" +
+                "projectId=$projectId, " +
+                "projectUrl=$projectUrl, " +
+                "deviceName=$deviceName, " +
+                "applicationInfo=$applicationInfo, " +
+                "httpRequestExecutor=$httpRequestExecutor, " +
+                "userStorage=${userStorage ?: "DefaultUserStorage"}, " +
+                "logger=$logger, " +
+                "loggingLevel=$loggingLevel, " +
+                "connectTimeout=$connectTimeout, " +
+                "readTimeout=$readTimeout" +
+                ")"
+    }
+
     /**
      * Builds a [Configuration] object.
      *

@@ -23,6 +23,19 @@ public class User internal constructor(
 ) {
     /** Hex encoded SHA256 representation of the mpinId property. */
     public val hashedMpinId: String = mpinId.toSHA256()
+
+    override fun toString(): String {
+        return "User(" +
+                "userId=$userId, " +
+                "projectId=$projectId, " +
+                "revoked=$revoked, " +
+                "pinLength=$pinLength, " +
+                "hashedMpinId=$hashedMpinId, " +
+                "token=<REDACTED>, " +
+                "dtas=$dtas, " +
+                "publicKey=$publicKey" +
+                ")"
+    }
 }
 
 internal fun User.isEmpty(): Boolean = dtas.isBlank() || mpinId.isEmpty() || token.isEmpty()

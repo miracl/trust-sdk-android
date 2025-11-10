@@ -48,7 +48,28 @@ public class SigningSessionDetails internal constructor(
     identityType,
     identityTypeLabel,
     quickCodeEnabled
-)
+) {
+    override fun toString(): String {
+        return "SigningSessionDetails(" +
+                "sessionId=$sessionId, " +
+                "signingHash=$signingHash, " +
+                "signingDescription=$signingDescription, " +
+                "status=$status, " +
+                "expireTime=$expireTime, " +
+                "userId=$userId, " +
+                "projectId=$projectId, " +
+                "projectName=$projectName, " +
+                "projectLogoUrl=$projectLogoUrl, " +
+                "pinLength=$pinLength, " +
+                "verificationMethod=$verificationMethod, " +
+                "verificationUrl=$verificationUrl, " +
+                "verificationCustomText=$verificationCustomText, " +
+                "identityType=$identityType, " +
+                "identityTypeLabel=$identityTypeLabel, " +
+                "quickCodeEnabled=$quickCodeEnabled" +
+                ")"
+    }
+}
 
 /** An enumeration describing the status of the signing session. */
 public enum class SigningSessionStatus {

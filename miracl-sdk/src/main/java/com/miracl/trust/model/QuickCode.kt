@@ -12,4 +12,8 @@ public class QuickCode internal constructor(
     public val code: String,
     public val expireTime: Long,
     public val ttlSeconds: Int
-) : Serializable
+) : Serializable {
+    override fun toString(): String {
+        return "QuickCode(code=<REDACTED>, expireTime=$expireTime, ttlSeconds=$ttlSeconds"
+    }
+}
