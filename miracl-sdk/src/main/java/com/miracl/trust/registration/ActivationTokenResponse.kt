@@ -16,4 +16,8 @@ public class ActivationTokenResponse internal constructor(
     public val accessId: String?,
     public val userId: String,
     public val activationToken: String
-)
+) {
+    override fun toString(): String {
+        return "ActivationTokenResponse(activationToken=<REDACTED>, projectId=$projectId, accessId=$accessId, userId=$userId)"
+    }
+}

@@ -35,4 +35,23 @@ public class CrossDeviceSession(
     public val identityTypeLabel: String,
     public val quickCodeEnabled: Boolean,
     public val signingHash: String
-)
+) {
+    override fun toString(): String {
+        return "CrossDeviceSession(" +
+                "sessionId=$sessionId, " +
+                "sessionDescription=$sessionDescription, " +
+                "userId=$userId, " +
+                "projectId=$projectId, " +
+                "projectName=$projectName, " +
+                "projectLogoUrl=$projectLogoUrl, " +
+                "pinLength=$pinLength, " +
+                "verificationMethod=$verificationMethod, " +
+                "verificationUrl=$verificationUrl, " +
+                "verificationCustomText=$verificationCustomText, " +
+                "identityType=$identityType, " +
+                "identityTypeLabel=$identityTypeLabel, " +
+                "quickCodeEnabled=$quickCodeEnabled, " +
+                "signingHash=$signingHash" +
+                ")"
+    }
+}

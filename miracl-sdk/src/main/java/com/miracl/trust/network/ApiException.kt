@@ -20,16 +20,6 @@ public sealed class ApiException(public val url: String, cause: Throwable? = nul
         ApiException(url, cause)
 
     override fun toString(): String {
-        return "${super.toString()} $url: ${
-            when (val cause = cause) {
-                is HttpRequestExecutorException.HttpError -> {
-                    "${cause.responseCode} - ${cause.responseBody}"
-                }
-
-                else -> {
-                    "${cause?.message}"
-                }
-            }
-        }"
+        return "${this.javaClass.simpleName}(url=$url, cause=$cause)"
     }
 }

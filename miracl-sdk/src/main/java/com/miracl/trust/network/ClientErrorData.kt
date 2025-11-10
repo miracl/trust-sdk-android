@@ -11,4 +11,8 @@ public class ClientErrorData internal constructor(
     public val code: String,
     public val info: String,
     public val context: Map<String, String>?
-)
+) {
+    override fun toString(): String {
+        return "ClientErrorData(code=$code, info=$info, context=$context)"
+    }
+}

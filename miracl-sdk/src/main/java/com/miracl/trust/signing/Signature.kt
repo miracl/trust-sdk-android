@@ -12,4 +12,16 @@ public class Signature internal constructor(
     @SerialName("dtas") public val dtas: String,
     @SerialName("hash") public val hash: String,
     @SerialName("timestamp") public val timestamp: Int
-)
+) {
+    override fun toString(): String {
+        return "Signature(" +
+                "mpinId=$mpinId, " +
+                "U=<REDACTED>, " +
+                "V=<REDACTED>, " +
+                "publicKey=$publicKey, " +
+                "dtas=$dtas, " +
+                "hash=$hash, " +
+                "timestamp=$timestamp" +
+                ")"
+    }
+}

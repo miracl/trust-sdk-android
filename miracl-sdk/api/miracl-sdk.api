@@ -127,6 +127,7 @@ public final class com/miracl/trust/authentication/AuthenticationException$UserN
 
 public final class com/miracl/trust/configuration/Configuration {
 	public synthetic fun <init> (Lcom/miracl/trust/configuration/Configuration$Builder;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/miracl/trust/configuration/Configuration$Builder {
@@ -200,6 +201,7 @@ public final class com/miracl/trust/model/QuickCode : java/io/Serializable {
 	public final fun getCode ()Ljava/lang/String;
 	public final fun getExpireTime ()J
 	public final fun getTtlSeconds ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/miracl/trust/model/User {
@@ -208,6 +210,7 @@ public final class com/miracl/trust/model/User {
 	public final fun getProjectId ()Ljava/lang/String;
 	public final fun getRevoked ()Z
 	public final fun getUserId ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract class com/miracl/trust/network/ApiException : java/lang/Exception {
@@ -253,6 +256,7 @@ public final class com/miracl/trust/network/ClientErrorData {
 	public final fun getCode ()Ljava/lang/String;
 	public final fun getContext ()Ljava/util/Map;
 	public final fun getInfo ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/miracl/trust/network/HttpMethod : java/lang/Enum {
@@ -273,6 +277,7 @@ public abstract interface class com/miracl/trust/network/HttpRequestExecutor {
 public abstract class com/miracl/trust/network/HttpRequestExecutorException : java/lang/Exception {
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/miracl/trust/network/HttpRequestExecutorException$ExecutionError : com/miracl/trust/network/HttpRequestExecutorException {
@@ -291,6 +296,7 @@ public final class com/miracl/trust/registration/ActivationTokenErrorResponse {
 	public final fun getAccessId ()Ljava/lang/String;
 	public final fun getProjectId ()Ljava/lang/String;
 	public final fun getUserId ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract class com/miracl/trust/registration/ActivationTokenException : java/lang/Exception {
@@ -320,6 +326,7 @@ public final class com/miracl/trust/registration/ActivationTokenResponse {
 	public final fun getActivationToken ()Ljava/lang/String;
 	public final fun getProjectId ()Ljava/lang/String;
 	public final fun getUserId ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/miracl/trust/registration/EmailVerificationMethod : java/lang/Enum {
@@ -422,10 +429,12 @@ public final class com/miracl/trust/registration/VerificationException$Verificat
 public final class com/miracl/trust/registration/VerificationResponse {
 	public final fun getBackoff ()J
 	public final fun getMethod ()Lcom/miracl/trust/registration/EmailVerificationMethod;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/miracl/trust/session/AuthenticationSessionDetails : com/miracl/trust/session/SessionDetails {
 	public final fun getAccessId ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract class com/miracl/trust/session/AuthenticationSessionException : java/lang/Exception {
@@ -471,6 +480,7 @@ public final class com/miracl/trust/session/CrossDeviceSession {
 	public final fun getVerificationCustomText ()Ljava/lang/String;
 	public final fun getVerificationMethod ()Lcom/miracl/trust/session/VerificationMethod;
 	public final fun getVerificationUrl ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract class com/miracl/trust/session/CrossDeviceSessionException : java/lang/Exception {
@@ -534,6 +544,7 @@ public final class com/miracl/trust/session/SigningSessionDetails : com/miracl/t
 	public final fun getSigningDescription ()Ljava/lang/String;
 	public final fun getSigningHash ()Ljava/lang/String;
 	public final fun getStatus ()Lcom/miracl/trust/session/SigningSessionStatus;
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract class com/miracl/trust/session/SigningSessionException : java/lang/Exception {
@@ -601,6 +612,7 @@ public final class com/miracl/trust/signing/Signature {
 	public final fun getTimestamp ()I
 	public final fun getU ()Ljava/lang/String;
 	public final fun getV ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final synthetic class com/miracl/trust/signing/Signature$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
@@ -666,6 +678,7 @@ public final class com/miracl/trust/signing/SigningException$UnsuccessfulAuthent
 public final class com/miracl/trust/signing/SigningResult {
 	public final fun getSignature ()Lcom/miracl/trust/signing/Signature;
 	public final fun getTimestamp ()Ljava/util/Date;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/miracl/trust/storage/UserDto {
@@ -678,6 +691,7 @@ public final class com/miracl/trust/storage/UserDto {
 	public final fun getRevoked ()Z
 	public final fun getToken ()[B
 	public final fun getUserId ()Ljava/lang/String;
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface class com/miracl/trust/storage/UserStorage {
