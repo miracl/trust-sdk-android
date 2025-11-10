@@ -29,4 +29,17 @@ public class UserDto(
     public val token: ByteArray,
     public val dtas: String,
     public val publicKey: ByteArray?
-)
+) {
+    override fun toString(): String {
+        return "UserDto(" +
+                "userId=$userId, " +
+                "projectId=$projectId, " +
+                "revoked=$revoked, " +
+                "pinLength=$pinLength, " +
+                "mpinId=$mpinId, " +
+                "token=<REDACTED>, " +
+                "dtas=$dtas, " +
+                "publicKey=$publicKey" +
+                ")"
+    }
+}

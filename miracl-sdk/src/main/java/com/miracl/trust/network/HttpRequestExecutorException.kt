@@ -13,4 +13,16 @@ public sealed class HttpRequestExecutorException(
     /** Error while executing HTTP request. */
     public class ExecutionError(message: String? = null, cause: Throwable? = null) :
         HttpRequestExecutorException(message = message, cause = cause)
+
+    override fun toString(): String {
+        return when (this) {
+            is HttpError -> {
+                "HttpRequestExecutorException.HttpError(responseCode=$responseCode, responseBody=$responseBody)"
+            }
+
+            is ExecutionError -> {
+                "HttpRequestExecutorException.ExecutionError(message=$message, cause=$cause)"
+            }
+        }
+    }
 }

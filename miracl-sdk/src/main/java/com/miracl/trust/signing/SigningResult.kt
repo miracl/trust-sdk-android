@@ -11,4 +11,8 @@ import java.util.Date
 public class SigningResult internal constructor(
     public val signature: Signature,
     public val timestamp: Date
-)
+) {
+    override fun toString(): String {
+        return "SigningResult(signature=$signature, timestamp=$timestamp)"
+    }
+}

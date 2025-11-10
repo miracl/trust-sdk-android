@@ -40,4 +40,21 @@ public class AuthenticationSessionDetails internal constructor(
     identityType,
     identityTypeLabel,
     quickCodeEnabled
-)
+) {
+    override fun toString(): String {
+        return "AuthenticationSessionDetails(" +
+                "accessId=$accessId, " +
+                "userId=$userId, " +
+                "projectId=$projectId, " +
+                "projectName=$projectName, " +
+                "projectLogoUrl=$projectLogoUrl, " +
+                "pinLength=$pinLength, " +
+                "verificationMethod=$verificationMethod, " +
+                "verificationUrl=$verificationUrl, " +
+                "verificationCustomText=$verificationCustomText, " +
+                "identityType=$identityType, " +
+                "identityTypeLabel=$identityTypeLabel, " +
+                "quickCodeEnabled=$quickCodeEnabled" +
+                ")"
+    }
+}

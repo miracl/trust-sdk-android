@@ -20,16 +20,10 @@ public sealed class ApiException(public val url: String, cause: Throwable? = nul
         ApiException(url, cause)
 
     override fun toString(): String {
-        return "${super.toString()} $url: ${
-            when (val cause = cause) {
-                is HttpRequestExecutorException.HttpError -> {
-                    "${cause.responseCode} - ${cause.responseBody}"
-                }
-
-                else -> {
-                    "${cause?.message}"
-                }
-            }
-        }"
+        return when (this) {
+            is ClientError -> "ApiException.ClientError(url=$url, cause=$cause)"
+            is ExecutionError -> "ApiException.ExecutionError(url=$url, cause=$cause)"
+            is ServerError -> "ApiException.ServerError(url=$url, cause=$cause)"
+        }
     }
 }

@@ -51,6 +51,35 @@ public class Configuration private constructor(
                 builder.readTimeout
             )
 
+    override fun toString(): String {
+        val userStorage = userStorage?.javaClass?.simpleName
+            ?: "com.miracl.trust.storage.room.RoomUserStorage"
+
+        val httpRequestExecutor = httpRequestExecutor?.javaClass?.simpleName
+            ?: "com.miracl.trust.network.HttpsURLConnectionRequestExecutor"
+
+        var logger = logger?.javaClass?.simpleName
+        var loggingLevel = loggingLevel?.javaClass?.simpleName
+
+        if (logger == null) {
+            logger = "com.miracl.trust.util.log.DefaultLogger"
+            loggingLevel = loggingLevel ?: Logger.LoggingLevel.NONE.javaClass.simpleName
+        }
+
+        return "Configuration(" +
+                "projectId=$projectId, " +
+                "projectUrl=$projectUrl, " +
+                "deviceName=$deviceName, " +
+                "applicationInfo=$applicationInfo, " +
+                "httpRequestExecutor=$httpRequestExecutor, " +
+                "userStorage=$userStorage, " +
+                "logger=$logger, " +
+                "loggingLevel=$loggingLevel, " +
+                "connectTimeout=$connectTimeout, " +
+                "readTimeout=$readTimeout" +
+                ")"
+    }
+
     /**
      * Builds a [Configuration] object.
      *

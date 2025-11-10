@@ -14,4 +14,8 @@ public class ActivationTokenErrorResponse internal constructor(
     public val projectId: String,
     public val userId: String,
     public val accessId: String?
-)
+) {
+    override fun toString(): String {
+        return "ActivationTokenErrorResponse(projectId=$projectId, userId=$userId, accessId=$accessId)"
+    }
+}
