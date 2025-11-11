@@ -25,8 +25,6 @@ import org.junit.Test
 class AppLinkAuthenticationTest {
     private val projectId = BuildConfig.CUV_PROJECT_ID
     private val projectUrl = BuildConfig.CUV_PROJECT_URL
-    private val clientId = BuildConfig.CUV_CLIENT_ID
-    private val clientSecret = BuildConfig.CUV_CLIENT_SECRET
 
     private val testCoroutineDispatcher = StandardTestDispatcher()
 
@@ -47,8 +45,7 @@ class AppLinkAuthenticationTest {
 
         pin = randomNumericPin()
         pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
-        val activationToken =
-            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
+        val activationToken = MIRACLService.obtainActivationToken()
 
         var registrationResult: MIRACLResult<User, RegistrationException>? = null
         miraclTrust.register(

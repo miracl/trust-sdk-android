@@ -55,8 +55,7 @@ class DocumentSigningTest {
 
     private val projectId = BuildConfig.CUV_PROJECT_ID
     private val projectUrl = BuildConfig.CUV_PROJECT_URL
-    private val clientId = BuildConfig.CUV_CLIENT_ID
-    private val clientSecret = BuildConfig.CUV_CLIENT_SECRET
+    private val serviceAccountToken = BuildConfig.CUV_SERVICE_ACCOUNT_TOKEN
 
     private lateinit var userStorage: RoomUserStorage
     private lateinit var signingSessionManager: SigningSessionManager
@@ -112,8 +111,7 @@ class DocumentSigningTest {
 
         pin = randomNumericPin()
         pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
-        val activationToken =
-            MIRACLService.obtainActivationToken(projectUrl, clientId, clientSecret, USER_ID)
+        val activationToken = MIRACLService.obtainActivationToken()
 
         val registrationResult = registrator.register(
             userId = USER_ID,
@@ -144,8 +142,7 @@ class DocumentSigningTest {
         val signatureVerified = MIRACLService.verifySignature(
             projectId = projectId,
             projectUrl = projectUrl,
-            clientId = clientId,
-            clientSecret = clientSecret,
+            serviceAccountToken = serviceAccountToken,
             signature = signingResult.signature,
             timestamp = signingResult.timestamp.secondsSince1970()
         )
@@ -172,8 +169,7 @@ class DocumentSigningTest {
         val signatureVerified = MIRACLService.verifySignature(
             projectId = projectId,
             projectUrl = projectUrl,
-            clientId = clientId,
-            clientSecret = clientSecret,
+            serviceAccountToken = serviceAccountToken,
             signature = signingResult.signature,
             timestamp = signingResult.timestamp.secondsSince1970()
         )
@@ -218,8 +214,7 @@ class DocumentSigningTest {
         val verified = MIRACLService.verifySignature(
             projectId = projectId,
             projectUrl = projectUrl,
-            clientId = clientId,
-            clientSecret = clientSecret,
+            serviceAccountToken = serviceAccountToken,
             signature = signature,
             timestamp = signature.timestamp
         )

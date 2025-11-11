@@ -8,10 +8,9 @@ echo $GMAIL_TOKEN > "${TEST_CREDENTIALS_DIR}/token.json"
 #Instrumentation tests
 ./gradlew connectedAndroidTest \
   -Pmiracltrust.baseUrl="$TEST_BASE_URL" \
-  -Pmiracltrust.cuvClientId="$TEST_CUV_CLIENT_ID" \
-  -Pmiracltrust.cuvClientSecret="$TEST_CUV_CLIENT_SECRET" \
   -Pmiracltrust.cuvProjectId="$TEST_CUV_PROJECT_ID" \
   -Pmiracltrust.cuvProjectUrl="$TEST_CUV_PROJECT_URL" \
+  -Pmiracltrust.cuvServiceAccountToken="$TEST_CUV_SERVICE_ACCOUNT_TOKEN" \
   -Pmiracltrust.dvProjectId="$TEST_DV_PROJECT_ID" \
   -Pmiracltrust.dvProjectUrl="$TEST_DV_PROJECT_URL" \
   -Pmiracltrust.ecvProjectId="$TEST_ECV_PROJECT_ID" \
