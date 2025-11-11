@@ -71,8 +71,7 @@ android {
         debug {
             buildConfigField "String", "CUV_PROJECT_ID", "\"${project.getProperties().get('miracltrust.cuvProjectId')}\""
             buildConfigField "String", "CUV_PROJECT_URL", "\"${project.getProperties().get('miracltrust.cuvProjectUrl')}\""
-            buildConfigField "String", "CUV_CLIENT_ID", "\"${project.getProperties().get('miracltrust.cuvClientId')}\""
-            buildConfigField "String", "CUV_CLIENT_SECRET", "\"${project.getProperties().get('miracltrust.cuvClientSecret')}\""
+            buildConfigField "String", "CUV_SERVICE_ACCOUNT_TOKEN", "\"${project.getProperties().get('miracltrust.cuvServiceAccountToken')}\""
 
             buildConfigField "String", "DV_PROJECT_ID", "\"${project.getProperties().get('miracltrust.dvProjectId')}\""
             buildConfigField "String", "DV_PROJECT_URL", "\"${project.getProperties().get('miracltrust.dvProjectUrl')}\""

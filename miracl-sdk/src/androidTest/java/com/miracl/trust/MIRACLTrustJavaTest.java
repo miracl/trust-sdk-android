@@ -55,8 +55,7 @@ import kotlinx.coroutines.test.TestDispatcher;
 public class MIRACLTrustJavaTest {
     private final String projectId = BuildConfig.CUV_PROJECT_ID;
     private final String projectUrl = BuildConfig.CUV_PROJECT_URL;
-    private final String clientId = BuildConfig.CUV_CLIENT_ID;
-    private final String clientSecret = BuildConfig.CUV_CLIENT_SECRET;
+    private final String serviceAccountToken = BuildConfig.CUV_SERVICE_ACCOUNT_TOKEN;
 
     private final TestDispatcher testCoroutineDispatcher = TestCoroutineDispatchersKt.StandardTestDispatcher(null, null);
 
@@ -104,9 +103,9 @@ public class MIRACLTrustJavaTest {
     @Test
     public void testCustomVerification() {
         String verificationUrl = MIRACLService.INSTANCE.getVerificationUrl(
+                BuildConfig.CUV_PROJECT_ID,
                 BuildConfig.CUV_PROJECT_URL,
-                BuildConfig.CUV_CLIENT_ID,
-                BuildConfig.CUV_CLIENT_SECRET,
+                BuildConfig.CUV_SERVICE_ACCOUNT_TOKEN,
                 USER_ID,
                 null,
                 null
@@ -151,9 +150,9 @@ public class MIRACLTrustJavaTest {
     @Test
     public void testRegistration() {
         String activationToken = MIRACLService.INSTANCE.obtainActivationToken(
+                BuildConfig.CUV_PROJECT_ID,
                 BuildConfig.CUV_PROJECT_URL,
-                BuildConfig.CUV_CLIENT_ID,
-                BuildConfig.CUV_CLIENT_SECRET,
+                BuildConfig.CUV_SERVICE_ACCOUNT_TOKEN,
                 USER_ID
         );
 
@@ -238,7 +237,7 @@ public class MIRACLTrustJavaTest {
             SigningResult signingResult = ((MIRACLSuccess<SigningResult, SigningException>) result).getValue();
             Signature signature = signingResult.getSignature();
             int timestamp = (int) (signingResult.getTimestamp().getTime() / 1000);
-            boolean signatureVerified = MIRACLService.INSTANCE.verifySignature(projectId, projectUrl, clientId, clientSecret, signature, timestamp);
+            boolean signatureVerified = MIRACLService.INSTANCE.verifySignature(projectId, projectUrl, serviceAccountToken, signature, timestamp);
             Assert.assertTrue(signatureVerified);
         }));
         testCoroutineDispatcher.getScheduler().advanceUntilIdle();
@@ -458,9 +457,9 @@ public class MIRACLTrustJavaTest {
 
     private void createUser(Consumer<User> callback) {
         String activationToken = MIRACLService.INSTANCE.obtainActivationToken(
+                BuildConfig.CUV_PROJECT_ID,
                 BuildConfig.CUV_PROJECT_URL,
-                BuildConfig.CUV_CLIENT_ID,
-                BuildConfig.CUV_CLIENT_SECRET,
+                BuildConfig.CUV_SERVICE_ACCOUNT_TOKEN,
                 USER_ID
         );
 

@@ -1,7 +1,6 @@
 package com.miracl.trust.utilities
 
 import android.net.Uri
-import android.util.Base64
 import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.network.ApiRequest
@@ -43,7 +42,7 @@ data class SessionStatusResponse(
 @Serializable
 data class VerificationRequestBody(
     val userId: String,
-    val clientId: String,
+    val projectId: String,
     val accessId: String? = null,
     val expiration: Int? = null,
     val delivery: String = "no"
@@ -116,27 +115,22 @@ object MIRACLService {
     }
 
     fun getVerificationUrl(
-        projectUrl: String,
-        clientId: String,
-        clientSecret: String,
+        projectId: String = BuildConfig.CUV_PROJECT_ID,
+        projectUrl: String = BuildConfig.CUV_PROJECT_URL,
+        serviceAccountToken: String = BuildConfig.CUV_SERVICE_ACCOUNT_TOKEN,
         userId: String = USER_ID,
         accessId: String? = null,
         expiration: Int? = null
     ): String = runBlocking {
-        val base64AuthToken: String = Base64.encodeToString(
-            "${clientId}:${clientSecret}".toByteArray(),
-            Base64.NO_WRAP
-        )
-
         val apiRequest = ApiRequest(
             method = HttpMethod.POST,
-            headers = mapOf("Authorization" to "Basic $base64AuthToken"),
+            headers = mapOf("Authorization" to "Bearer $serviceAccountToken"),
             body = json.encodeToString(
                 VerificationRequestBody(
-                    userId,
-                    clientId,
-                    accessId,
-                    expiration
+                    userId = userId,
+                    projectId = projectId,
+                    accessId = accessId,
+                    expiration = expiration
                 )
             ),
             params = null,
@@ -150,13 +144,13 @@ object MIRACLService {
     }
 
     fun obtainActivationToken(
-        projectUrl: String,
-        clientId: String,
-        clientSecret: String,
-        userId: String
+        projectId: String = BuildConfig.CUV_PROJECT_ID,
+        projectUrl: String = BuildConfig.CUV_PROJECT_URL,
+        serviceAccountToken: String = BuildConfig.CUV_SERVICE_ACCOUNT_TOKEN,
+        userId: String = USER_ID
     ): String = runBlocking {
         val verificationUri =
-            Uri.parse(getVerificationUrl(projectUrl, clientId, clientSecret, userId))
+            Uri.parse(getVerificationUrl(projectId, projectUrl, serviceAccountToken, userId))
         val userId = verificationUri.getQueryParameter("user_id")!!
         val code = verificationUri.getQueryParameter("code")!!
 
@@ -215,19 +209,13 @@ object MIRACLService {
     fun verifySignature(
         projectId: String,
         projectUrl: String,
-        clientId: String,
-        clientSecret: String,
+        serviceAccountToken: String,
         signature: Signature,
         timestamp: Int
     ): Boolean = runBlocking {
-        val base64AuthToken: String = Base64.encodeToString(
-            "${clientId}:${clientSecret}".toByteArray(),
-            Base64.NO_WRAP
-        )
-
         val apiRequest = ApiRequest(
             method = HttpMethod.POST,
-            headers = mapOf("Authorization" to "Basic $base64AuthToken"),
+            headers = mapOf("Authorization" to "Bearer $serviceAccountToken"),
             body = json.encodeToString(VerifySignatureRequestBody(signature, timestamp)),
             params = mapOf("project_id" to projectId),
             url = "$projectUrl/dvs/verify"

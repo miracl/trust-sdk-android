@@ -35,8 +35,6 @@ import java.util.UUID
 class VerificationTest {
     private val projectId = BuildConfig.CUV_PROJECT_ID
     private val projectUrl = BuildConfig.CUV_PROJECT_URL
-    private val clientId = BuildConfig.CUV_CLIENT_ID
-    private val clientSecret = BuildConfig.CUV_CLIENT_SECRET
 
     private val dvProjectId = BuildConfig.DV_PROJECT_ID
     private val dvProjectUrl = BuildConfig.DV_PROJECT_URL
@@ -422,7 +420,7 @@ class VerificationTest {
     @Test
     fun testCustomVerification() = runBlocking {
         // Get verification URL
-        val verificationUrl = MIRACLService.getVerificationUrl(projectUrl, clientId, clientSecret)
+        val verificationUrl = MIRACLService.getVerificationUrl()
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
@@ -451,8 +449,7 @@ class VerificationTest {
             (authenticationSessionDetailsResult as MIRACLSuccess).value.accessId
 
         // Get verification URL
-        val verificationUrl =
-            MIRACLService.getVerificationUrl(projectUrl, clientId, clientSecret, USER_ID, accessId)
+        val verificationUrl = MIRACLService.getVerificationUrl(accessId = accessId)
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
@@ -473,10 +470,6 @@ class VerificationTest {
         val expiration = Date(Date().time + expirationMillis).secondsSince1970()
         val accessId = URL(MIRACLService.obtainAccessId(projectId, projectUrl).qrURL).ref
         val verificationUrl = MIRACLService.getVerificationUrl(
-            projectUrl = projectUrl,
-            clientId = clientId,
-            clientSecret = clientSecret,
-            userId = USER_ID,
             accessId = accessId,
             expiration = expiration
         )
@@ -504,7 +497,7 @@ class VerificationTest {
     @Test
     fun testCustomVerificationInvalidVerificationCode() = runBlocking {
         // Get verification URL
-        val verificationUrl = MIRACLService.getVerificationUrl(projectUrl, clientId, clientSecret)
+        val verificationUrl = MIRACLService.getVerificationUrl()
         Assert.assertNotNull(verificationUrl)
 
         val verificationUri = Uri.parse(verificationUrl)

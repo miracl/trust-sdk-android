@@ -96,10 +96,9 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         env: 
           TEST_BASE_URL: ${{ vars.TEST_BASE_URL }}
-          TEST_CUV_CLIENT_SECRET: ${{ secrets.TEST_CUV_CLIENT_SECRET }}
-          TEST_CUV_CLIENT_ID: ${{ vars.TEST_CUV_CLIENT_ID }}
           TEST_CUV_PROJECT_ID: ${{ vars.TEST_CUV_PROJECT_ID }}
           TEST_CUV_PROJECT_URL: ${{ vars.TEST_CUV_PROJECT_URL }}
+          TEST_CUV_SERVICE_ACCOUNT_TOKEN: ${{ secrets.TEST_CUV_SERVICE_ACCOUNT_TOKEN }}
           TEST_DV_PROJECT_ID: ${{ vars.TEST_DV_PROJECT_ID }}
           TEST_DV_PROJECT_URL: ${{ vars.TEST_DV_PROJECT_URL }}
           TEST_ECV_PROJECT_ID: ${{ vars.TEST_ECV_PROJECT_ID }}
