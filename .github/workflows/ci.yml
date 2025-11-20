@@ -65,7 +65,7 @@ jobs:
         uses: gradle/actions/wrapper-validation@v4
 
       - name: Run unit tests
-        run: ./gradlew :miracl-sdk:testDebugUnitTest
+        run: ./gradlew testDebugUnitTest koverVerify
 
   instrumentation-tests:
     runs-on: ubuntu-latest

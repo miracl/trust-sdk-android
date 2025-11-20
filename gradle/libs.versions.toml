@@ -14,6 +14,7 @@ jreleaser = "1.20.0"
 junit = "4.13.2"
 kotlin = "2.2.20"
 kotlinxCoroutines = "1.10.2"
+kotlinxKover = "0.9.3"
 kotlinxSerialization = "1.9.0"
 ksp = "2.2.20-2.0.3"
 mockk = "1.14.5"
@@ -46,5 +47,6 @@ dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kotlinxKover" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 maven-publish = { id = "maven-publish" }
