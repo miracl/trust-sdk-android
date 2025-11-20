@@ -5,6 +5,7 @@ plugins {
     alias libs.plugins.androidx.room
     alias libs.plugins.kotlin.android
     alias libs.plugins.kotlin.serialization
+    alias libs.plugins.kotlinx.kover
     alias libs.plugins.ksp
     alias libs.plugins.dokka
     alias libs.plugins.binary.compatibility.validator
@@ -163,6 +164,16 @@ apiValidation {
             "com.miracl.trust.storage.room.UserDatabase_Impl",
             "com.miracl.trust.storage.room.dao.UserDao_Impl"
     ]
+}
+
+kover {
+    reports {
+        verify {
+            rule {
+                minBound(75)
+            }
+        }
+    }
 }
 
 publishing {
