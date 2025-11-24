@@ -2,7 +2,6 @@ package com.miracl.trust
 
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import androidx.annotation.VisibleForTesting
 import com.miracl.trust.authentication.*
 import com.miracl.trust.authentication.AuthenticatorScopes
@@ -14,7 +13,6 @@ import com.miracl.trust.model.QuickCode
 import com.miracl.trust.model.User
 import com.miracl.trust.network.ApiRequestExecutor
 import com.miracl.trust.network.ApiSettings
-import com.miracl.trust.network.HttpsURLConnectionRequestExecutor
 import com.miracl.trust.registration.*
 import com.miracl.trust.session.*
 import com.miracl.trust.session.SessionApiManager
@@ -26,7 +24,6 @@ import com.miracl.trust.storage.UserStorageException
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.UrlValidator
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
-import com.miracl.trust.util.log.DefaultLogger
 import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants
 import com.miracl.trust.util.toUserDto
@@ -91,7 +88,7 @@ public class MIRACLTrust private constructor(
     @VisibleForTesting
     internal var resultHandlerDispatcher: CoroutineDispatcher = Dispatchers.Main
 
-    private val deviceName: String = configuration.deviceName ?: Build.MODEL
+    private val deviceName: String = configuration.deviceName
 
     /** Project ID setting for the application in MIRACL Trust platform. */
     public var projectId: String = configuration.projectId
@@ -102,18 +99,9 @@ public class MIRACLTrust private constructor(
     //region Initialization
     init {
         logger = configuration.logger
-            ?: DefaultLogger(
-                configuration.loggingLevel ?: Logger.LoggingLevel.NONE
-            )
-
-        val httpRequestExecutor = configuration.httpRequestExecutor
-            ?: HttpsURLConnectionRequestExecutor(
-                configuration.connectTimeout,
-                configuration.readTimeout
-            )
 
         val apiRequestExecutor = ApiRequestExecutor(
-            httpRequestExecutor,
+            configuration.httpRequestExecutor,
             KotlinxSerializationJsonUtil,
             configuration.applicationInfo
         )

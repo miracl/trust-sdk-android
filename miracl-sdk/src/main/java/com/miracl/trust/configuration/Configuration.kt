@@ -1,9 +1,12 @@
 package com.miracl.trust.configuration
 
+import android.os.Build
 import com.miracl.trust.factory.ComponentFactory
 import com.miracl.trust.network.HttpRequestExecutor
+import com.miracl.trust.network.HttpsURLConnectionRequestExecutor
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.UrlValidator
+import com.miracl.trust.util.log.DefaultLogger
 import com.miracl.trust.util.log.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext
@@ -18,12 +21,12 @@ import kotlin.jvm.Throws
 public class Configuration private constructor(
     internal val projectId: String,
     internal val projectUrl: String,
+    internal val deviceName: String,
     internal val applicationInfo: String? = null,
-    internal val deviceName: String? = null,
-    internal val httpRequestExecutor: HttpRequestExecutor? = null,
+    internal val httpRequestExecutor: HttpRequestExecutor,
     internal val componentFactory: ComponentFactory? = null,
     internal val userStorage: UserStorage? = null,
-    internal val logger: Logger? = null,
+    internal val logger: Logger,
     internal val loggingLevel: Logger.LoggingLevel? = null,
     internal val miraclCoroutineContext: CoroutineContext,
     internal val connectTimeout: Int,
@@ -39,12 +42,12 @@ public class Configuration private constructor(
             this(
                 builder.projectId,
                 builder.projectUrl,
+                builder.deviceNameValue,
                 builder.applicationInfo,
-                builder.deviceName,
-                builder.httpRequestExecutor,
+                builder.httpRequestExecutorValue,
                 builder.componentFactory,
                 builder.userStorage,
-                builder.logger,
+                builder.loggerValue,
                 builder.loggingLevel,
                 builder.coroutineContext,
                 builder.connectTimeout,
@@ -61,11 +64,11 @@ public class Configuration private constructor(
         internal val projectId: String,
         internal val projectUrl: String = DEFAULT_PLATFORM_URL
     ) {
+        internal lateinit var deviceNameValue: String
+            private set
         internal var applicationInfo: String? = null
             private set
-        internal var deviceName: String? = null
-            private set
-        internal var httpRequestExecutor: HttpRequestExecutor? = null
+        internal lateinit var httpRequestExecutorValue: HttpRequestExecutor
             private set
         internal var componentFactory: ComponentFactory? = null
             private set
@@ -73,7 +76,7 @@ public class Configuration private constructor(
             private set
         internal var userStorage: UserStorage? = null
             private set
-        internal var logger: Logger? = null
+        internal lateinit var loggerValue: Logger
             private set
         internal var loggingLevel: Logger.LoggingLevel? = null
             private set
@@ -98,13 +101,13 @@ public class Configuration private constructor(
          * Sets value of device name.
          */
         public fun deviceName(deviceName: String): Builder =
-            apply { this.deviceName = deviceName }
+            apply { this.deviceNameValue = deviceName }
 
         /**
          * Provides implementation of the [HttpRequestExecutor] interface to be used by the SDK.
          */
         public fun httpRequestExecutor(httpRequestExecutor: HttpRequestExecutor): Builder =
-            apply { this.httpRequestExecutor = httpRequestExecutor }
+            apply { this.httpRequestExecutorValue = httpRequestExecutor }
 
         /**
          * Provides implementation of the [UserStorage] interface to be used by the SDK.
@@ -116,7 +119,7 @@ public class Configuration private constructor(
          * Provides implementation of the [Logger] interface to be used by the SDK.
          */
         public fun logger(logger: Logger): Builder =
-            apply { this.logger = logger }
+            apply { this.loggerValue = logger }
 
         /**
          * Provides specific [Logger.LoggingLevel] to be used by the SDK default logger.
@@ -160,6 +163,21 @@ public class Configuration private constructor(
 
             if (!UrlValidator.isValid(projectUrl)) {
                 throw ConfigurationException.InvalidProjectUrl
+            }
+
+            if (!this::deviceNameValue.isInitialized) {
+                deviceNameValue = Build.MODEL
+            }
+
+            if (!this::httpRequestExecutorValue.isInitialized) {
+                httpRequestExecutorValue =
+                    HttpsURLConnectionRequestExecutor(connectTimeout, readTimeout)
+            }
+
+            if (!this::loggerValue.isInitialized) {
+                val loggingLevel = loggingLevel ?: Logger.LoggingLevel.NONE
+                loggerValue = DefaultLogger(loggingLevel)
+                this.loggingLevel = loggingLevel
             }
 
             return Configuration(this)
