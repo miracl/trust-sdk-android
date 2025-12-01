@@ -34,11 +34,13 @@ import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import com.miracl.trust.util.secondsSince1970
 import com.miracl.trust.util.toHexString
 import com.miracl.trust.util.toUser
+import com.miracl.trust.utilities.JwtHelper
 import com.miracl.trust.utilities.MIRACLService
 import com.miracl.trust.utilities.USER_ID
 import com.miracl.trust.utilities.USER_PIN_LENGTH
 import com.miracl.trust.utilities.WRONG_FORMAT_PIN
 import com.miracl.trust.utilities.generateWrongPin
+import com.miracl.trust.utilities.randomHash
 import com.miracl.trust.utilities.randomNumericPin
 import com.miracl.trust.utilities.randomPinLength
 import com.miracl.trust.utilities.randomUuidString
@@ -49,10 +51,6 @@ import org.junit.Test
 import kotlin.random.Random
 
 class DocumentSigningTest {
-    companion object {
-        private val HASH_RANGE = 1..10
-    }
-
     private val projectId = BuildConfig.CUV_PROJECT_ID
     private val projectUrl = BuildConfig.CUV_PROJECT_URL
     private val serviceAccountToken = BuildConfig.CUV_SERVICE_ACCOUNT_TOKEN
@@ -129,8 +127,9 @@ class DocumentSigningTest {
     @Test
     fun testSuccessfulDocumentSigning() = runBlocking {
         // Sign
+        val message = randomHash()
         val result = documentSigner.sign(
-            message = randomHash(),
+            message = message,
             user = user,
             pinProvider = pinProvider,
             deviceName = Build.MODEL
@@ -139,14 +138,17 @@ class DocumentSigningTest {
 
         // Verify the signature
         val signingResult = (result as MIRACLSuccess).value
-        val signatureVerified = MIRACLService.verifySignature(
+        val verifySignatureResponse = MIRACLService.verifySignature(
             projectId = projectId,
             projectUrl = projectUrl,
             serviceAccountToken = serviceAccountToken,
             signature = signingResult.signature,
             timestamp = signingResult.timestamp.secondsSince1970()
         )
-        Assert.assertTrue(signatureVerified)
+
+        val jwks = MIRACLService.getDvsJwkSet(projectUrl)
+        val claims = JwtHelper.parseSignedClaims(verifySignatureResponse.certificate, jwks)
+        Assert.assertEquals(message.toHexString(), claims.payload["hash"])
     }
 
     @Test
@@ -166,14 +168,17 @@ class DocumentSigningTest {
         val signingResult = (result as MIRACLSuccess).value
         Assert.assertEquals(signingSessionDetails.signingHash, signingResult.signature.hash)
 
-        val signatureVerified = MIRACLService.verifySignature(
+        val verifySignatureResponse = MIRACLService.verifySignature(
             projectId = projectId,
             projectUrl = projectUrl,
             serviceAccountToken = serviceAccountToken,
             signature = signingResult.signature,
             timestamp = signingResult.timestamp.secondsSince1970()
         )
-        Assert.assertTrue(signatureVerified)
+
+        val jwks = MIRACLService.getDvsJwkSet(projectUrl)
+        val claims = JwtHelper.parseSignedClaims(verifySignatureResponse.certificate, jwks)
+        Assert.assertEquals(signingSessionDetails.signingHash, claims.payload["hash"])
     }
 
     @Test
@@ -211,14 +216,17 @@ class DocumentSigningTest {
         val signature = KotlinxSerializationJsonUtil.fromJsonString<Signature>(signatureJson)
         Assert.assertEquals(crossDeviceSession.signingHash, signature.hash)
 
-        val verified = MIRACLService.verifySignature(
+        val verifySignatureResponse = MIRACLService.verifySignature(
             projectId = projectId,
             projectUrl = projectUrl,
             serviceAccountToken = serviceAccountToken,
             signature = signature,
             timestamp = signature.timestamp
         )
-        Assert.assertTrue(verified)
+
+        val jwks = MIRACLService.getDvsJwkSet(projectUrl)
+        val claims = JwtHelper.parseSignedClaims(verifySignatureResponse.certificate, jwks)
+        Assert.assertEquals(crossDeviceSession.signingHash, claims.payload["hash"])
     }
 
     @Test
@@ -453,9 +461,4 @@ class DocumentSigningTest {
 
         return (getSigningSessionDetailsResult as MIRACLSuccess).value
     }
-
-    private fun randomHash(): ByteArray =
-        (HASH_RANGE)
-            .map { Random.nextBytes(it) }
-            .reduce { acc, bytes -> acc + bytes }
 }
