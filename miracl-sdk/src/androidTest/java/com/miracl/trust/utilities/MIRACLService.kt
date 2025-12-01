@@ -1,11 +1,9 @@
 package com.miracl.trust.utilities
 
 import android.net.Uri
-import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.network.ApiRequest
 import com.miracl.trust.network.HttpMethod
-import com.miracl.trust.network.HttpRequestExecutorException
 import com.miracl.trust.network.HttpsURLConnectionRequestExecutor
 import com.miracl.trust.signing.Signature
 import com.miracl.trust.test.BuildConfig
@@ -72,6 +70,11 @@ data class SigningSessionCreateResponse(val id: String, val qrURL: String, val e
 data class VerifySignatureRequestBody(
     val signature: Signature,
     val timestamp: Int
+)
+
+@Serializable
+data class VerifySignatureResponse(
+    val certificate: String
 )
 
 object MIRACLService {
@@ -168,7 +171,7 @@ object MIRACLService {
         activateInitiateResponse.actToken
     }
 
-    suspend fun getJwkSet(projectUrl: String): MIRACLResult<String, HttpRequestExecutorException> {
+    fun getJwkSet(projectUrl: String): String = runBlocking {
         val apiRequest = ApiRequest(
             method = HttpMethod.GET,
             headers = null,
@@ -177,7 +180,19 @@ object MIRACLService {
             url = "$projectUrl/.well-known/jwks"
         )
 
-        return requestExecutor.execute(apiRequest)
+        (requestExecutor.execute(apiRequest) as MIRACLSuccess).value
+    }
+
+    fun getDvsJwkSet(projectUrl: String): String = runBlocking {
+        val apiRequest = ApiRequest(
+            method = HttpMethod.GET,
+            headers = null,
+            body = null,
+            params = null,
+            url = "$projectUrl/dvs/jwks"
+        )
+
+        (requestExecutor.execute(apiRequest) as MIRACLSuccess).value
     }
 
     fun createSigningSession(
@@ -212,7 +227,7 @@ object MIRACLService {
         serviceAccountToken: String,
         signature: Signature,
         timestamp: Int
-    ): Boolean = runBlocking {
+    ): VerifySignatureResponse = runBlocking {
         val apiRequest = ApiRequest(
             method = HttpMethod.POST,
             headers = mapOf("Authorization" to "Bearer $serviceAccountToken"),
@@ -222,6 +237,6 @@ object MIRACLService {
         )
 
         val result = requestExecutor.execute(apiRequest)
-        result is MIRACLSuccess
+        json.decodeFromString<VerifySignatureResponse>((result as MIRACLSuccess).value)
     }
 }

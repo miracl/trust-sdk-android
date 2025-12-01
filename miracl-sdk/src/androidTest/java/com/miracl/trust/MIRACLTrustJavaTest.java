@@ -4,6 +4,7 @@ package com.miracl.trust;
 import static com.miracl.trust.utilities.UtilitiesKt.USER_ID;
 import static com.miracl.trust.utilities.UtilitiesKt.USER_PIN_LENGTH;
 import static com.miracl.trust.utilities.UtilitiesKt.getUnixTime;
+import static com.miracl.trust.utilities.UtilitiesKt.randomHash;
 import static com.miracl.trust.utilities.UtilitiesKt.randomNumericPin;
 import static com.miracl.trust.utilities.UtilitiesKt.randomUuidString;
 
@@ -37,12 +38,14 @@ import com.miracl.trust.utilities.GmailService;
 import com.miracl.trust.utilities.JwtHelper;
 import com.miracl.trust.utilities.MIRACLService;
 import com.miracl.trust.utilities.SigningSessionCreateResponse;
+import com.miracl.trust.utilities.VerifySignatureResponse;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -173,7 +176,9 @@ public class MIRACLTrustJavaTest {
             Assert.assertTrue(result instanceof MIRACLSuccess);
 
             String token = ((MIRACLSuccess<String, AuthenticationException>) result).getValue();
-            Jws<Claims> claims = JwtHelper.INSTANCE.parseSignedClaims(token, projectUrl);
+
+            String jwks = MIRACLService.INSTANCE.getJwkSet(projectUrl);
+            Jws<Claims> claims = JwtHelper.INSTANCE.parseSignedClaims(token, jwks);
             Assert.assertTrue(claims.getPayload().getAudience().contains(projectId));
         }));
         testCoroutineDispatcher.getScheduler().advanceUntilIdle();
@@ -231,14 +236,18 @@ public class MIRACLTrustJavaTest {
 
     @Test
     public void testSigning() {
-        createUser(user -> miraclTrust.sign("message".getBytes(), user, pinProvider, result -> {
+        byte[] hash = randomHash();
+        createUser(user -> miraclTrust.sign(hash, user, pinProvider, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
 
             SigningResult signingResult = ((MIRACLSuccess<SigningResult, SigningException>) result).getValue();
             Signature signature = signingResult.getSignature();
             int timestamp = (int) (signingResult.getTimestamp().getTime() / 1000);
-            boolean signatureVerified = MIRACLService.INSTANCE.verifySignature(projectId, projectUrl, serviceAccountToken, signature, timestamp);
-            Assert.assertTrue(signatureVerified);
+            VerifySignatureResponse verifySignatureResponse = MIRACLService.INSTANCE.verifySignature(projectId, projectUrl, serviceAccountToken, signature, timestamp);
+
+            String jwks = MIRACLService.INSTANCE.getDvsJwkSet(projectUrl);
+            Jws<Claims> claims = JwtHelper.INSTANCE.parseSignedClaims(verifySignatureResponse.getCertificate(), jwks);
+            Assert.assertEquals(HexFormat.of().formatHex(hash), claims.getPayload().get("hash"));
         }));
         testCoroutineDispatcher.getScheduler().advanceUntilIdle();
     }
