@@ -36,3 +36,8 @@ fun randomUuidString() = UUID.randomUUID().toString()
 fun randomByteArray(size: Int = 20) = Random.nextBytes(size)
 
 fun randomPinLength() = Random.nextInt(4..6)
+
+fun randomHash(): ByteArray =
+    (1..10)
+        .map { Random.nextBytes(it) }
+        .reduce { acc, bytes -> acc + bytes }

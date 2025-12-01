@@ -80,7 +80,8 @@ class AuthenticationTest {
         Assert.assertTrue(result is MIRACLSuccess)
         val token = (result as MIRACLSuccess).value
 
-        val claims = JwtHelper.parseSignedClaims(token, projectUrl)
+        val jwks = MIRACLService.getJwkSet(projectUrl)
+        val claims = JwtHelper.parseSignedClaims(token, jwks)
         Assert.assertTrue(claims.payload.audience.contains(projectId))
     }
 
