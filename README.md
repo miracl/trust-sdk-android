@@ -373,7 +373,7 @@ options for that:
 
 ### Authentication
 
-MIRACL Trust SDK offers two options:
+MIRACL Trust Android SDK offers two options:
 
 - [Authenticate users on the mobile application](#authenticate-users-on-the-mobile-application)
 - [Authenticate users on another application](#authenticate-users-on-another-application)
@@ -673,9 +673,140 @@ miraclTrust.generateQuickCode(
 );
 ```
 
+### User Management
+
+The MIRACL Trust Android SDK provides several methods for managing registered users
+on the device. These operations allow you to retrieve user information or delete
+previously registered users.
+
+#### Get all registered users
+
+To obtain the list of all registered users on the device, call the
+[getUsers](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-users.html)
+method:
+
+Kotlin:
+
+```kotlin
+miraclTrust.getUsers { result ->
+    when (result) {
+        is MIRACLSuccess -> {
+            val users = result.value
+            // Handle list of registered users.
+        }
+        is MIRACLError -> {
+            val error = result.value
+            // Cannot retrieve users due to an error.
+        }
+    }
+}
+```
+
+Java:
+
+```java
+miraclTrust.getUsers(result -> {
+    if (result instanceof MIRACLSuccess) {
+        List<User> users =
+                ((MIRACLSuccess<List<User>, UserStorageException>) result).getValue();
+        // Handle list of registered users.
+    } else {
+        MIRACLError<List<User>, UserStorageException> error =
+                (MIRACLError<List<User>, UserStorageException>) result;
+        // Cannot retrieve users due to an error.
+    }
+});
+```
+
+#### Get a registered user
+
+To retrieve a specific registered user by their User ID, use the
+[getUser](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-user.html)
+method:
+
+Kotlin:
+
+```kotlin
+miraclTrust.getUser(userId = USER_ID) { result ->
+    when (result) {
+        is MIRACLSuccess -> {
+            val user = result.value
+            if (user != null) {
+                // User exists.
+            } else {
+                // No user registered with this User ID.
+            }
+        }
+        is MIRACLError -> {
+            val error = result.value
+            // Cannot retrieve the user due to an error.
+        }
+    }
+}
+```
+
+Java:
+
+```java
+miraclTrust.getUser(USER_ID, result -> {
+    if (result instanceof MIRACLSuccess) {
+        User user =
+                ((MIRACLSuccess<User, UserStorageException>) result).getValue();
+        if (user != null) {
+            // User exists.
+        } else {
+            // No user registered with this User ID.
+        }
+    } else {
+        MIRACLError<User, UserStorageException> error =
+                (MIRACLError<User, UserStorageException>) result;
+        // Cannot retrieve the user due to an error.
+    }
+});
+```
+
+#### Delete a registered user
+
+To delete a previously registered user from the device, call the
+[delete](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/delete.html)
+method:
+
+Kotlin:
+
+```kotlin
+miraclTrust.delete(
+    user = user,
+    resultHandler = { result ->
+        when (result) {
+            is MIRACLSuccess -> {
+                // User deleted successfully.
+            }
+            is MIRACLError -> {
+                val error = result.value
+                // Cannot delete the user due to an error.
+            }
+        }
+    }
+)
+```
+
+Java:
+
+```java
+miraclTrust.delete(user, result -> {
+    if (result instanceof MIRACLSuccess) {
+        // User deleted successfully.
+    } else {
+        MIRACLError<Unit, UserStorageException> error =
+                (MIRACLError<Unit, UserStorageException>) result;
+        // Cannot delete the user due to an error.
+    }
+});
+```
+
 ## Dependencies
 
-MIRACL Trust SDK Android depends on:
+MIRACL Trust Android SDK depends on:
 
 1. [Kotlin Coroutines](https://github.com/Kotlin/kotlinx.coroutines/tree/master/ui/kotlinx-coroutines-android)
 1. [Kotlin Serialization](https://github.com/Kotlin/kotlinx.serialization)
