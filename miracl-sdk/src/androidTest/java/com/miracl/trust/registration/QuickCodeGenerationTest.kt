@@ -3,12 +3,10 @@ package com.miracl.trust.registration
 import androidx.test.platform.app.InstrumentationRegistry
 import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
-import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.MIRACLTrust
 import com.miracl.trust.configuration.Configuration
 import com.miracl.trust.delegate.PinProvider
-import com.miracl.trust.model.QuickCode
 import com.miracl.trust.model.User
 import com.miracl.trust.utilities.MIRACLService
 import com.miracl.trust.utilities.USER_ID
@@ -33,55 +31,42 @@ class QuickCodeGenerationTest {
     private lateinit var user: User
 
     @Before
-    fun setUp() = runTest {
+    fun setUp() = runTest(testCoroutineDispatcher) {
         val configuration = Configuration.Builder(projectId, projectUrl)
             .coroutineContext(testCoroutineDispatcher)
             .build()
 
         MIRACLTrust.configure(InstrumentationRegistry.getInstrumentation().context, configuration)
         miraclTrust = MIRACLTrust.getInstance()
-        miraclTrust.resultHandlerDispatcher = testCoroutineDispatcher
 
         pin = randomNumericPin()
         pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
         val activationToken = MIRACLService.obtainActivationToken()
 
-        var registrationResult: MIRACLResult<User, RegistrationException>? = null
-        miraclTrust.register(
+        val registrationResult = miraclTrust.register(
             userId = USER_ID,
             activationToken = activationToken,
             pinProvider = pinProvider,
             pushNotificationsToken = null,
-            resultHandler = { result -> registrationResult = result }
         )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
         Assert.assertTrue(registrationResult is MIRACLSuccess)
 
         user = (registrationResult as MIRACLSuccess).value
     }
 
     @Test
-    fun testSuccessfulQuickCodeGeneration() {
-        // Arrange
-        var result: MIRACLResult<QuickCode, QuickCodeException>? = null
-
-        // Act
-        miraclTrust.generateQuickCode(user, pinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
+    fun testSuccessfulQuickCodeGeneration() = runTest(testCoroutineDispatcher) {
+        val result = miraclTrust.generateQuickCode(user, pinProvider)
         Assert.assertTrue(result is MIRACLSuccess)
     }
 
     @Test
-    fun testQuickCodeGenerationFailOnEmptyPin() {
+    fun testQuickCodeGenerationFailOnEmptyPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val emptyPinProvider = PinProvider { it.consume(null) }
-        var result: MIRACLResult<QuickCode, QuickCodeException>? = null
 
         // Act
-        miraclTrust.generateQuickCode(user, emptyPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.generateQuickCode(user, emptyPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -92,14 +77,12 @@ class QuickCodeGenerationTest {
     }
 
     @Test
-    fun testQuickCodeGenerationFailOnShorterPin() {
+    fun testQuickCodeGenerationFailOnShorterPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val shorterPinProvider = PinProvider { it.consume(randomNumericPin(pin.length - 1)) }
-        var result: MIRACLResult<QuickCode, QuickCodeException>? = null
 
         // Act
-        miraclTrust.generateQuickCode(user, shorterPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.generateQuickCode(user, shorterPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -110,14 +93,12 @@ class QuickCodeGenerationTest {
     }
 
     @Test
-    fun testQuickCodeGenerationFailOnLongerPin() {
+    fun testQuickCodeGenerationFailOnLongerPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val longerPinProvider = PinProvider { it.consume(randomNumericPin(pin.length + 1)) }
-        var result: MIRACLResult<QuickCode, QuickCodeException>? = null
 
         // Act
-        miraclTrust.generateQuickCode(user, longerPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.generateQuickCode(user, longerPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -128,14 +109,12 @@ class QuickCodeGenerationTest {
     }
 
     @Test
-    fun testQuickCodeGenerationFailOnWrongFormatPin() {
+    fun testQuickCodeGenerationFailOnWrongFormatPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val wrongFormatPinProvider = PinProvider { it.consume(WRONG_FORMAT_PIN) }
-        var result: MIRACLResult<QuickCode, QuickCodeException>? = null
 
         // Act
-        miraclTrust.generateQuickCode(user, wrongFormatPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.generateQuickCode(user, wrongFormatPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -146,14 +125,12 @@ class QuickCodeGenerationTest {
     }
 
     @Test
-    fun testQuickCodeGenerationFailOnWrongPin() {
+    fun testQuickCodeGenerationFailOnWrongPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val wrongPinProvider = PinProvider { it.consume(generateWrongPin(pin)) }
-        var result: MIRACLResult<QuickCode, QuickCodeException>? = null
 
         // Act
-        miraclTrust.generateQuickCode(user, wrongPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.generateQuickCode(user, wrongPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -164,37 +141,32 @@ class QuickCodeGenerationTest {
     }
 
     @Test
-    fun testQuickCodeGenerationFailOnRevokedUser() = runTest {
+    fun testQuickCodeGenerationFailOnRevokedUser() = runTest(testCoroutineDispatcher) {
         // Arrange
         val wrongPinProvider = PinProvider { it.consume(generateWrongPin(pin)) }
-        var result: MIRACLResult<QuickCode, QuickCodeException>? = null
 
-        miraclTrust.generateQuickCode(user, wrongPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        var result = miraclTrust.generateQuickCode(user, wrongPinProvider)
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(
             QuickCodeException.UnsuccessfulAuthentication,
             (result as MIRACLError).value
         )
 
-        miraclTrust.generateQuickCode(user, wrongPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        result = miraclTrust.generateQuickCode(user, wrongPinProvider)
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(
             QuickCodeException.UnsuccessfulAuthentication,
             (result as MIRACLError).value
         )
 
-        miraclTrust.generateQuickCode(user, wrongPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        result = miraclTrust.generateQuickCode(user, wrongPinProvider)
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(QuickCodeException.Revoked, (result as MIRACLError).value)
 
         Assert.assertTrue(miraclTrust.getUser(user.userId)!!.revoked)
 
         // Act
-        miraclTrust.generateQuickCode(user, pinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        result = miraclTrust.generateQuickCode(user, pinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)

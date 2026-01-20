@@ -13,8 +13,6 @@ import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.User
 import com.miracl.trust.session.AuthenticationSessionDetails
 import com.miracl.trust.session.AuthenticationSessionException
-import com.miracl.trust.session.CrossDeviceSession
-import com.miracl.trust.session.CrossDeviceSessionException
 import com.miracl.trust.util.secondsSince1970
 import com.miracl.trust.utilities.GmailService
 import com.miracl.trust.utilities.MIRACLService
@@ -22,7 +20,6 @@ import com.miracl.trust.utilities.USER_ID
 import com.miracl.trust.utilities.generateWrongPin
 import com.miracl.trust.utilities.getUnixTime
 import com.miracl.trust.utilities.randomNumericPin
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
@@ -47,7 +44,7 @@ class VerificationTest {
     private lateinit var miraclTrust: MIRACLTrust
 
     @Before
-    fun setUp() = runBlocking {
+    fun setUp() {
         val configuration = Configuration.Builder(projectId, projectUrl)
             .coroutineContext(testCoroutineDispatcher)
             .build()
@@ -58,16 +55,14 @@ class VerificationTest {
     }
 
     @Test
-    fun testDefaultVerification() {
+    fun testDefaultVerification() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
-        var sendEmailResult: MIRACLResult<VerificationResponse, VerificationException>? = null
         val timestamp = getUnixTime()
-        miraclTrust.sendVerificationEmail(email) { sendEmailResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Fetch the verification URL from the email
@@ -76,35 +71,30 @@ class VerificationTest {
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
-        var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(Uri.parse(verificationUrl)) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getActivationToken(Uri.parse(verificationUrl))
         Assert.assertTrue(result is MIRACLSuccess)
         Assert.assertEquals(email, (result as MIRACLSuccess).value.userId)
     }
 
     @Test
-    fun testDefaultVerificationBackoff() {
+    fun testDefaultVerificationBackoff() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
-        var sendEmailResult: MIRACLResult<VerificationResponse, VerificationException>? = null
-        miraclTrust.sendVerificationEmail(email) { sendEmailResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        var sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Send second verification email
-        miraclTrust.sendVerificationEmail(email) { sendEmailResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLError)
         val verificationError = (sendEmailResult as MIRACLError)
         Assert.assertTrue((verificationError.value is VerificationException.RequestBackoff))
     }
 
     @Test
-    fun testDefaultVerificationWithSessionDetails() = runBlocking {
+    fun testDefaultVerificationWithSessionDetails() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
         val addressParts = USER_ID.split("@")
@@ -137,9 +127,7 @@ class VerificationTest {
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
-        var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(Uri.parse(verificationUrl)) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getActivationToken(Uri.parse(verificationUrl))
         Assert.assertTrue(result is MIRACLSuccess)
         val activationTokenResponse = (result as MIRACLSuccess).value
         Assert.assertEquals(email, activationTokenResponse.userId)
@@ -147,31 +135,23 @@ class VerificationTest {
     }
 
     @Test
-    fun testDefaultVerificationWithCrossDeviceSession() = runBlocking {
+    fun testDefaultVerificationWithCrossDeviceSession() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
         val qrCode = MIRACLService.obtainAccessId(dvProjectId, dvProjectUrl).qrURL
-        var crossDeviceSessionResult:
-                MIRACLResult<CrossDeviceSession, CrossDeviceSessionException>? = null
-        miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) { result ->
-            crossDeviceSessionResult = result
-        }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
+        val crossDeviceSessionResult = miraclTrust.getCrossDeviceSessionFromQRCode(qrCode)
         Assert.assertTrue(crossDeviceSessionResult is MIRACLSuccess)
         val crossDeviceSession =
             (crossDeviceSessionResult as MIRACLSuccess).value
 
-        var sendEmailResult: MIRACLResult<VerificationResponse, VerificationException>? = null
         val timestamp = getUnixTime()
-        miraclTrust.sendVerificationEmail(
+        val sendEmailResult = miraclTrust.sendVerificationEmail(
             userId = email,
             crossDeviceSession = crossDeviceSession
-        ) { sendEmailResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        )
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Fetch the verification URL from the email
@@ -180,9 +160,7 @@ class VerificationTest {
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
-        var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(Uri.parse(verificationUrl)) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getActivationToken(Uri.parse(verificationUrl))
         Assert.assertTrue(result is MIRACLSuccess)
         val activationTokenResponse = (result as MIRACLSuccess).value
         Assert.assertEquals(email, activationTokenResponse.userId)
@@ -190,16 +168,14 @@ class VerificationTest {
     }
 
     @Test
-    fun testDefaultVerificationWithMpinId() {
+    fun testDefaultVerificationWithMpinId() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
-        var sendEmailResult: MIRACLResult<VerificationResponse, VerificationException>? = null
         val timestamp = System.currentTimeMillis() / 1000
-        miraclTrust.sendVerificationEmail(email) { sendEmailResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Fetch the verification URL from the email
@@ -208,46 +184,37 @@ class VerificationTest {
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
-        var activationTokenResult: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? =
-            null
-        miraclTrust.getActivationToken(Uri.parse(verificationUrl)) { activationTokenResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val activationTokenResult = miraclTrust.getActivationToken(Uri.parse(verificationUrl))
         Assert.assertTrue(activationTokenResult is MIRACLSuccess)
         val activationTokenResponse = (activationTokenResult as MIRACLSuccess).value
         Assert.assertEquals(email, activationTokenResponse.userId)
 
         // Register
-        var registerResult: MIRACLResult<User, RegistrationException>? = null
-        miraclTrust.register(
+        val registerResult = miraclTrust.register(
             userId = email,
             activationToken = activationTokenResponse.activationToken,
             pinProvider = { pinConsumer -> pinConsumer.consume(randomNumericPin()) }
-        ) { registerResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        )
         Assert.assertTrue(registerResult is MIRACLSuccess)
 
         // Prevent verification request backoff
         Thread.sleep(10000)
 
         // Send second verification email
-        var result: MIRACLResult<VerificationResponse, VerificationException>? = null
-        miraclTrust.sendVerificationEmail(email) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(result is MIRACLSuccess)
         Assert.assertEquals(EmailVerificationMethod.Link, (result as MIRACLSuccess).value.method)
     }
 
     @Test
-    fun testEmailCodeVerification() {
+    fun testEmailCodeVerification() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
-        var sendEmailResult: MIRACLResult<VerificationResponse, VerificationException>? = null
         val timestamp = System.currentTimeMillis() / 1000
-        miraclTrust.sendVerificationEmail(email) { sendEmailResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Fetch the verification code from the email
@@ -256,24 +223,20 @@ class VerificationTest {
         Assert.assertNotNull(code)
 
         // Get activation token
-        var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(email, code!!) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getActivationToken(email, code!!)
         Assert.assertTrue(result is MIRACLSuccess)
         Assert.assertEquals(email, (result as MIRACLSuccess).value.userId)
     }
 
     @Test
-    fun testEmailCodeVerificationWithMpinId() {
+    fun testEmailCodeVerificationWithMpinId() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
-        var sendEmailResult: MIRACLResult<VerificationResponse, VerificationException>? = null
         val timestamp = System.currentTimeMillis() / 1000
-        miraclTrust.sendVerificationEmail(email) { sendEmailResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Fetch the verification URL from the email
@@ -282,46 +245,37 @@ class VerificationTest {
         Assert.assertNotNull(code)
 
         // Get activation token
-        var activationTokenResult:
-                MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(email, code!!) { activationTokenResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val activationTokenResult = miraclTrust.getActivationToken(email, code!!)
         Assert.assertTrue(activationTokenResult is MIRACLSuccess)
         val activationTokenResponse = (activationTokenResult as MIRACLSuccess).value
         Assert.assertEquals(email, activationTokenResponse.userId)
 
         // Register
-        var registerResult: MIRACLResult<User, RegistrationException>? = null
-        miraclTrust.register(
+        val registerResult = miraclTrust.register(
             userId = email,
             activationToken = activationTokenResponse.activationToken,
             pinProvider = { pinConsumer -> pinConsumer.consume(randomNumericPin()) }
-        ) { registerResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        )
         Assert.assertTrue(registerResult is MIRACLSuccess)
 
         // Prevent verification request backoff
         Thread.sleep(10000)
 
         // Send second verification email
-        var result: MIRACLResult<VerificationResponse, VerificationException>? = null
-        miraclTrust.sendVerificationEmail(email) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(result is MIRACLSuccess)
         Assert.assertEquals(EmailVerificationMethod.Code, (result as MIRACLSuccess).value.method)
     }
 
     @Test
-    fun testEmailCodeVerificationWithoutMpinId() = runTest {
+    fun testEmailCodeVerificationWithoutMpinId() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
         val timestamp = System.currentTimeMillis() / 1000
-        var sendEmailResult: MIRACLResult<VerificationResponse, VerificationException>? = null
-        miraclTrust.sendVerificationEmail(email) { sendEmailResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Fetch the verification URL from the email
@@ -330,22 +284,17 @@ class VerificationTest {
         Assert.assertNotNull(code)
 
         // Get activation token
-        var activationTokenReponse:
-                MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(email, code!!) { activationTokenReponse = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-        Assert.assertTrue(activationTokenReponse is MIRACLSuccess)
-        val activationTokenResponse = (activationTokenReponse as MIRACLSuccess).value
+        val activationTokenResult = miraclTrust.getActivationToken(email, code!!)
+        Assert.assertTrue(activationTokenResult is MIRACLSuccess)
+        val activationTokenResponse = (activationTokenResult as MIRACLSuccess).value
         Assert.assertEquals(email, activationTokenResponse.userId)
 
         // Register
-        var registerResult: MIRACLResult<User, RegistrationException>? = null
-        miraclTrust.register(
+        val registerResult = miraclTrust.register(
             userId = email,
             activationToken = activationTokenResponse.activationToken,
             pinProvider = { pinConsumer -> pinConsumer.consume(randomNumericPin()) }
-        ) { registerResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        )
         Assert.assertTrue(registerResult is MIRACLSuccess)
 
         // Remove user
@@ -356,24 +305,20 @@ class VerificationTest {
         Thread.sleep(10000)
 
         // Send second verification email
-        var result: MIRACLResult<VerificationResponse, VerificationException>? = null
-        miraclTrust.sendVerificationEmail(email) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(result is MIRACLSuccess)
         Assert.assertEquals(EmailVerificationMethod.Link, (result as MIRACLSuccess).value.method)
     }
 
     @Test
-    fun testEmailCodeVerificationWithRevokedMpinId() {
+    fun testEmailCodeVerificationWithRevokedMpinId() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
         val addressParts = USER_ID.split("@")
         val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
 
-        var sendEmailResult: MIRACLResult<VerificationResponse, VerificationException>? = null
         val timestamp = System.currentTimeMillis() / 1000
-        miraclTrust.sendVerificationEmail(email) { sendEmailResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Fetch the verification URL from the email
@@ -382,10 +327,7 @@ class VerificationTest {
         Assert.assertNotNull(code)
 
         // Get activation token
-        var activationTokenReponse:
-                MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(email, code!!) { activationTokenReponse = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val activationTokenReponse = miraclTrust.getActivationToken(email, code!!)
         Assert.assertTrue(activationTokenReponse is MIRACLSuccess)
         val activationTokenResponse = (activationTokenReponse as MIRACLSuccess).value
         Assert.assertEquals(email, activationTokenResponse.userId)
@@ -393,13 +335,11 @@ class VerificationTest {
         // Register
         val pin = randomNumericPin()
         val pinProvider = PinProvider { it.consume(pin) }
-        var registerResult: MIRACLResult<User, RegistrationException>? = null
-        miraclTrust.register(
+        val registerResult = miraclTrust.register(
             userId = email,
             activationToken = activationTokenResponse.activationToken,
             pinProvider = pinProvider
-        ) { registerResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        )
         Assert.assertTrue(registerResult is MIRACLSuccess)
 
         // Revoke user
@@ -410,23 +350,19 @@ class VerificationTest {
         Thread.sleep(10000)
 
         // Send second verification email
-        var result: MIRACLResult<VerificationResponse, VerificationException>? = null
-        miraclTrust.sendVerificationEmail(email) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(result is MIRACLSuccess)
         Assert.assertEquals(EmailVerificationMethod.Code, (result as MIRACLSuccess).value.method)
     }
 
     @Test
-    fun testCustomVerification() = runBlocking {
+    fun testCustomVerification() = runTest(testCoroutineDispatcher) {
         // Get verification URL
         val verificationUrl = MIRACLService.getVerificationUrl()
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
-        var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(Uri.parse(verificationUrl)) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getActivationToken(Uri.parse(verificationUrl))
         Assert.assertTrue(result is MIRACLSuccess)
         val activationTokenResponse = (result as MIRACLSuccess).value
         Assert.assertEquals(USER_ID, activationTokenResponse.userId)
@@ -434,7 +370,7 @@ class VerificationTest {
     }
 
     @Test
-    fun testCustomVerificationWithSessionDetails() = runBlocking {
+    fun testCustomVerificationWithSessionDetails() = runTest(testCoroutineDispatcher) {
         val qrCode = MIRACLService.obtainAccessId(projectId, projectUrl).qrURL
         var authenticationSessionDetailsResult:
                 MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException>? = null
@@ -453,9 +389,7 @@ class VerificationTest {
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
-        var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(Uri.parse(verificationUrl)) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getActivationToken(Uri.parse(verificationUrl))
         Assert.assertTrue(result is MIRACLSuccess)
         val activationTokenResponse = (result as MIRACLSuccess).value
         Assert.assertEquals(USER_ID, activationTokenResponse.userId)
@@ -464,7 +398,7 @@ class VerificationTest {
     }
 
     @Test
-    fun testCustomVerificationExpiredVerificationCode() = runBlocking {
+    fun testCustomVerificationExpiredVerificationCode() = runTest(testCoroutineDispatcher) {
         // Get verification URL
         val expirationMillis = 5000L
         val expiration = Date(Date().time + expirationMillis).secondsSince1970()
@@ -478,9 +412,7 @@ class VerificationTest {
         Thread.sleep(expirationMillis + 1000)
 
         // Get activation token
-        var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(Uri.parse(verificationUrl)) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getActivationToken(Uri.parse(verificationUrl))
         Assert.assertTrue(result is MIRACLError)
 
         val exception = (result as MIRACLError).value
@@ -495,7 +427,7 @@ class VerificationTest {
     }
 
     @Test
-    fun testCustomVerificationInvalidVerificationCode() = runBlocking {
+    fun testCustomVerificationInvalidVerificationCode() = runTest(testCoroutineDispatcher) {
         // Get verification URL
         val verificationUrl = MIRACLService.getVerificationUrl()
         Assert.assertNotNull(verificationUrl)
@@ -509,9 +441,7 @@ class VerificationTest {
                 .appendQueryParameter("code", invalidActivationCode).build().toString()
 
         // Get activation token
-        var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(Uri.parse(invalidVerificationUrl)) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getActivationToken(Uri.parse(invalidVerificationUrl))
         Assert.assertTrue(result is MIRACLError)
 
         val exception = (result as MIRACLError).value
@@ -519,15 +449,13 @@ class VerificationTest {
     }
 
     @Test
-    fun testConfirmationFailOnEmptyUserId() {
+    fun testConfirmationFailOnEmptyUserId() = runTest(testCoroutineDispatcher) {
         // Arrange
         val verificationUri =
             Uri.parse("$projectUrl/verification/confirmation?code=testCode")
 
         // Act
-        var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(verificationUri) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getActivationToken(verificationUri)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -538,15 +466,13 @@ class VerificationTest {
     }
 
     @Test
-    fun testConfirmationFailOnInvalidCode() {
+    fun testConfirmationFailOnInvalidCode() = runTest(testCoroutineDispatcher) {
         // Arrange
         val verificationUri =
             Uri.parse("$projectUrl/verification/confirmation?user_id=$USER_ID&code=invalidCode")
 
         // Act
-        var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(verificationUri) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getActivationToken(verificationUri)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -556,15 +482,13 @@ class VerificationTest {
     }
 
     @Test
-    fun testConfirmationFailOnEmptyCode() {
+    fun testConfirmationFailOnEmptyCode() = runTest(testCoroutineDispatcher) {
         // Arrange
         val verificationUri =
             Uri.parse("$projectUrl/verification/confirmation?user_id=asd@dsa.asd")
 
         // Act
-        var result: MIRACLResult<ActivationTokenResponse, ActivationTokenException>? = null
-        miraclTrust.getActivationToken(verificationUri) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getActivationToken(verificationUri)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -574,27 +498,23 @@ class VerificationTest {
         )
     }
 
-    private fun revokeUser(user: User, pin: String) = runTest {
+    private fun revokeUser(user: User, pin: String) = runTest(testCoroutineDispatcher) {
         val wrongPinProvider = PinProvider { it.consume(generateWrongPin(pin)) }
-        var authenticateResult: MIRACLResult<String, AuthenticationException>? = null
-        miraclTrust.authenticate(user, wrongPinProvider) { authenticateResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        var authenticateResult = miraclTrust.authenticate(user, wrongPinProvider)
         Assert.assertTrue(authenticateResult is MIRACLError)
         Assert.assertEquals(
             AuthenticationException.UnsuccessfulAuthentication,
             (authenticateResult as MIRACLError).value
         )
 
-        miraclTrust.authenticate(user, wrongPinProvider) { authenticateResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        authenticateResult = miraclTrust.authenticate(user, wrongPinProvider)
         Assert.assertTrue(authenticateResult is MIRACLError)
         Assert.assertEquals(
             AuthenticationException.UnsuccessfulAuthentication,
             (authenticateResult as MIRACLError).value
         )
 
-        miraclTrust.authenticate(user, wrongPinProvider) { authenticateResult = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        authenticateResult = miraclTrust.authenticate(user, wrongPinProvider)
         Assert.assertTrue(authenticateResult is MIRACLError)
         Assert.assertEquals(
             AuthenticationException.Revoked,

@@ -28,24 +28,36 @@ public final class com/miracl/trust/MIRACLTrust {
 	public synthetic fun <init> (Landroid/content/Context;Lcom/miracl/trust/configuration/Configuration;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun abortAuthenticationSession (Lcom/miracl/trust/session/AuthenticationSessionDetails;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun abortCrossDeviceSession (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun abortCrossDeviceSession (Lcom/miracl/trust/session/CrossDeviceSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun abortSigningSession (Lcom/miracl/trust/session/SigningSessionDetails;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun authenticate (Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun authenticate (Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun authenticate (Lcom/miracl/trust/model/User;Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun authenticate (Lcom/miracl/trust/model/User;Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun authenticateWithAppLink (Lcom/miracl/trust/model/User;Landroid/net/Uri;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun authenticateWithAppLink (Lcom/miracl/trust/model/User;Landroid/net/Uri;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun authenticateWithNotificationPayload (Ljava/util/Map;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun authenticateWithNotificationPayload (Ljava/util/Map;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun authenticateWithQRCode (Lcom/miracl/trust/model/User;Ljava/lang/String;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun authenticateWithQRCode (Lcom/miracl/trust/model/User;Ljava/lang/String;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun configure (Landroid/content/Context;Lcom/miracl/trust/configuration/Configuration;)V
 	public final fun delete (Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun delete (Lcom/miracl/trust/model/User;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun generateQuickCode (Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun generateQuickCode (Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getActivationToken (Landroid/net/Uri;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun getActivationToken (Landroid/net/Uri;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getActivationToken (Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun getActivationToken (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getAuthenticationSessionDetailsFromAppLink (Landroid/net/Uri;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun getAuthenticationSessionDetailsFromNotificationPayload (Ljava/util/Map;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun getAuthenticationSessionDetailsFromQRCode (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun getCrossDeviceSessionFromAppLink (Landroid/net/Uri;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun getCrossDeviceSessionFromAppLink (Landroid/net/Uri;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getCrossDeviceSessionFromNotificationPayload (Ljava/util/Map;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun getCrossDeviceSessionFromNotificationPayload (Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getCrossDeviceSessionFromQRCode (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun getCrossDeviceSessionFromQRCode (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun getInstance ()Lcom/miracl/trust/MIRACLTrust;
 	public final fun getProjectId ()Ljava/lang/String;
 	public final fun getSigningSessionDetailsFromAppLink (Landroid/net/Uri;Lcom/miracl/trust/delegate/ResultHandler;)V
@@ -56,13 +68,19 @@ public final class com/miracl/trust/MIRACLTrust {
 	public final fun getUsers (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun register (Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun register (Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/delegate/PinProvider;Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun register (Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/delegate/PinProvider;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun register$default (Lcom/miracl/trust/MIRACLTrust;Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/delegate/PinProvider;Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;ILjava/lang/Object;)V
+	public static synthetic fun register$default (Lcom/miracl/trust/MIRACLTrust;Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/delegate/PinProvider;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun sendVerificationEmail (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun sendVerificationEmail (Ljava/lang/String;Lcom/miracl/trust/session/AuthenticationSessionDetails;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun sendVerificationEmail (Ljava/lang/String;Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun sendVerificationEmail (Ljava/lang/String;Lcom/miracl/trust/session/CrossDeviceSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun sendVerificationEmail$default (Lcom/miracl/trust/MIRACLTrust;Ljava/lang/String;Lcom/miracl/trust/session/CrossDeviceSession;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun setProjectId (Ljava/lang/String;)V
 	public final fun sign (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun sign (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/session/SigningSessionDetails;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun updateProjectSettings (Ljava/lang/String;Ljava/lang/String;)V
 }

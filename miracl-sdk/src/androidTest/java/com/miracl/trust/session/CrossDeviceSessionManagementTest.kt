@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.test.platform.app.InstrumentationRegistry
 import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
-import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.MIRACLTrust
 import com.miracl.trust.configuration.Configuration
@@ -31,28 +30,25 @@ class CrossDeviceSessionManagementTest {
     private lateinit var qrCode: String
 
     @Before
-    fun setUp() = runTest {
+    fun setUp() {
         val configuration = Configuration.Builder(projectId, projectUrl)
             .coroutineContext(testCoroutineDispatcher)
             .build()
 
         MIRACLTrust.configure(InstrumentationRegistry.getInstrumentation().context, configuration)
         miraclTrust = MIRACLTrust.getInstance()
-        miraclTrust.resultHandlerDispatcher = testCoroutineDispatcher
 
         qrCode =
             MIRACLService.obtainAccessId(projectId, projectUrl, userId, description, hash).qrURL
     }
 
     @Test
-    fun testGetCrossDeviceSessionFromAppLink() = runTest {
+    fun testGetCrossDeviceSessionFromAppLink() = runTest(testCoroutineDispatcher) {
         // Arrange
         val appLink = Uri.parse(qrCode)
-        var result: MIRACLResult<CrossDeviceSession, CrossDeviceSessionException>? = null
 
         // Act
-        miraclTrust.getCrossDeviceSessionFromAppLink(appLink) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getCrossDeviceSessionFromAppLink(appLink)
 
         // Assert
         Assert.assertTrue(result is MIRACLSuccess)
@@ -65,14 +61,12 @@ class CrossDeviceSessionManagementTest {
     }
 
     @Test
-    fun testGetCrossDeviceSessionFromInvalidAppLink() = runTest {
+    fun testGetCrossDeviceSessionFromInvalidAppLink() = runTest(testCoroutineDispatcher) {
         // Arrange
         val appLink = Uri.parse("")
-        var result: MIRACLResult<CrossDeviceSession, CrossDeviceSessionException>? = null
 
         // Act
-        miraclTrust.getCrossDeviceSessionFromAppLink(appLink) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getCrossDeviceSessionFromAppLink(appLink)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -83,15 +77,13 @@ class CrossDeviceSessionManagementTest {
     }
 
     @Test
-    fun testGetCrossDeviceFromAppLinkInvalidAccessId() = runTest {
+    fun testGetCrossDeviceFromAppLinkInvalidAccessId() = runTest(testCoroutineDispatcher) {
         // Arrange
         val qrCode = "https://mcl.mpin.io#InvalidAccessId"
         val appLink = Uri.parse(qrCode)
-        var result: MIRACLResult<CrossDeviceSession, CrossDeviceSessionException>? = null
 
         // Act
-        miraclTrust.getCrossDeviceSessionFromAppLink(appLink) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getCrossDeviceSessionFromAppLink(appLink)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -99,13 +91,9 @@ class CrossDeviceSessionManagementTest {
     }
 
     @Test
-    fun testGetCrossDeviceSessionFromQRCode() = runTest {
-        // Arrange
-        var result: MIRACLResult<CrossDeviceSession, CrossDeviceSessionException>? = null
-
+    fun testGetCrossDeviceSessionFromQRCode() = runTest(testCoroutineDispatcher) {
         // Act
-        miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getCrossDeviceSessionFromQRCode(qrCode)
 
         // Assert
         Assert.assertTrue(result is MIRACLSuccess)
@@ -118,14 +106,12 @@ class CrossDeviceSessionManagementTest {
     }
 
     @Test
-    fun testGetCrossDeviceSessionFromQRCodeMissingURLFragment() = runTest {
+    fun testGetCrossDeviceSessionFromQRCodeMissingURLFragment() = runTest(testCoroutineDispatcher) {
         // Arrange
         val qrCode = "https://mcl.mpin.io"
-        var result: MIRACLResult<CrossDeviceSession, CrossDeviceSessionException>? = null
 
         // Act
-        miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getCrossDeviceSessionFromQRCode(qrCode)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -136,14 +122,12 @@ class CrossDeviceSessionManagementTest {
     }
 
     @Test
-    fun testGetCrossDeviceSessionFromNotificationPayload() = runTest {
+    fun testGetCrossDeviceSessionFromNotificationPayload() = runTest(testCoroutineDispatcher) {
         // Arrange
         val payload = mapOf(SessionManager.PUSH_NOTIFICATION_QR_URL to qrCode)
-        var result: MIRACLResult<CrossDeviceSession, CrossDeviceSessionException>? = null
 
         // Act
-        miraclTrust.getCrossDeviceSessionFromNotificationPayload(payload) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.getCrossDeviceSessionFromNotificationPayload(payload)
 
         // Assert
         Assert.assertTrue(result is MIRACLSuccess)
@@ -156,43 +140,37 @@ class CrossDeviceSessionManagementTest {
     }
 
     @Test
-    fun testGetCrossDeviceSessionFromNotificationPayloadMissingPayloadEntry() = runTest {
-        // Arrange
-        val payload = mapOf<String, String>()
-        var result: MIRACLResult<CrossDeviceSession, CrossDeviceSessionException>? = null
+    fun testGetCrossDeviceSessionFromNotificationPayloadMissingPayloadEntry() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val payload = mapOf<String, String>()
 
-        // Act
-        miraclTrust.getCrossDeviceSessionFromNotificationPayload(payload) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+            // Act
+            val result = miraclTrust.getCrossDeviceSessionFromNotificationPayload(payload)
 
-        // Assert
-        Assert.assertTrue(result is MIRACLError)
-        Assert.assertEquals(
-            CrossDeviceSessionException.InvalidNotificationPayload,
-            (result as MIRACLError).value
-        )
-    }
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(
+                CrossDeviceSessionException.InvalidNotificationPayload,
+                (result as MIRACLError).value
+            )
+        }
 
     @Test
-    fun testAbortCrossDeviceSession() = runTest {
+    fun testAbortCrossDeviceSession() = runTest(testCoroutineDispatcher) {
         // Arrange
-        var crossDeviceSession: CrossDeviceSession? = null
-        miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) {
-            crossDeviceSession = (it as MIRACLSuccess).value
-        }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-        var result: MIRACLResult<Unit, CrossDeviceSessionException>? = null
+        val crossDeviceSession: CrossDeviceSession =
+            (miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) as MIRACLSuccess).value
 
         // Act
-        miraclTrust.abortCrossDeviceSession(crossDeviceSession!!) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.abortCrossDeviceSession(crossDeviceSession)
 
         // Assert
         Assert.assertTrue(result is MIRACLSuccess)
     }
 
     @Test
-    fun testAbortCrossDeviceSessionEmptySessionId() = runTest {
+    fun testAbortCrossDeviceSessionEmptySessionId() = runTest(testCoroutineDispatcher) {
         // Arrange
         val crossDeviceSession = CrossDeviceSession(
             sessionId = "",
@@ -210,11 +188,9 @@ class CrossDeviceSessionManagementTest {
             quickCodeEnabled = Random.nextBoolean(),
             signingHash = randomUuidString()
         )
-        var result: MIRACLResult<Unit, CrossDeviceSessionException>? = null
 
         // Act
-        miraclTrust.abortCrossDeviceSession(crossDeviceSession) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.abortCrossDeviceSession(crossDeviceSession)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
