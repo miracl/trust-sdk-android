@@ -29,6 +29,7 @@ import com.miracl.trust.util.log.LoggerConstants
 import com.miracl.trust.util.toUserDto
 import com.miracl.trust.util.toUser
 import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
 import kotlin.jvm.Throws
 
 /**
@@ -83,6 +84,7 @@ public class MIRACLTrust private constructor(
     private val signingSessionManager: SigningSessionManagerContract
     private val crossDeviceSessionManager: CrossDeviceSessionManagerContract
 
+    private val miraclTrustCoroutineContext: CoroutineContext
     private val miraclTrustScope: CoroutineScope
 
     @VisibleForTesting
@@ -109,6 +111,7 @@ public class MIRACLTrust private constructor(
         val componentFactory = configuration.componentFactory ?: ComponentFactory(context)
         apiSettings = ApiSettings(configuration.projectUrl)
 
+        miraclTrustCoroutineContext = configuration.miraclCoroutineContext
         miraclTrustScope = CoroutineScope(SupervisorJob() + configuration.miraclCoroutineContext)
 
         userStorage = configuration.userStorage
@@ -438,6 +441,27 @@ public class MIRACLTrust private constructor(
      * Get [CrossDeviceSession] for an AppLink.
      *
      * @param appLink a URI provided by the Intent.
+     *
+     * @return a [MIRACLResult] representing the result of the operation:
+     * - If successful, returns [MIRACLSuccess] with the [CrossDeviceSession].
+     * - If an error occurs, returns [MIRACLError] with a [CrossDeviceSessionException]
+     * describing issues with the operation.
+     * @suppress
+     */
+    @JvmSynthetic
+    public suspend fun getCrossDeviceSessionFromAppLink(
+        appLink: Uri,
+    ): MIRACLResult<CrossDeviceSession, CrossDeviceSessionException> {
+        return withContext(miraclTrustCoroutineContext) {
+            crossDeviceSessionManager.getCrossDeviceSessionFromAppLink(appLink)
+                .logIfError(LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG)
+        }
+    }
+
+    /**
+     * Get [CrossDeviceSession] for an AppLink.
+     *
+     * @param appLink a URI provided by the Intent.
      * @param resultHandler a callback to handle the result of getting details for the session.
      * - If successful, the result is [MIRACLSuccess] with the [CrossDeviceSession].
      * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
@@ -461,6 +485,27 @@ public class MIRACLTrust private constructor(
                     resultHandler.onResult(result)
                 }
             }
+        }
+    }
+
+    /**
+     * Get [CrossDeviceSession] for a QR code.
+     *
+     * @param qrCode a string read from the QR code.
+     *
+     * @return a [MIRACLResult] representing the result of the operation:
+     * - If successful, returns [MIRACLSuccess] with the [CrossDeviceSession].
+     * - If an error occurs, returns [MIRACLError] with a [CrossDeviceSessionException]
+     * describing issues with the operation.
+     * @suppress
+     */
+    @JvmSynthetic
+    public suspend fun getCrossDeviceSessionFromQRCode(
+        qrCode: String,
+    ): MIRACLResult<CrossDeviceSession, CrossDeviceSessionException> {
+        return withContext(miraclTrustCoroutineContext) {
+            crossDeviceSessionManager.getCrossDeviceSessionFromQRCode(qrCode)
+                .logIfError(LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG)
         }
     }
 
@@ -498,6 +543,27 @@ public class MIRACLTrust private constructor(
      * Get [CrossDeviceSession] from a notification payload.
      *
      * @param payload key-value data provided by the notification.
+     *
+     * @return a [MIRACLResult] representing the result of the operation:
+     * - If successful, returns [MIRACLSuccess] with the [CrossDeviceSession].
+     * - If an error occurs, returns [MIRACLError] with a [CrossDeviceSessionException]
+     * describing issues with the operation.
+     * @suppress
+     */
+    @JvmSynthetic
+    public suspend fun getCrossDeviceSessionFromNotificationPayload(
+        payload: Map<String, String>,
+    ): MIRACLResult<CrossDeviceSession, CrossDeviceSessionException> {
+        return withContext(miraclTrustCoroutineContext) {
+            crossDeviceSessionManager.getCrossDeviceSessionFromNotificationPayload(payload)
+                .logIfError(LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG)
+        }
+    }
+
+    /**
+     * Get [CrossDeviceSession] from a notification payload.
+     *
+     * @param payload key-value data provided by the notification.
      * @param resultHandler a callback to handle the result of getting details for the session.
      * - If successful, the result is [MIRACLSuccess] with the [CrossDeviceSession].
      * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
@@ -522,6 +588,27 @@ public class MIRACLTrust private constructor(
                         resultHandler.onResult(result)
                     }
                 }
+        }
+    }
+
+    /**
+     * Cancels an ongoing [CrossDeviceSession].
+     *
+     * @param crossDeviceSession the session to cancel.
+     *
+     * @return a [MIRACLResult] representing the result of the operation:
+     * - If successful, returns [MIRACLSuccess] with [Unit].
+     * - If an error occurs, returns [MIRACLError] with a [CrossDeviceSessionException]
+     * describing issues with the operation.
+     * @suppress
+     */
+    @JvmSynthetic
+    public suspend fun abortCrossDeviceSession(
+        crossDeviceSession: CrossDeviceSession,
+    ): MIRACLResult<Unit, CrossDeviceSessionException> {
+        return withContext(miraclTrustCoroutineContext) {
+            crossDeviceSessionManager.abortSession(crossDeviceSession)
+                .logIfError(LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG)
         }
     }
 
@@ -557,6 +644,34 @@ public class MIRACLTrust private constructor(
     //endregion
 
     //region Verification
+    /**
+     * Default method to verify user identity against the MIRACL Trust platform. In the current
+     * implementation it is done by sending an email message.
+     *
+     * @param userId identifier of the user. To verify identity, this should be a valid email address.
+     * @param crossDeviceSession the session from which the verification is initiated.
+     *
+     * @return a [MIRACLResult] representing the result of the verification:
+     * - If successful, returns [MIRACLSuccess] with the [VerificationResponse].
+     * - If an error occurs, returns [MIRACLError] with a [VerificationException]
+     * describing issues with the operation.
+     */
+    @JvmSynthetic
+    public suspend fun sendVerificationEmail(
+        userId: String,
+        crossDeviceSession: CrossDeviceSession? = null
+    ): MIRACLResult<VerificationResponse, VerificationException> {
+        return withContext(miraclTrustCoroutineContext) {
+            verificator.sendVerificationEmail(
+                userId = userId,
+                projectId = projectId,
+                deviceName = deviceName,
+                crossDeviceSession = crossDeviceSession
+            )
+                .logIfError(LoggerConstants.VERIFICATOR_TAG)
+        }
+    }
+
     /**
      * Default method to verify user identity against the MIRACL platform. In the current
      * implementation it is done by sending an email message.
@@ -670,6 +785,33 @@ public class MIRACLTrust private constructor(
     }
 
     /**
+     * Generates a [QuickCode](https://miracl.com/resources/docs/guides/built-in-user-verification/quickcode/)
+     * for a registered user.
+     *
+     * @param user the user to generate the [QuickCode] for.
+     * @param pinProvider a callback called from the SDK, when the user PIN is required.
+     *
+     * @return a [MIRACLResult] representing the result of the `QuickCode` generation:
+     * - If successful, returns [MIRACLSuccess] with the generated [QuickCode].
+     * - If an error occurs, returns [MIRACLError] with a [QuickCodeException]
+     * describing issues with the operation.
+     */
+    @JvmSynthetic
+    public suspend fun generateQuickCode(
+        user: User,
+        pinProvider: PinProvider,
+    ): MIRACLResult<QuickCode, QuickCodeException> {
+        return withContext(miraclTrustCoroutineContext) {
+            verificator.generateQuickCode(
+                user,
+                pinProvider,
+                deviceName
+            )
+                .logIfError(LoggerConstants.VERIFICATOR_TAG)
+        }
+    }
+
+    /**
      * Generate [QuickCode](https://miracl.com/resources/docs/guides/built-in-user-verification/quickcode/)
      * for a registered user.
      * @param user the user to generate `QuickCode` for.
@@ -705,6 +847,27 @@ public class MIRACLTrust private constructor(
     }
 
     /**
+     * Confirms user verification and obtains an activation token that should be used
+     * in the registration process.
+     *
+     * @param verificationUri a verification URI received as part of the verification process.
+     *
+     * @return a [MIRACLResult] representing the result of the verification:
+     * - If successful, returns [MIRACLSuccess] with the [ActivationTokenResponse].
+     * - If an error occurs, returns [MIRACLError] with an [ActivationTokenException]
+     * describing issues with the operation.
+     */
+    @JvmSynthetic
+    public suspend fun getActivationToken(
+        verificationUri: Uri,
+    ): MIRACLResult<ActivationTokenResponse, ActivationTokenException> {
+        return withContext(miraclTrustCoroutineContext) {
+            verificator.getActivationToken(verificationUri)
+                .logIfError(LoggerConstants.VERIFICATOR_TAG)
+        }
+    }
+
+    /**
      * The method confirms user verification and as a result, an activation token is obtained. This activation token should be used in the registration process.
      *
      * @param verificationUri a verification URI received as part of the verification process.
@@ -732,6 +895,29 @@ public class MIRACLTrust private constructor(
                     resultHandler.onResult(result)
                 }
             }
+        }
+    }
+
+    /**
+     * Confirms user verification and obtains an activation token that should be used
+     * in the registration process.
+     *
+     * @param userId identifier of the user.
+     * @param code a verification code received as part of the verification process.
+     *
+     * @return a [MIRACLResult] representing the result of the verification:
+     * - If successful, returns [MIRACLSuccess] with the [ActivationTokenResponse].
+     * - If an error occurs, returns [MIRACLError] with an [ActivationTokenException]
+     * describing issues with the operation.
+     */
+    @JvmSynthetic
+    public suspend fun getActivationToken(
+        userId: String,
+        code: String,
+    ): MIRACLResult<ActivationTokenResponse, ActivationTokenException> {
+        return withContext(miraclTrustCoroutineContext) {
+            verificator.getActivationToken(userId, code)
+                .logIfError(LoggerConstants.VERIFICATOR_TAG)
         }
     }
 
@@ -770,6 +956,41 @@ public class MIRACLTrust private constructor(
     //endregion
 
     //region Authentication User Registration
+    /**
+     * Provides end-user registration. Registers an end-user for a given MIRACL Trust Project
+     * to the MIRACL Trust platform.
+     *
+     * @param userId provides a unique user id (i.e. email).
+     * @param activationToken provides an activation token for verification.
+     * @param pinProvider a callback called from the SDK, when the identity PIN is required.
+     * @param pushNotificationsToken current device push notifications token. This is used
+     * when push notifications for authentication are enabled in the platform.
+     *
+     * @return a [MIRACLResult] representing the result of the registration:
+     * - If successful, returns [MIRACLSuccess] with the registered [User].
+     * - If an error occurs, returns [MIRACLError] with a [RegistrationException]
+     * describing issues with the operation.
+     */
+    @JvmSynthetic
+    public suspend fun register(
+        userId: String,
+        activationToken: String,
+        pinProvider: PinProvider,
+        pushNotificationsToken: String? = null
+    ): MIRACLResult<User, RegistrationException> {
+        return withContext(miraclTrustCoroutineContext) {
+            registrator.register(
+                userId,
+                projectId,
+                activationToken,
+                pinProvider,
+                deviceName,
+                pushNotificationsToken
+            )
+                .logIfError(LoggerConstants.REGISTRATOR_TAG)
+        }
+    }
+
     /**
      * Provides end-user registration. Registers an end-user for a given MIRACLTrust Project
      * to the MIRACLTrust platform.
@@ -817,6 +1038,60 @@ public class MIRACLTrust private constructor(
     //endregion
 
     //region Authentication
+    /**
+     * Authenticates a user to the MIRACL Trust platform by generating a
+     * [JWT](https://datatracker.ietf.org/doc/html/rfc7519) authentication token.
+     *
+     * This method can be used to authenticate within your application.
+     *
+     * After the token is generated, it should be sent to the application server for
+     * [verification](https://miracl.com/resources/docs/guides/authentication/jwt-verification/).
+     *
+     * @param user the user to authenticate.
+     * @param pinProvider a callback called from the SDK when the identity PIN is required.
+     *
+     * @return a [MIRACLResult] representing the result of the authentication:
+     * - If successful, returns [MIRACLSuccess] with the JWT token as a [String].
+     * - If an error occurs, returns [MIRACLError] with an [AuthenticationException]
+     * describing issues with the operation.
+     */
+    @JvmSynthetic
+    public suspend fun authenticate(
+        user: User,
+        pinProvider: PinProvider
+    ): MIRACLResult<String, AuthenticationException> {
+        return withContext(miraclTrustCoroutineContext) {
+            authenticator.authenticate(
+                user = user,
+                accessId = null,
+                pinProvider = pinProvider,
+                scope = arrayOf(AuthenticatorScopes.JWT.value),
+                deviceName = deviceName
+            ).let { result ->
+                when (result) {
+                    is MIRACLSuccess -> {
+                        val token = result.value.jwt
+
+                        if (token != null) {
+                            MIRACLSuccess(token)
+                        } else {
+                            MIRACLError(AuthenticationException.AuthenticationFail())
+                        }
+                    }
+
+                    is MIRACLError -> {
+                        logError(
+                            LoggerConstants.AUTHENTICATOR_TAG,
+                            result.value
+                        )
+
+                        MIRACLError(result.value)
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Authenticate identity to the MIRACL Trust platform by generating a
      * [JWT](https://datatracker.ietf.org/doc/html/rfc7519) authentication token.
@@ -880,6 +1155,54 @@ public class MIRACLTrust private constructor(
      * Use this method to authenticate another device or application with the usage of
      * [CrossDeviceSession].
      *
+     * @param user the user to authenticate.
+     * @param crossDeviceSession details for the authentication operation.
+     * @param pinProvider a callback called from the SDK when the identity PIN is required.
+     *
+     * @return a [MIRACLResult] representing the result of the authentication:
+     * - If successful, returns [MIRACLSuccess] with [Unit].
+     * - If an error occurs, returns [MIRACLError] with an [AuthenticationException]
+     * describing issues with the operation.
+     * @suppress
+     */
+    @JvmSynthetic
+    public suspend fun authenticate(
+        user: User,
+        crossDeviceSession: CrossDeviceSession,
+        pinProvider: PinProvider
+    ): MIRACLResult<Unit, AuthenticationException> {
+        return withContext(miraclTrustCoroutineContext) {
+            authenticator.authenticateWithCrossDeviceSession(
+                user,
+                crossDeviceSession,
+                pinProvider,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            ).let { result ->
+                when (result) {
+                    is MIRACLSuccess -> {
+                        MIRACLSuccess(Unit)
+                    }
+
+                    is MIRACLError -> {
+                        logError(
+                            LoggerConstants.AUTHENTICATOR_TAG,
+                            result.value
+                        )
+
+                        MIRACLError(result.value)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Authenticates identity in the MIRACL Trust platform.
+     *
+     * Use this method to authenticate another device or application with the usage of
+     * [CrossDeviceSession].
+     *
      * @param user the user to authenticate with.
      * @param crossDeviceSession details for the authentication operation.
      * @param pinProvider a callback called from the SDK, when the identity PIN is required.
@@ -919,6 +1242,53 @@ public class MIRACLTrust private constructor(
                         withContext(resultHandlerDispatcher) {
                             resultHandler.onResult(MIRACLError(result.value))
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Authenticates identity on the MIRACL Trust platform.
+     *
+     * Use this method to authenticate another device or application with the usage of
+     * AppLink created by MIRACL Trust platform.
+     *
+     * @param user the user to authenticate.
+     * @param appLink a URI provided by the Intent.
+     * @param pinProvider a callback called from the SDK when the identity PIN is required.
+     *
+     * @return a [MIRACLResult] representing the result of the authentication:
+     * - If successful, returns [MIRACLSuccess] with [Unit].
+     * - If an error occurs, returns [MIRACLError] with an [AuthenticationException]
+     * describing issues with the operation.
+     */
+    @JvmSynthetic
+    public suspend fun authenticateWithAppLink(
+        user: User,
+        appLink: Uri,
+        pinProvider: PinProvider,
+    ): MIRACLResult<Unit, AuthenticationException> {
+        return withContext(miraclTrustCoroutineContext) {
+            authenticator.authenticateWithAppLink(
+                user,
+                appLink,
+                pinProvider,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            ).let { result ->
+                when (result) {
+                    is MIRACLSuccess -> {
+                        MIRACLSuccess(Unit)
+                    }
+
+                    is MIRACLError -> {
+                        logError(
+                            LoggerConstants.AUTHENTICATOR_TAG,
+                            result.value
+                        )
+
+                        MIRACLError(result.value)
                     }
                 }
             }
@@ -976,6 +1346,53 @@ public class MIRACLTrust private constructor(
     }
 
     /**
+     * Authenticates identity in the MIRACL Trust platform.
+     *
+     * Use this method to authenticate another device or application with the usage of
+     * QR Code presented on MIRACL Trust login page.
+     *
+     * @param user the user to authenticate.
+     * @param qrCode a string read from the QR code.
+     * @param pinProvider a callback called from the SDK when the identity PIN is required.
+     *
+     * @return a [MIRACLResult] representing the result of the authentication:
+     * - If successful, returns [MIRACLSuccess] with [Unit].
+     * - If an error occurs, returns [MIRACLError] with an [AuthenticationException]
+     * describing issues with the operation.
+     */
+    @JvmSynthetic
+    public suspend fun authenticateWithQRCode(
+        user: User,
+        qrCode: String,
+        pinProvider: PinProvider,
+    ): MIRACLResult<Unit, AuthenticationException> {
+        return withContext(miraclTrustCoroutineContext) {
+            authenticator.authenticateWithQRCode(
+                user,
+                qrCode,
+                pinProvider,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            ).let { result ->
+                when (result) {
+                    is MIRACLSuccess -> {
+                        MIRACLSuccess(Unit)
+                    }
+
+                    is MIRACLError -> {
+                        logError(
+                            LoggerConstants.AUTHENTICATOR_TAG,
+                            result.value
+                        )
+
+                        MIRACLError(result.value)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Authenticate identity in the MIRACL platform.
      *
      * Use this method to authenticate another device or application with the usage of
@@ -1019,6 +1436,50 @@ public class MIRACLTrust private constructor(
                         withContext(resultHandlerDispatcher) {
                             resultHandler.onResult(MIRACLError(result.value))
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Authenticates identity in the MIRACL Trust platform.
+     *
+     * Use this method to authenticate another device or application with the usage of
+     * notification sent by MIRACL Trust platform.
+     *
+     * @param payload key-value data provided by the notification.
+     * @param pinProvider a callback called from the SDK when the identity PIN is required.
+     *
+     * @return a [MIRACLResult] representing the result of the authentication:
+     * - If successful, returns [MIRACLSuccess] with [Unit].
+     * - If an error occurs, returns [MIRACLError] with an [AuthenticationException]
+     * describing issues with the operation.
+     */
+    @JvmSynthetic
+    public suspend fun authenticateWithNotificationPayload(
+        payload: Map<String, String>,
+        pinProvider: PinProvider,
+    ): MIRACLResult<Unit, AuthenticationException> {
+        return withContext(miraclTrustCoroutineContext) {
+            authenticator.authenticateWithNotificationPayload(
+                payload,
+                pinProvider,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            ).let { result ->
+                when (result) {
+                    is MIRACLSuccess -> {
+                        MIRACLSuccess(Unit)
+                    }
+
+                    is MIRACLError -> {
+                        logError(
+                            LoggerConstants.AUTHENTICATOR_TAG,
+                            result.value
+                        )
+
+                        MIRACLError(result.value)
                     }
                 }
             }
@@ -1075,9 +1536,38 @@ public class MIRACLTrust private constructor(
 
     //region Signing
     /**
+     * Creates a cryptographic signature of the given document.
+     *
+     * @param message the hash of the given document.
+     * @param user a user to sign with.
+     * @param pinProvider a callback called from the SDK when the signing identity PIN is required.
+     *
+     * @return a [MIRACLResult] representing the result of the signing operation:
+     * - If successful, returns [MIRACLSuccess] with the [SigningResult].
+     * - If an error occurs, returns [MIRACLError] with a [SigningException]
+     * describing issues with the operation.
+     */
+    @JvmSynthetic
+    public suspend fun sign(
+        message: ByteArray,
+        user: User,
+        pinProvider: PinProvider,
+    ): MIRACLResult<SigningResult, SigningException> {
+        return withContext(miraclTrustCoroutineContext) {
+            documentSigner.sign(
+                message,
+                user,
+                pinProvider,
+                deviceName
+            )
+                .logIfError(LoggerConstants.DOCUMENT_SIGNER_TAG)
+        }
+    }
+
+    /**
      * Create a cryptographic signature of the given document.
      * @param message the hash of the given document.
-     * @param user an user with already registered signing identity.
+     * @param user a user to sign with.
      * @param pinProvider a callback called from the SDK, when the signing identity PIN is required.
      * @param resultHandler a callback to handle the result of the signing.
      * - If successful, the result is [MIRACLSuccess].
@@ -1116,7 +1606,7 @@ public class MIRACLTrust private constructor(
     /**
      * Create a cryptographic signature of the given document.
      * @param message the hash of the given document.
-     * @param user an user with already registered signing identity.
+     * @param user a user to sign with.
      * @param signingSessionDetails details for the signing session.
      * @param pinProvider a callback called from the SDK, when the signing identity PIN is required.
      * @param resultHandler a callback to handle the result of the signing.
@@ -1157,11 +1647,42 @@ public class MIRACLTrust private constructor(
     }
 
     /**
+     * Generates a signature for a hash provided by the [crossDeviceSession] and updates the session.
+     *
+     * @param crossDeviceSession details for the signing operation.
+     * @param user a user to sign with.
+     * @param pinProvider a callback called from the SDK when the signing identity PIN is required.
+     *
+     * @return a [MIRACLResult] representing the result of the signing operation:
+     * - If successful, returns [MIRACLSuccess] with [Unit].
+     * - If an error occurs, returns [MIRACLError] with a [SigningException]
+     * describing issues with the operation.
+     * @suppress
+     */
+    @JvmSynthetic
+    public suspend fun sign(
+        crossDeviceSession: CrossDeviceSession,
+        user: User,
+        pinProvider: PinProvider
+    ): MIRACLResult<Unit, SigningException> {
+        return withContext(miraclTrustCoroutineContext) {
+            documentSigner
+                .sign(
+                    crossDeviceSession = crossDeviceSession,
+                    user = user,
+                    pinProvider = pinProvider,
+                    deviceName = deviceName
+                )
+                .logIfError(LoggerConstants.DOCUMENT_SIGNER_TAG)
+        }
+    }
+
+    /**
      * Generates a signature for a hash provided by the [crossDeviceSession] parameter and updates
      * the session.
      *
      * @param crossDeviceSession details for the signing operation.
-     * @param user an user to sign with.
+     * @param user a user to sign with.
      * @param pinProvider a callback called from the SDK, when the signing identity PIN is required.
      * @param resultHandler a callback to handle the result of the signing.
      * - If successful, the result is [MIRACLSuccess].
@@ -1323,6 +1844,20 @@ public class MIRACLTrust private constructor(
                     exception
                 )
         )
+    }
+
+    private fun <T> T.logIfError(tag: String): T {
+        if (this is MIRACLError<*, *>) {
+            logger?.error(
+                tag,
+                LoggerConstants.FLOW_ERROR
+                    .format(
+                        this.value
+                    )
+            )
+        }
+
+        return this
     }
     //endregion
 }

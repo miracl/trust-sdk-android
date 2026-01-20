@@ -593,6 +593,44 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
+    fun `getCrossDeviceSessionFromAppLink returns MIRACLSuccess when session is retrieved`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val appLinkMock = mockkClass(Uri::class)
+            val crossDeviceSession = createCrossDeviceSession()
+
+            coEvery {
+                crossDeviceSessionManagerMock.getCrossDeviceSessionFromAppLink(appLinkMock)
+            } returns MIRACLSuccess(crossDeviceSession)
+
+            // Act
+            val result = miraclTrust.getCrossDeviceSessionFromAppLink(appLinkMock)
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+            Assert.assertEquals(crossDeviceSession, (result as MIRACLSuccess).value)
+        }
+
+    @Test
+    fun `getCrossDeviceSessionFromAppLink returns MIRACLError when session details retrieval was unsuccessful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val appLinkMock = mockkClass(Uri::class)
+            val exception = CrossDeviceSessionException.GetCrossDeviceSessionFail(null)
+
+            coEvery {
+                crossDeviceSessionManagerMock.getCrossDeviceSessionFromAppLink(appLinkMock)
+            } returns MIRACLError(exception)
+
+            // Act
+            val result = miraclTrust.getCrossDeviceSessionFromAppLink(appLink = appLinkMock)
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(exception, (result as MIRACLError).value)
+        }
+
+    @Test
     fun `getCrossDeviceSessionFromAppLink calls result handler with MIRACLSuccess when session is retrieved`() {
         // Arrange
         val appLinkMock = mockkClass(Uri::class)
@@ -656,6 +694,44 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
+    fun `getCrossDeviceSessionFromQRCode returns MIRACLSuccess when session details are retrieved`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val qrCode = "https://mcl.mpin.io#accessId"
+            val crossDeviceSession = createCrossDeviceSession()
+
+            coEvery {
+                crossDeviceSessionManagerMock.getCrossDeviceSessionFromQRCode(qrCode)
+            } returns MIRACLSuccess(crossDeviceSession)
+
+            // Act
+            val result = miraclTrust.getCrossDeviceSessionFromQRCode(qrCode = qrCode)
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+            Assert.assertEquals(crossDeviceSession, (result as MIRACLSuccess).value)
+        }
+
+    @Test
+    fun `getCrossDeviceSessionFromQRCode returns MIRACLError when session details retrieval was unsuccessful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val qrCode = "https://mcl.mpin.io#accessId"
+            val exception = CrossDeviceSessionException.GetCrossDeviceSessionFail(null)
+
+            coEvery {
+                crossDeviceSessionManagerMock.getCrossDeviceSessionFromQRCode(qrCode)
+            } returns MIRACLError(exception)
+
+            // Act
+            val result = miraclTrust.getCrossDeviceSessionFromQRCode(qrCode = qrCode)
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(exception, (result as MIRACLError).value)
+        }
+
+    @Test
     fun `getCrossDeviceSessionFromQRCode calls result handler with MIRACLSuccess when session details are retrieved`() {
         // Arrange
         val qrCode = "https://mcl.mpin.io#accessId"
@@ -717,6 +793,48 @@ class MIRACLTrustUnitTest {
         Assert.assertTrue(capturingSlot.captured is MIRACLError)
         Assert.assertEquals(exception, (capturingSlot.captured as MIRACLError).value)
     }
+
+    @Test
+    fun `getCrossDeviceSessionFromNotificationPayload returns MIRACLSuccess when session details are retrieved`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val payload = mapOf(
+                SessionManager.PUSH_NOTIFICATION_QR_URL to "https://mcl.mpin.io/mobile-login/#accessId"
+            )
+            val crossDeviceSession = createCrossDeviceSession()
+
+            coEvery {
+                crossDeviceSessionManagerMock.getCrossDeviceSessionFromNotificationPayload(payload)
+            } returns MIRACLSuccess(crossDeviceSession)
+
+            // Act
+            val result = miraclTrust.getCrossDeviceSessionFromNotificationPayload(payload = payload)
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+            Assert.assertEquals(crossDeviceSession, (result as MIRACLSuccess).value)
+        }
+
+    @Test
+    fun `getCrossDeviceSessionFromNotificationPayload returns MIRACLError when session details retrieval was unsuccessful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val payload = mapOf(
+                CrossDeviceSessionManager.PUSH_NOTIFICATION_QR_URL to "https://mcl.mpin.io/mobile-login/#accessId"
+            )
+            val exception = CrossDeviceSessionException.GetCrossDeviceSessionFail(null)
+
+            coEvery {
+                crossDeviceSessionManagerMock.getCrossDeviceSessionFromNotificationPayload(payload)
+            } returns MIRACLError(exception)
+
+            // Act
+            val result = miraclTrust.getCrossDeviceSessionFromNotificationPayload(payload = payload)
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(exception, (result as MIRACLError).value)
+        }
 
     @Test
     fun `getCrossDeviceSessionFromNotificationPayload calls result handler with MIRACLSuccess when session details are retrieved`() {
@@ -786,6 +904,42 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
+    fun `abortCrossDeviceSession returns MIRACLSuccess when session abort was successful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val crossDeviceSession = createCrossDeviceSession()
+
+            coEvery {
+                crossDeviceSessionManagerMock.abortSession(crossDeviceSession)
+            } returns MIRACLSuccess(Unit)
+
+            // Act
+            val result = miraclTrust.abortCrossDeviceSession(crossDeviceSession)
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+        }
+
+    @Test
+    fun `abortCrossDeviceSession returns MIRACLError when session abort was unsuccessful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val crossDeviceSession = createCrossDeviceSession()
+            val exception = CrossDeviceSessionException.AbortCrossDeviceSessionFail(null)
+
+            coEvery {
+                crossDeviceSessionManagerMock.abortSession(crossDeviceSession)
+            } returns MIRACLError(exception)
+
+            // Act
+            val result = miraclTrust.abortCrossDeviceSession(crossDeviceSession)
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(exception, (result as MIRACLError).value)
+        }
+
+    @Test
     fun `abortCrossDeviceSession calls result handler with MIRACLSuccess when session abort was successful`() {
         // Arrange
         val crossDeviceSession = createCrossDeviceSession()
@@ -832,6 +986,56 @@ class MIRACLTrustUnitTest {
         Assert.assertTrue(capturingSlot.captured is MIRACLError)
         Assert.assertEquals(exception, (capturingSlot.captured as MIRACLError).value)
     }
+
+    @Test
+    fun `sendVerificationEmail returns MIRACLSuccess when input is valid and verification was successful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val userId = randomUuidString()
+
+            coEvery {
+                verificatorMock.sendVerificationEmail(
+                    userId,
+                    projectId,
+                    deviceName,
+                    null
+                )
+            } returns MIRACLSuccess(
+                VerificationResponse(
+                    backoff = Random.nextLong(),
+                    method = EmailVerificationMethod.Link
+                )
+            )
+
+            // Act
+            val result = miraclTrust.sendVerificationEmail(userId)
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+        }
+
+    @Test
+    fun `sendVerificationEmail returns MIRACLError when verification was unsuccessful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val userId = randomUuidString()
+            val verificationException = VerificationException.VerificationFail()
+
+            coEvery {
+                verificatorMock.sendVerificationEmail(
+                    userId,
+                    projectId,
+                    deviceName,
+                    null
+                )
+            } returns MIRACLError(verificationException)
+            // Act
+            val result = miraclTrust.sendVerificationEmail(userId)
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(verificationException, (result as MIRACLError).value)
+        }
 
     @Test
     fun `sendVerificationEmail calls result handler with MIRACLSuccess when input is valid and verification was successful`() {
@@ -991,6 +1195,65 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
+    fun `sendVerificationEmail with CrossDeviceSession returns MIRACLSuccess when input is valid and verification was successful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val userId = randomUuidString()
+            val crossDeviceSession = createCrossDeviceSession()
+
+            coEvery {
+                verificatorMock.sendVerificationEmail(
+                    userId = userId,
+                    projectId = projectId,
+                    deviceName = deviceName,
+                    crossDeviceSession = crossDeviceSession
+                )
+            } returns MIRACLSuccess(
+                VerificationResponse(
+                    backoff = Random.nextLong(),
+                    method = EmailVerificationMethod.Link
+                )
+            )
+
+            // Act
+            val result = miraclTrust.sendVerificationEmail(
+                userId = userId,
+                crossDeviceSession = crossDeviceSession
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+        }
+
+    @Test
+    fun `sendVerificationEmail with CrossDeviceSession returns MIRACLError when verification was unsuccessful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val userId = randomUuidString()
+            val crossDeviceSession = createCrossDeviceSession()
+            val verificationException = VerificationException.VerificationFail()
+
+            coEvery {
+                verificatorMock.sendVerificationEmail(
+                    userId = userId,
+                    projectId = projectId,
+                    deviceName = deviceName,
+                    crossDeviceSession = crossDeviceSession
+                )
+            } returns MIRACLError(verificationException)
+
+            // Act
+            val result = miraclTrust.sendVerificationEmail(
+                userId = userId,
+                crossDeviceSession = crossDeviceSession
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(verificationException, (result as MIRACLError).value)
+        }
+
+    @Test
     fun `sendVerificationEmail with CrossDeviceSession calls result handler with MIRACLSuccess when input is valid and verification was successful`() {
         // Arrange
         val userId = randomUuidString()
@@ -1073,7 +1336,62 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `generateQuickCode should return a MIRACLSuccess when QuickCode generation is successful`() {
+    fun `generateQuickCode returns MIRACLSuccess when QuickCode generation is successful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val user = mockk<User>()
+            coEvery {
+                verificatorMock.generateQuickCode(
+                    user = user,
+                    pinProvider = pinProviderMock,
+                    deviceName = deviceName
+                )
+            } returns MIRACLSuccess(
+                QuickCode(
+                    code = randomUuidString(),
+                    expireTime = Date().time,
+                    ttlSeconds = Random.nextInt(1..9999)
+                )
+            )
+
+            // Act
+            val result = miraclTrust.generateQuickCode(
+                user = user,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+        }
+
+    @Test
+    fun `generateQuickCode returns MIRACLError when QuickCode generation failed`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val quickCodeException = QuickCodeException.GenerationFail()
+            coEvery {
+                verificatorMock.generateQuickCode(
+                    user = any(),
+                    pinProvider = any(),
+                    deviceName = any()
+                )
+            } returns MIRACLError(quickCodeException)
+
+            val authenticationUser = mockk<User>()
+
+            // Act
+            val result = miraclTrust.generateQuickCode(
+                user = authenticationUser,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(quickCodeException, (result as MIRACLError).value)
+        }
+
+    @Test
+    fun `generateQuickCode calls result handler with MIRACLSuccess when QuickCode generation is successful`() {
         // Arrange
         val user = mockk<User>()
         coEvery {
@@ -1109,7 +1427,7 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `generateQuickCode should return a MIRACLError when QuickCode generation failed`() {
+    fun `generateQuickCode calls result handler with MIRACLError when QuickCode generation failed`() {
         // Arrange
         val quickCodeException = QuickCodeException.GenerationFail()
         coEvery {
@@ -1142,6 +1460,48 @@ class MIRACLTrustUnitTest {
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(quickCodeException, (result as MIRACLError).value)
     }
+
+    @Test
+    fun `getActivationToken with verification URI returns MIRACLSuccess containing the activation token, the userId and the accessId when input is valid and verification confirmation is successful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val accessId = randomUuidString()
+            val userId = randomUuidString()
+            val verifyUriMock = mockkClass(Uri::class)
+
+            coEvery {
+                verificatorMock.getActivationToken(verifyUriMock)
+            } returns MIRACLSuccess(
+                ActivationTokenResponse(projectId, accessId, userId, activationToken)
+            )
+
+            // Act
+            val result = miraclTrust.getActivationToken(verifyUriMock)
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+            Assert.assertEquals(activationToken, (result as MIRACLSuccess).value.activationToken)
+            Assert.assertEquals(userId, result.value.userId)
+            Assert.assertEquals(accessId, result.value.accessId)
+        }
+
+    @Test
+    fun `getActivationToken with verification URI returns MIRACLError when verification confirmation is unsuccessful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val verificationException = ActivationTokenException.GetActivationTokenFail()
+
+            coEvery {
+                verificatorMock.getActivationToken(any())
+            } returns MIRACLError(verificationException)
+
+            // Act
+            val result = miraclTrust.getActivationToken(verificationUri = mockk())
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(verificationException, (result as MIRACLError).value)
+        }
 
     @Test
     fun `getActivationToken with verification URI calls result handler with MIRACLSuccess containing the activation token, the userId and the accessId when input is valid and verification confirmation is successful`() {
@@ -1210,6 +1570,54 @@ class MIRACLTrustUnitTest {
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(verificationException, (result as MIRACLError).value)
     }
+
+    @Test
+    fun `getActivationToken with verification code returns MIRACLSuccess containing the activation token, the userId and the accessId when input is valid and verification confirmation is successful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val accessId = randomUuidString()
+            val userId = randomUuidString()
+            val code = randomUuidString()
+
+            coEvery {
+                verificatorMock.getActivationToken(userId, code)
+            } returns MIRACLSuccess(
+                ActivationTokenResponse(projectId, accessId, userId, activationToken)
+            )
+
+            // Act
+            val result = miraclTrust.getActivationToken(
+                userId = userId,
+                code = code
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+            Assert.assertEquals(activationToken, (result as MIRACLSuccess).value.activationToken)
+            Assert.assertEquals(userId, result.value.userId)
+            Assert.assertEquals(accessId, result.value.accessId)
+        }
+
+    @Test
+    fun `getActivationToken with verification code returns MIRACLError when verification confirmation is unsuccessful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val verificationException = ActivationTokenException.GetActivationTokenFail()
+
+            coEvery {
+                verificatorMock.getActivationToken(any(), any())
+            } returns MIRACLError(verificationException)
+
+            // Act
+            val result = miraclTrust.getActivationToken(
+                userId = randomUuidString(),
+                code = randomUuidString()
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(verificationException, (result as MIRACLError).value)
+        }
 
     @Test
     fun `getActivationToken with verification code calls result handler with MIRACLSuccess containing the activation token, the userId and the accessId when input is valid and verification confirmation is successful`() {
@@ -1282,7 +1690,67 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `register returns MIRACLSuccess with value of registered user when input is valid and registration was successful`() {
+    fun `register returns MIRACLSuccess with value of registered user when input is valid and registration was successful`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val userId = randomUuidString()
+            val user = mockk<User>()
+
+            coEvery {
+                registratorMock.register(
+                    userId = userId,
+                    projectId,
+                    activationToken = activationToken,
+                    pinProvider = pinProviderMock,
+                    deviceName = deviceName,
+                    null
+                )
+            } returns MIRACLSuccess(value = user)
+            every { userStorageMock.getUser(userId, projectId) } returns null
+
+            // Act
+            val result = miraclTrust.register(
+                userId = userId,
+                activationToken = activationToken,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+        }
+
+    @Test
+    fun `register returns MIRACLError when registration fails`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val userId = randomUuidString()
+            val registrationException = RegistrationException.RegistrationFail(Exception())
+
+            coEvery {
+                registratorMock.register(
+                    userId = any(),
+                    projectId,
+                    activationToken = activationToken,
+                    pinProvider = any(),
+                    deviceName = any(),
+                    null
+                )
+            } returns MIRACLError(registrationException)
+
+            // Act
+            val result = miraclTrust.register(
+                userId = userId,
+                activationToken = activationToken,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(registrationException, (result as MIRACLError).value)
+        }
+
+    @Test
+    fun `register calls result handler with MIRACLSuccess with value of registered user when input is valid and registration was successful`() {
         // Arrange
         val userId = randomUuidString()
         val user = mockk<User>()
@@ -1321,7 +1789,7 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `register returns MIRACLSuccess when passed arguments have leading and trailing characters matching whitespace`() {
+    fun `register calls result handler with MIRACLSuccess when passed arguments have leading and trailing characters matching whitespace`() {
         // Arrange
         val actToken = randomUuidString()
         val userId = randomUuidString()
@@ -1360,7 +1828,7 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `register returns MIRACLError when registration fails`() {
+    fun `register calls result handler with MIRACLError when registration fails`() {
         // Arrange
         val userId = randomUuidString()
         val registrationException = RegistrationException.RegistrationFail(Exception())
@@ -1457,271 +1925,497 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `authenticateWithAppLink should return a MIRACLSuccess when input is valid and user is authenticated`() {
-        // Arrange
-        val authenticationUser = mockk<User>()
-        val appLinkMock = mockkClass(Uri::class)
-        coEvery {
-            authenticatorMock.authenticateWithAppLink(
-                authenticationUser,
-                appLinkMock,
-                pinProviderMock,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
+    fun `authenticateWithAppLink returns a MIRACLSuccess when input is valid and user is authenticated`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val authenticationUser = mockk<User>()
+            val appLinkMock = mockkClass(Uri::class)
+            coEvery {
+                authenticatorMock.authenticateWithAppLink(
+                    authenticationUser,
+                    appLinkMock,
+                    pinProviderMock,
+                    arrayOf(AuthenticatorScopes.OIDC.value),
+                    deviceName
+                )
+            } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
+
+            // Act
+            val result = miraclTrust.authenticateWithAppLink(
+                user = authenticationUser,
+                appLink = appLinkMock,
+                pinProvider = pinProviderMock
             )
-        } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
 
-        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.authenticateWithAppLink(
-            user = authenticationUser,
-            appLink = appLinkMock,
-            pinProvider = pinProviderMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        Assert.assertTrue(capturingSlot.captured is MIRACLSuccess)
-    }
-
-    @Test
-    fun `authenticateWithAppLink should return a MIRACLError when authentication fails`() {
-        // Arrange
-        val authenticationUser = mockk<User>()
-        val appLinkMock = mockkClass(Uri::class)
-        val authenticationException = AuthenticationException.AuthenticationFail()
-        coEvery {
-            authenticatorMock.authenticateWithAppLink(
-                authenticationUser,
-                appLinkMock,
-                pinProviderMock,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
-            )
-        } returns MIRACLError(authenticationException)
-
-        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.authenticateWithAppLink(
-            user = authenticationUser,
-            appLink = appLinkMock,
-            pinProvider = pinProviderMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        val result = capturingSlot.captured
-
-        Assert.assertTrue(result is MIRACLError)
-        Assert.assertEquals(authenticationException, (result as MIRACLError).value)
-    }
-
-    @Test
-    fun `authenticateWithQRCode should return a MIRACLSuccess when input is valid and user is authenticated`() {
-        // Arrange
-        val authenticationUser = mockk<User>()
-        val qrCode = "https://mcl.mpin.io/mobile-login/#accessId"
-        coEvery {
-            authenticatorMock.authenticateWithQRCode(
-                authenticationUser,
-                qrCode,
-                pinProviderMock,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
-            )
-        } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
-
-        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.authenticateWithQRCode(
-            user = authenticationUser,
-            qrCode = qrCode,
-            pinProvider = pinProviderMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        Assert.assertTrue(capturingSlot.captured is MIRACLSuccess)
-    }
-
-    @Test
-    fun `authenticateWithQRCode should return a MIRACLError when authentication fails`() {
-        // Arrange
-        val authenticationUser = mockk<User>()
-        val qrCode = "https://mcl.mpin.io/mobile-login/#accessId"
-        val authenticationException = AuthenticationException.AuthenticationFail()
-        coEvery {
-            authenticatorMock.authenticateWithQRCode(
-                authenticationUser,
-                qrCode,
-                pinProviderMock,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
-            )
-        } returns MIRACLError(authenticationException)
-
-        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.authenticateWithQRCode(
-            user = authenticationUser,
-            qrCode = qrCode,
-            pinProvider = pinProviderMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        val result = capturingSlot.captured
-
-        Assert.assertTrue(result is MIRACLError)
-        Assert.assertEquals(authenticationException, (result as MIRACLError).value)
-    }
-
-    @Test
-    fun `authenticateWithNotificationPayload should return a MIRACLSuccess when input is valid and user is authenticated`() {
-        // Arrange
-        val payload = mapOf(
-            Authenticator.PUSH_NOTIFICATION_PROJECT_ID to projectId,
-            Authenticator.PUSH_NOTIFICATION_USER_ID to randomUuidString(),
-            Authenticator.PUSH_NOTIFICATION_QR_URL to "https://mcl.mpin.io/mobile-login/#accessId"
-        )
-        coEvery {
-            authenticatorMock.authenticateWithNotificationPayload(
-                payload,
-                pinProviderMock,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
-            )
-        } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
-
-        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.authenticateWithNotificationPayload(
-            payload = payload,
-            pinProvider = pinProviderMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        Assert.assertTrue(capturingSlot.captured is MIRACLSuccess)
-    }
-
-    @Test
-    fun `authenticateWithNotificationPayload should return a MIRACLError when authentication fails`() {
-        // Arrange
-        val payload = mapOf(
-            Authenticator.PUSH_NOTIFICATION_PROJECT_ID to projectId,
-            Authenticator.PUSH_NOTIFICATION_USER_ID to randomUuidString(),
-            Authenticator.PUSH_NOTIFICATION_QR_URL to "https://mcl.mpin.io/mobile-login/#accessId"
-        )
-        val authenticationException = AuthenticationException.AuthenticationFail()
-        coEvery {
-            authenticatorMock.authenticateWithNotificationPayload(
-                payload,
-                pinProviderMock,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
-            )
-        } returns MIRACLError(authenticationException)
-
-        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.authenticateWithNotificationPayload(
-            payload = payload,
-            pinProvider = pinProviderMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        val result = capturingSlot.captured
-
-        Assert.assertTrue(result is MIRACLError)
-        Assert.assertEquals(authenticationException, (result as MIRACLError).value)
-    }
-
-    @Test
-    fun `authenticate should call authenticate with the right parameters`() {
-        // Arrange
-        coEvery {
-            authenticatorMock.authenticate(
-                user = any(),
-                accessId = any(),
-                pinProvider = any(),
-                scope = any(),
-                deviceName = any()
-            )
-        } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
-
-        val resultHandlerMock = mockk<ResultHandler<String, AuthenticationException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        val authenticationUser = mockk<User>()
-
-        // Act
-        miraclTrust.authenticate(
-            user = authenticationUser,
-            pinProvider = pinProviderMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        coVerify {
-            authenticatorMock.authenticate(
-                authenticationUser,
-                null,
-                pinProviderMock,
-                arrayOf(AuthenticatorScopes.JWT.value),
-                deviceName
-            )
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
         }
+
+    @Test
+    fun `authenticateWithAppLink returns a MIRACLError when authentication fails`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val authenticationUser = mockk<User>()
+            val appLinkMock = mockkClass(Uri::class)
+            val authenticationException = AuthenticationException.AuthenticationFail()
+            coEvery {
+                authenticatorMock.authenticateWithAppLink(
+                    authenticationUser,
+                    appLinkMock,
+                    pinProviderMock,
+                    arrayOf(AuthenticatorScopes.OIDC.value),
+                    deviceName
+                )
+            } returns MIRACLError(authenticationException)
+
+            // Act
+            val result = miraclTrust.authenticateWithAppLink(
+                user = authenticationUser,
+                appLink = appLinkMock,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(authenticationException, (result as MIRACLError).value)
+        }
+
+    @Test
+    fun `authenticateWithAppLink calls result handler with MIRACLSuccess when input is valid and user is authenticated`() {
+        // Arrange
+        val authenticationUser = mockk<User>()
+        val appLinkMock = mockkClass(Uri::class)
+        coEvery {
+            authenticatorMock.authenticateWithAppLink(
+                authenticationUser,
+                appLinkMock,
+                pinProviderMock,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            )
+        } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
+
+        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
+        every { resultHandlerMock.onResult(any()) } just runs
+
+        // Act
+        miraclTrust.authenticateWithAppLink(
+            user = authenticationUser,
+            appLink = appLinkMock,
+            pinProvider = pinProviderMock,
+            resultHandler = resultHandlerMock
+        )
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert
+        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
+        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
+
+        Assert.assertTrue(capturingSlot.captured is MIRACLSuccess)
     }
 
     @Test
-    fun `authenticate should return a MIRACLSuccess when authentication is successful and there is jwt response`() {
+    fun `authenticateWithAppLink calls result handler with MIRACLError when authentication fails`() {
         // Arrange
+        val authenticationUser = mockk<User>()
+        val appLinkMock = mockkClass(Uri::class)
+        val authenticationException = AuthenticationException.AuthenticationFail()
+        coEvery {
+            authenticatorMock.authenticateWithAppLink(
+                authenticationUser,
+                appLinkMock,
+                pinProviderMock,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            )
+        } returns MIRACLError(authenticationException)
+
+        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
+        every { resultHandlerMock.onResult(any()) } just runs
+
+        // Act
+        miraclTrust.authenticateWithAppLink(
+            user = authenticationUser,
+            appLink = appLinkMock,
+            pinProvider = pinProviderMock,
+            resultHandler = resultHandlerMock
+        )
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert
+        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
+        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
+
+        val result = capturingSlot.captured
+
+        Assert.assertTrue(result is MIRACLError)
+        Assert.assertEquals(authenticationException, (result as MIRACLError).value)
+    }
+
+    @Test
+    fun `authenticateWithQRCode returns a MIRACLSuccess when input is valid and user is authenticated`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val authenticationUser = mockk<User>()
+            val qrCode = "https://mcl.mpin.io/mobile-login/#accessId"
+            coEvery {
+                authenticatorMock.authenticateWithQRCode(
+                    authenticationUser,
+                    qrCode,
+                    pinProviderMock,
+                    arrayOf(AuthenticatorScopes.OIDC.value),
+                    deviceName
+                )
+            } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
+
+            // Act
+            val result = miraclTrust.authenticateWithQRCode(
+                user = authenticationUser,
+                qrCode = qrCode,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+        }
+
+    @Test
+    fun `authenticateWithQRCode returns a MIRACLError when authentication fails`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val authenticationUser = mockk<User>()
+            val qrCode = "https://mcl.mpin.io/mobile-login/#accessId"
+            val authenticationException = AuthenticationException.AuthenticationFail()
+            coEvery {
+                authenticatorMock.authenticateWithQRCode(
+                    authenticationUser,
+                    qrCode,
+                    pinProviderMock,
+                    arrayOf(AuthenticatorScopes.OIDC.value),
+                    deviceName
+                )
+            } returns MIRACLError(authenticationException)
+
+            // Act
+            val result = miraclTrust.authenticateWithQRCode(
+                user = authenticationUser,
+                qrCode = qrCode,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(authenticationException, (result as MIRACLError).value)
+        }
+
+    @Test
+    fun `authenticateWithQRCode calls result handler with MIRACLSuccess when input is valid and user is authenticated`() {
+        // Arrange
+        val authenticationUser = mockk<User>()
+        val qrCode = "https://mcl.mpin.io/mobile-login/#accessId"
+        coEvery {
+            authenticatorMock.authenticateWithQRCode(
+                authenticationUser,
+                qrCode,
+                pinProviderMock,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            )
+        } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
+
+        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
+        every { resultHandlerMock.onResult(any()) } just runs
+
+        // Act
+        miraclTrust.authenticateWithQRCode(
+            user = authenticationUser,
+            qrCode = qrCode,
+            pinProvider = pinProviderMock,
+            resultHandler = resultHandlerMock
+        )
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert
+        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
+        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
+
+        Assert.assertTrue(capturingSlot.captured is MIRACLSuccess)
+    }
+
+    @Test
+    fun `authenticateWithQRCode calls result handler with MIRACLError when authentication fails`() {
+        // Arrange
+        val authenticationUser = mockk<User>()
+        val qrCode = "https://mcl.mpin.io/mobile-login/#accessId"
+        val authenticationException = AuthenticationException.AuthenticationFail()
+        coEvery {
+            authenticatorMock.authenticateWithQRCode(
+                authenticationUser,
+                qrCode,
+                pinProviderMock,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            )
+        } returns MIRACLError(authenticationException)
+
+        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
+        every { resultHandlerMock.onResult(any()) } just runs
+
+        // Act
+        miraclTrust.authenticateWithQRCode(
+            user = authenticationUser,
+            qrCode = qrCode,
+            pinProvider = pinProviderMock,
+            resultHandler = resultHandlerMock
+        )
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert
+        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
+        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
+
+        val result = capturingSlot.captured
+
+        Assert.assertTrue(result is MIRACLError)
+        Assert.assertEquals(authenticationException, (result as MIRACLError).value)
+    }
+
+    @Test
+    fun `authenticateWithNotificationPayload returns a MIRACLSuccess when input is valid and user is authenticated`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val payload = mapOf(
+                Authenticator.PUSH_NOTIFICATION_PROJECT_ID to projectId,
+                Authenticator.PUSH_NOTIFICATION_USER_ID to randomUuidString(),
+                Authenticator.PUSH_NOTIFICATION_QR_URL to "https://mcl.mpin.io/mobile-login/#accessId"
+            )
+            coEvery {
+                authenticatorMock.authenticateWithNotificationPayload(
+                    payload,
+                    pinProviderMock,
+                    arrayOf(AuthenticatorScopes.OIDC.value),
+                    deviceName
+                )
+            } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
+
+            // Act
+            val result = miraclTrust.authenticateWithNotificationPayload(
+                payload = payload,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+        }
+
+    @Test
+    fun `authenticateWithNotificationPayload returns a MIRACLError when authentication fails`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val payload = mapOf(
+                Authenticator.PUSH_NOTIFICATION_PROJECT_ID to projectId,
+                Authenticator.PUSH_NOTIFICATION_USER_ID to randomUuidString(),
+                Authenticator.PUSH_NOTIFICATION_QR_URL to "https://mcl.mpin.io/mobile-login/#accessId"
+            )
+            val authenticationException = AuthenticationException.AuthenticationFail()
+            coEvery {
+                authenticatorMock.authenticateWithNotificationPayload(
+                    payload,
+                    pinProviderMock,
+                    arrayOf(AuthenticatorScopes.OIDC.value),
+                    deviceName
+                )
+            } returns MIRACLError(authenticationException)
+
+            // Act
+            val result = miraclTrust.authenticateWithNotificationPayload(
+                payload = payload,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(authenticationException, (result as MIRACLError).value)
+        }
+
+    @Test
+    fun `authenticateWithNotificationPayload calls result handler with MIRACLSuccess when input is valid and user is authenticated`() {
+        // Arrange
+        val payload = mapOf(
+            Authenticator.PUSH_NOTIFICATION_PROJECT_ID to projectId,
+            Authenticator.PUSH_NOTIFICATION_USER_ID to randomUuidString(),
+            Authenticator.PUSH_NOTIFICATION_QR_URL to "https://mcl.mpin.io/mobile-login/#accessId"
+        )
+        coEvery {
+            authenticatorMock.authenticateWithNotificationPayload(
+                payload,
+                pinProviderMock,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            )
+        } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
+
+        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
+        every { resultHandlerMock.onResult(any()) } just runs
+
+        // Act
+        miraclTrust.authenticateWithNotificationPayload(
+            payload = payload,
+            pinProvider = pinProviderMock,
+            resultHandler = resultHandlerMock
+        )
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert
+        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
+        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
+
+        Assert.assertTrue(capturingSlot.captured is MIRACLSuccess)
+    }
+
+    @Test
+    fun `authenticateWithNotificationPayload calls result handler with MIRACLError when authentication fails`() {
+        // Arrange
+        val payload = mapOf(
+            Authenticator.PUSH_NOTIFICATION_PROJECT_ID to projectId,
+            Authenticator.PUSH_NOTIFICATION_USER_ID to randomUuidString(),
+            Authenticator.PUSH_NOTIFICATION_QR_URL to "https://mcl.mpin.io/mobile-login/#accessId"
+        )
+        val authenticationException = AuthenticationException.AuthenticationFail()
+        coEvery {
+            authenticatorMock.authenticateWithNotificationPayload(
+                payload,
+                pinProviderMock,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            )
+        } returns MIRACLError(authenticationException)
+
+        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
+        every { resultHandlerMock.onResult(any()) } just runs
+
+        // Act
+        miraclTrust.authenticateWithNotificationPayload(
+            payload = payload,
+            pinProvider = pinProviderMock,
+            resultHandler = resultHandlerMock
+        )
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert
+        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
+        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
+
+        val result = capturingSlot.captured
+
+        Assert.assertTrue(result is MIRACLError)
+        Assert.assertEquals(authenticationException, (result as MIRACLError).value)
+    }
+
+    @Test
+    fun `authenticate returns a MIRACLSuccess when authentication is successful and there is jwt response`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val authenticationUser = mockk<User>()
+            coEvery {
+                authenticatorMock.authenticate(
+                    user = authenticationUser,
+                    accessId = null,
+                    pinProvider = pinProviderMock,
+                    scope = arrayOf(AuthenticatorScopes.JWT.value),
+                    deviceName = deviceName
+                )
+            } returns MIRACLSuccess(
+                AuthenticateResponse(
+                    status = 0,
+                    message = "",
+                    renewSecretResponse = null,
+                    jwt = randomUuidString()
+                )
+            )
+
+            // Act
+            val result = miraclTrust.authenticate(
+                user = authenticationUser,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+        }
+
+    @Test
+    fun `authenticate returns a MIRACLError when authentication failed`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val authenticationException = AuthenticationException.AuthenticationFail()
+            coEvery {
+                authenticatorMock.authenticate(
+                    user = any(),
+                    accessId = any(),
+                    pinProvider = any(),
+                    scope = any(),
+                    deviceName = any()
+                )
+            } returns MIRACLError(authenticationException)
+
+            val authenticationUser = mockk<User>()
+
+            // Act
+            val result = miraclTrust.authenticate(
+                user = authenticationUser,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(authenticationException, (result as MIRACLError).value)
+        }
+
+    @Test
+    fun `authenticate returns a MIRACLError when there is no jwt in the response`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            coEvery {
+                authenticatorMock.authenticate(
+                    user = any(),
+                    accessId = any(),
+                    pinProvider = any(),
+                    scope = any(),
+                    deviceName = any()
+                )
+            } returns MIRACLSuccess(
+                AuthenticateResponse(
+                    status = 0,
+                    message = "",
+                    renewSecretResponse = null,
+                    jwt = null
+                )
+            )
+            val authenticationUser = mockk<User>()
+
+            // Act
+            val result = miraclTrust.authenticate(
+                user = authenticationUser,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertTrue((result as MIRACLError).value is AuthenticationException.AuthenticationFail)
+        }
+
+    @Test
+    fun `authenticate calls result handler with MIRACLSuccess when authentication is successful and there is jwt response`() {
+        // Arrange
+        val authenticationUser = mockk<User>()
         coEvery {
             authenticatorMock.authenticate(
-                user = any(),
-                accessId = any(),
-                pinProvider = any(),
-                scope = any(),
-                deviceName = any()
+                user = authenticationUser,
+                accessId = null,
+                pinProvider = pinProviderMock,
+                scope = arrayOf(AuthenticatorScopes.JWT.value),
+                deviceName = deviceName
             )
         } returns MIRACLSuccess(
             AuthenticateResponse(
@@ -1735,8 +2429,6 @@ class MIRACLTrustUnitTest {
         val resultHandlerMock = mockk<ResultHandler<String, AuthenticationException>>()
         every { resultHandlerMock.onResult(any()) } just runs
 
-        val authenticationUser = mockk<User>()
-
         // Act
         miraclTrust.authenticate(
             user = authenticationUser,
@@ -1753,7 +2445,7 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `authenticate should return a MIRACLError when authentication failed`() {
+    fun `authenticate calls result handler with MIRACLError when authentication failed`() {
         // Arrange
         val authenticationException = AuthenticationException.AuthenticationFail()
         coEvery {
@@ -1790,9 +2482,8 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `authenticate should return a MIRACLError when there is no jwt in the response`() {
+    fun `authenticate calls result handler with MIRACLError when there is no jwt in the response`() {
         // Arrange
-
         coEvery {
             authenticatorMock.authenticate(
                 user = any(),
@@ -1828,14 +2519,68 @@ class MIRACLTrustUnitTest {
         coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
 
         val result = capturingSlot.captured
-
         Assert.assertTrue(result is MIRACLError)
-
         Assert.assertTrue((result as MIRACLError).value is AuthenticationException.AuthenticationFail)
     }
 
     @Test
-    fun `authenticate with CrossDeviceSession should return a MIRACLSuccess when input is valid and user is authenticated`() {
+    fun `authenticate with CrossDeviceSession returns a MIRACLSuccess when input is valid and user is authenticated`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val authenticationUser = mockk<User>()
+            val crossDeviceSession = createCrossDeviceSession()
+            coEvery {
+                authenticatorMock.authenticateWithCrossDeviceSession(
+                    authenticationUser,
+                    crossDeviceSession,
+                    pinProviderMock,
+                    arrayOf(AuthenticatorScopes.OIDC.value),
+                    deviceName
+                )
+            } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
+
+            // Act
+            val result = miraclTrust.authenticate(
+                user = authenticationUser,
+                crossDeviceSession = crossDeviceSession,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+        }
+
+    @Test
+    fun `authenticate with CrossDeviceSession returns a MIRACLError when authentication fails`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val authenticationUser = mockk<User>()
+            val crossDeviceSession = createCrossDeviceSession()
+            val authenticationException = AuthenticationException.AuthenticationFail()
+            coEvery {
+                authenticatorMock.authenticateWithCrossDeviceSession(
+                    authenticationUser,
+                    crossDeviceSession,
+                    pinProviderMock,
+                    arrayOf(AuthenticatorScopes.OIDC.value),
+                    deviceName
+                )
+            } returns MIRACLError(authenticationException)
+
+            // Act
+            val result = miraclTrust.authenticate(
+                user = authenticationUser,
+                crossDeviceSession = crossDeviceSession,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(authenticationException, (result as MIRACLError).value)
+        }
+
+    @Test
+    fun `authenticate with CrossDeviceSession calls result handler with MIRACLSuccess when input is valid and user is authenticated`() {
         // Arrange
         val authenticationUser = mockk<User>()
         val crossDeviceSession = createCrossDeviceSession()
@@ -1869,7 +2614,7 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `authenticate with CrossDeviceSession should return a MIRACLError when authentication fails`() {
+    fun `authenticate with CrossDeviceSession calls result handler with MIRACLError when authentication fails`() {
         // Arrange
         val authenticationUser = mockk<User>()
         val crossDeviceSession = createCrossDeviceSession()
@@ -2199,7 +2944,69 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `Sign passes the MIRACLSuccess to result handler on success`() {
+    fun `sign returns MIRACLSuccess on success`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val signingResult = SigningResult(
+                signature = Signature(
+                    mpinId = randomHexString(),
+                    U = randomHexString(),
+                    V = randomHexString(),
+                    publicKey = randomHexString(),
+                    dtas = randomUuidString(),
+                    hash = randomHexString(),
+                    timestamp = Date().secondsSince1970()
+                ), timestamp = Date()
+            )
+            coEvery {
+                documentSignerMock.sign(
+                    message = any(),
+                    user = any(),
+                    pinProvider = any(),
+                    deviceName = any()
+                )
+            } returns MIRACLSuccess(signingResult)
+
+            // Act
+            val result = miraclTrust.sign(
+                message = randomByteArray(),
+                user = mockk(),
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+            Assert.assertEquals(signingResult, (result as MIRACLSuccess).value)
+        }
+
+    @Test
+    fun `sign returns MIRACLError on fail`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val signingException = SigningException.SigningFail()
+            coEvery {
+                documentSignerMock.sign(
+                    message = any(),
+                    user = any(),
+                    pinProvider = any(),
+                    deviceName = any()
+                )
+            } returns MIRACLError(signingException)
+
+            // Act
+            val result = miraclTrust.sign(
+                message = randomByteArray(),
+                user = mockk(),
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(signingException, (result as MIRACLError).value)
+        }
+
+    @Test
+    fun `sign passes the MIRACLSuccess to result handler on success`() {
         // Arrange
         val signingResult = SigningResult(
             signature = Signature(
@@ -2244,7 +3051,7 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `Sign passes the MIRACLError to result handler on fail`() {
+    fun `sign passes the MIRACLError to result handler on fail`() {
         // Arrange
         val signingException = SigningException.SigningFail()
         coEvery {
@@ -2279,7 +3086,7 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `Sign with signingSessionDetails passes the MIRACLSuccess to result handler on success`() {
+    fun `sign with signingSessionDetails passes the MIRACLSuccess to result handler on success`() {
         // Arrange
         val signingSessionDetails = mockkClass(SigningSessionDetails::class)
         val signingResult = SigningResult(
@@ -2365,7 +3172,59 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `Sign with CrossDeviceSession passes the MIRACLSuccess to result handler on success`() {
+    fun `sign with CrossDeviceSession returns MIRACLSuccess on success`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val crossDeviceSession = createCrossDeviceSession()
+            coEvery {
+                documentSignerMock.sign(
+                    crossDeviceSession = any(),
+                    user = any(),
+                    pinProvider = any(),
+                    deviceName = any()
+                )
+            } returns MIRACLSuccess(Unit)
+
+            // Act
+            val result = miraclTrust.sign(
+                crossDeviceSession = crossDeviceSession,
+                user = mockk(),
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+        }
+
+    @Test
+    fun `sign with CrossDeviceSession returns MIRACLError on fail`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val crossDeviceSession = createCrossDeviceSession()
+            val signingException = SigningException.SigningFail()
+            coEvery {
+                documentSignerMock.sign(
+                    crossDeviceSession = any(),
+                    user = any(),
+                    pinProvider = any(),
+                    deviceName = any(),
+                )
+            } returns MIRACLError(signingException)
+
+            // Act
+            val result = miraclTrust.sign(
+                crossDeviceSession = crossDeviceSession,
+                user = mockk(),
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(signingException, (result as MIRACLError).value)
+        }
+
+    @Test
+    fun `sign with CrossDeviceSession passes the MIRACLSuccess to result handler on success`() {
         // Arrange
         val crossDeviceSession = createCrossDeviceSession()
         coEvery {
@@ -2399,7 +3258,7 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `Sign with CrossDeviceSession passes the MIRACLError to result handler on fail`() {
+    fun `sign with CrossDeviceSession passes the MIRACLError to result handler on fail`() {
         // Arrange
         val crossDeviceSession = createCrossDeviceSession()
         val signingException = SigningException.SigningFail()

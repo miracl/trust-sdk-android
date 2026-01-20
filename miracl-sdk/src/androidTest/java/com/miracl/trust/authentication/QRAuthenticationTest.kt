@@ -3,13 +3,11 @@ package com.miracl.trust.authentication
 import androidx.test.platform.app.InstrumentationRegistry
 import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
-import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.MIRACLTrust
 import com.miracl.trust.configuration.Configuration
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.User
-import com.miracl.trust.registration.RegistrationException
 import com.miracl.trust.utilities.MIRACLService
 import com.miracl.trust.utilities.USER_ID
 import com.miracl.trust.utilities.WRONG_FORMAT_PIN
@@ -33,56 +31,48 @@ class QRAuthenticationTest {
     private lateinit var user: User
 
     @Before
-    fun setUp() = runTest {
+    fun setUp() = runTest(testCoroutineDispatcher) {
         val configuration = Configuration.Builder(projectId, projectUrl)
             .coroutineContext(testCoroutineDispatcher)
             .build()
 
         MIRACLTrust.configure(InstrumentationRegistry.getInstrumentation().context, configuration)
         miraclTrust = MIRACLTrust.getInstance()
-        miraclTrust.resultHandlerDispatcher = testCoroutineDispatcher
 
         pin = randomNumericPin()
         pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
         val activationToken = MIRACLService.obtainActivationToken()
 
-        var registrationResult: MIRACLResult<User, RegistrationException>? = null
-        miraclTrust.register(
+        val registrationResult = miraclTrust.register(
             userId = USER_ID,
             activationToken = activationToken,
             pinProvider = pinProvider,
             pushNotificationsToken = null,
-            resultHandler = { result -> registrationResult = result }
         )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
         Assert.assertTrue(registrationResult is MIRACLSuccess)
 
         user = (registrationResult as MIRACLSuccess).value
     }
 
     @Test
-    fun testSuccessfulQRAuthentication() = runTest {
+    fun testSuccessfulQRAuthentication() = runTest(testCoroutineDispatcher) {
         // Arrange
         val qrCode = MIRACLService.obtainAccessId().qrURL
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithQRCode(user, qrCode, pinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithQRCode(user, qrCode, pinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLSuccess)
     }
 
     @Test
-    fun testAuthenticationFailOnInvalidQRCode() = runTest {
+    fun testAuthenticationFailOnInvalidQRCode() = runTest(testCoroutineDispatcher) {
         // Arrange
         val invalidQRCode = ""
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithQRCode(user, invalidQRCode, pinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithQRCode(user, invalidQRCode, pinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -90,14 +80,12 @@ class QRAuthenticationTest {
     }
 
     @Test
-    fun testQRAuthenticationFailOnInvalidAccessId() {
+    fun testQRAuthenticationFailOnInvalidAccessId() = runTest(testCoroutineDispatcher) {
         // Arrange
         val qrCode = "https://mcl.mpin.io/mobile/auth#invalidAccessId"
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithQRCode(user, qrCode, pinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithQRCode(user, qrCode, pinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -108,15 +96,13 @@ class QRAuthenticationTest {
     }
 
     @Test
-    fun testQRAuthenticationFailOnEmptyPin() = runTest {
+    fun testQRAuthenticationFailOnEmptyPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val emptyPinProvider = PinProvider { it.consume(null) }
         val qrCode = MIRACLService.obtainAccessId().qrURL
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithQRCode(user, qrCode, emptyPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithQRCode(user, qrCode, emptyPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -127,15 +113,13 @@ class QRAuthenticationTest {
     }
 
     @Test
-    fun testQRAuthenticationFailOnShorterPin() = runTest {
+    fun testQRAuthenticationFailOnShorterPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val shorterPinProvider = PinProvider { it.consume(randomNumericPin(pin.length - 1)) }
         val qrCode = MIRACLService.obtainAccessId().qrURL
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithQRCode(user, qrCode, shorterPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithQRCode(user, qrCode, shorterPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -146,15 +130,13 @@ class QRAuthenticationTest {
     }
 
     @Test
-    fun testQRAuthenticationFailOnLongerPin() = runTest {
+    fun testQRAuthenticationFailOnLongerPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val longerPinProvider = PinProvider { it.consume(randomNumericPin(pin.length + 1)) }
         val qrCode = MIRACLService.obtainAccessId().qrURL
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithQRCode(user, qrCode, longerPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithQRCode(user, qrCode, longerPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -165,15 +147,13 @@ class QRAuthenticationTest {
     }
 
     @Test
-    fun testQRAuthenticationFailOnWrongFormatPin() = runTest {
+    fun testQRAuthenticationFailOnWrongFormatPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val wrongFormatPinProvider = PinProvider { it.consume(WRONG_FORMAT_PIN) }
         val qrCode = MIRACLService.obtainAccessId().qrURL
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithQRCode(user, qrCode, wrongFormatPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithQRCode(user, qrCode, wrongFormatPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -184,15 +164,13 @@ class QRAuthenticationTest {
     }
 
     @Test
-    fun testQRAuthenticationFailOnWrongPin() = runTest {
+    fun testQRAuthenticationFailOnWrongPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val wrongPinProvider = PinProvider { it.consume(generateWrongPin(pin)) }
         val qrCode = MIRACLService.obtainAccessId().qrURL
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithQRCode(user, qrCode, wrongPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithQRCode(user, qrCode, wrongPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -203,38 +181,33 @@ class QRAuthenticationTest {
     }
 
     @Test
-    fun testQRAuthenticationFailOnRevokedUser() = runTest {
+    fun testQRAuthenticationFailOnRevokedUser() = runTest(testCoroutineDispatcher) {
         // Arrange
         val wrongPinProvider = PinProvider { it.consume(generateWrongPin(pin)) }
         val qrCode = MIRACLService.obtainAccessId().qrURL
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
-        miraclTrust.authenticateWithQRCode(user, qrCode, wrongPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        var result = miraclTrust.authenticateWithQRCode(user, qrCode, wrongPinProvider)
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(
             AuthenticationException.UnsuccessfulAuthentication,
             (result as MIRACLError).value
         )
 
-        miraclTrust.authenticateWithQRCode(user, qrCode, wrongPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        result = miraclTrust.authenticateWithQRCode(user, qrCode, wrongPinProvider)
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(
             AuthenticationException.UnsuccessfulAuthentication,
             (result as MIRACLError).value
         )
 
-        miraclTrust.authenticateWithQRCode(user, qrCode, wrongPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        result = miraclTrust.authenticateWithQRCode(user, qrCode, wrongPinProvider)
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(AuthenticationException.Revoked, (result as MIRACLError).value)
 
         Assert.assertTrue(miraclTrust.getUser(user.userId)!!.revoked)
 
         // Act
-        miraclTrust.authenticateWithQRCode(user, qrCode, pinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        result = miraclTrust.authenticateWithQRCode(user, qrCode, pinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)

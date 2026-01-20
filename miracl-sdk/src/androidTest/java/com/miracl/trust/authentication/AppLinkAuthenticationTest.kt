@@ -4,13 +4,11 @@ import android.net.Uri
 import androidx.test.platform.app.InstrumentationRegistry
 import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
-import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.MIRACLTrust
 import com.miracl.trust.configuration.Configuration
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.User
-import com.miracl.trust.registration.RegistrationException
 import com.miracl.trust.utilities.MIRACLService
 import com.miracl.trust.utilities.USER_ID
 import com.miracl.trust.utilities.WRONG_FORMAT_PIN
@@ -34,56 +32,48 @@ class AppLinkAuthenticationTest {
     private lateinit var user: User
 
     @Before
-    fun setUp() = runTest {
+    fun setUp() = runTest(testCoroutineDispatcher) {
         val configuration = Configuration.Builder(projectId, projectUrl)
             .coroutineContext(testCoroutineDispatcher)
             .build()
 
         MIRACLTrust.configure(InstrumentationRegistry.getInstrumentation().context, configuration)
         miraclTrust = MIRACLTrust.getInstance()
-        miraclTrust.resultHandlerDispatcher = testCoroutineDispatcher
 
         pin = randomNumericPin()
         pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
         val activationToken = MIRACLService.obtainActivationToken()
 
-        var registrationResult: MIRACLResult<User, RegistrationException>? = null
-        miraclTrust.register(
+        val registrationResult =  miraclTrust.register(
             userId = USER_ID,
             activationToken = activationToken,
             pinProvider = pinProvider,
             pushNotificationsToken = null,
-            resultHandler = { result -> registrationResult = result }
         )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
         Assert.assertTrue(registrationResult is MIRACLSuccess)
 
         user = (registrationResult as MIRACLSuccess).value
     }
 
     @Test
-    fun testSuccessfulAppLinkAuthentication() = runTest {
+    fun testSuccessfulAppLinkAuthentication() = runTest(testCoroutineDispatcher) {
         // Arrange
         val appLink = Uri.parse(MIRACLService.obtainAccessId().qrURL)
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithAppLink(user, appLink, pinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithAppLink(user, appLink, pinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLSuccess)
     }
 
     @Test
-    fun testAppLinkAuthenticationFailOnInvalidAccessId() {
+    fun testAppLinkAuthenticationFailOnInvalidAccessId() = runTest(testCoroutineDispatcher) {
         // Arrange
         val appLink = Uri.parse("https://mcl.mpin.io/mobile/auth#invalidAccessId")
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithAppLink(user, appLink, pinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithAppLink(user, appLink, pinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -94,15 +84,13 @@ class AppLinkAuthenticationTest {
     }
 
     @Test
-    fun testAppLinkAuthenticationFailOnEmptyPin() = runTest {
+    fun testAppLinkAuthenticationFailOnEmptyPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val emptyPinProvider = PinProvider { it.consume(null) }
         val appLink = Uri.parse(MIRACLService.obtainAccessId().qrURL)
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithAppLink(user, appLink, emptyPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithAppLink(user, appLink, emptyPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -113,15 +101,13 @@ class AppLinkAuthenticationTest {
     }
 
     @Test
-    fun testAppLinkAuthenticationFailOnShorterPin() = runTest {
+    fun testAppLinkAuthenticationFailOnShorterPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val shorterPinProvider = PinProvider { it.consume(randomNumericPin(pin.length - 1)) }
         val appLink = Uri.parse(MIRACLService.obtainAccessId().qrURL)
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithAppLink(user, appLink, shorterPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithAppLink(user, appLink, shorterPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -132,15 +118,13 @@ class AppLinkAuthenticationTest {
     }
 
     @Test
-    fun testAppLinkAuthenticationFailOnLongerPin() = runTest {
+    fun testAppLinkAuthenticationFailOnLongerPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val longerPinProvider = PinProvider { it.consume(randomNumericPin(pin.length + 1)) }
         val appLink = Uri.parse(MIRACLService.obtainAccessId().qrURL)
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithAppLink(user, appLink, longerPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithAppLink(user, appLink, longerPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -151,15 +135,13 @@ class AppLinkAuthenticationTest {
     }
 
     @Test
-    fun testAppLinkAuthenticationFailOnWrongFormatPin() = runTest {
+    fun testAppLinkAuthenticationFailOnWrongFormatPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val wrongFormatPinProvider = PinProvider { it.consume(WRONG_FORMAT_PIN) }
         val appLink = Uri.parse(MIRACLService.obtainAccessId().qrURL)
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithAppLink(user, appLink, wrongFormatPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithAppLink(user, appLink, wrongFormatPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -170,15 +152,13 @@ class AppLinkAuthenticationTest {
     }
 
     @Test
-    fun testAppLinkAuthenticationFailOnWrongPin() = runTest {
+    fun testAppLinkAuthenticationFailOnWrongPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val wrongPinProvider = PinProvider { it.consume(generateWrongPin(pin)) }
         val appLink = Uri.parse(MIRACLService.obtainAccessId().qrURL)
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
         // Act
-        miraclTrust.authenticateWithAppLink(user, appLink, wrongPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        val result = miraclTrust.authenticateWithAppLink(user, appLink, wrongPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -189,38 +169,33 @@ class AppLinkAuthenticationTest {
     }
 
     @Test
-    fun testAppLinkAuthenticationFailOnRevokedUser() = runTest {
+    fun testAppLinkAuthenticationFailOnRevokedUser() = runTest(testCoroutineDispatcher) {
         // Arrange
         val wrongPinProvider = PinProvider { it.consume(generateWrongPin(pin)) }
         val appLink = Uri.parse(MIRACLService.obtainAccessId().qrURL)
-        var result: MIRACLResult<Unit, AuthenticationException>? = null
 
-        miraclTrust.authenticateWithAppLink(user, appLink, wrongPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        var result = miraclTrust.authenticateWithAppLink(user, appLink, wrongPinProvider)
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(
             AuthenticationException.UnsuccessfulAuthentication,
             (result as MIRACLError).value
         )
 
-        miraclTrust.authenticateWithAppLink(user, appLink, wrongPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        result = miraclTrust.authenticateWithAppLink(user, appLink, wrongPinProvider)
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(
             AuthenticationException.UnsuccessfulAuthentication,
             (result as MIRACLError).value
         )
 
-        miraclTrust.authenticateWithAppLink(user, appLink, wrongPinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        result = miraclTrust.authenticateWithAppLink(user, appLink, wrongPinProvider)
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(AuthenticationException.Revoked, (result as MIRACLError).value)
 
         Assert.assertTrue(miraclTrust.getUser(user.userId)!!.revoked)
 
         // Act
-        miraclTrust.authenticateWithAppLink(user, appLink, pinProvider) { result = it }
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+        result = miraclTrust.authenticateWithAppLink(user, appLink, pinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
