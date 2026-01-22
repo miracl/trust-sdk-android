@@ -7,7 +7,7 @@ import com.miracl.trust.storage.security.KeyProtector
 import com.miracl.trust.storage.security.KeyProvider
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
-internal class RoomDatabaseModule(private val context: Context, private val projectId: String) {
+internal class RoomDatabaseModule(private val context: Context) {
     companion object {
         private const val STORAGE_PREFERENCES = "storage_preferences"
         private const val DATABASE_FILE_NAME = "users.db"
@@ -23,7 +23,7 @@ internal class RoomDatabaseModule(private val context: Context, private val proj
             UserDatabase::class.java,
             DATABASE_FILE_NAME
         )
-            .addMigrations(Migration1to2(projectId), MIGRATION_3_4)
+            .addMigrations(MIGRATION_3_4)
             .openHelperFactory(getSQLiteOpenHelperFactory())
             .build()
 

@@ -37,6 +37,7 @@ internal class DocumentSigner(
     suspend fun sign(
         message: ByteArray,
         user: User,
+        projectUrl: String,
         pinProvider: PinProvider,
         deviceName: String,
         signingSessionDetails: SigningSessionDetails? = null
@@ -56,6 +57,7 @@ internal class DocumentSigner(
 
         val authenticateResponse = authenticator.authenticate(
             user,
+            projectUrl,
             null,
             { it.consume(pinEntered) },
             arrayOf(AuthenticatorScopes.SIGNING_AUTHENTICATION.value),
@@ -123,6 +125,7 @@ internal class DocumentSigner(
         val signingResult = sign(
             message = crossDeviceSession.signingHash.hexStringToByteArray(),
             user = user,
+            projectUrl = crossDeviceSession.projectUrl,
             pinProvider = pinProvider,
             deviceName = deviceName
         )
@@ -135,7 +138,8 @@ internal class DocumentSigner(
         val updateSessionResult =
             crossDeviceSessionApi.executeUpdateCrossDeviceSessionForSigningRequest(
                 sessionId = crossDeviceSession.sessionId,
-                signature = (signingResult as MIRACLSuccess).value.signature
+                signature = (signingResult as MIRACLSuccess).value.signature,
+                projectUrl = crossDeviceSession.projectUrl
             )
 
         if (updateSessionResult is MIRACLError) {
@@ -156,7 +160,8 @@ internal class DocumentSigner(
             signingSessionApi.executeSigningSessionUpdateRequest(
                 signingSessionDetails.sessionId,
                 signature,
-                timestamp.secondsSince1970()
+                timestamp.secondsSince1970(),
+                signingSessionDetails.projectUrl
             )
 
         if (updateSigningSessionResult is MIRACLError) {

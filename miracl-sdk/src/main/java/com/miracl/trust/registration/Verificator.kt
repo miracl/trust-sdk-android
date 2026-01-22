@@ -10,6 +10,7 @@ import com.miracl.trust.authentication.AuthenticatorScopes
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.QuickCode
 import com.miracl.trust.model.User
+import com.miracl.trust.network.toProjectUrl
 import com.miracl.trust.session.AuthenticationSessionDetails
 import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.storage.UserStorage
@@ -25,6 +26,7 @@ internal class Verificator(
     suspend fun sendVerificationEmail(
         userId: String,
         projectId: String,
+        projectUrl: String,
         deviceName: String,
         authenticationSessionDetails: AuthenticationSessionDetails? = null,
         crossDeviceSession: CrossDeviceSession? = null
@@ -47,7 +49,7 @@ internal class Verificator(
 
         logOperation(LoggerConstants.VerificatorOperations.VERIFY_REQUEST)
         val verificationResult =
-            verificationApi.executeVerificationRequest(verificationRequestBody)
+            verificationApi.executeVerificationRequest(verificationRequestBody, projectUrl)
 
         logOperation(LoggerConstants.FLOW_FINISHED)
         return when (verificationResult) {
@@ -64,12 +66,14 @@ internal class Verificator(
 
     suspend fun generateQuickCode(
         user: User,
+        projectUrl: String,
         pinProvider: PinProvider,
         deviceName: String
     ): MIRACLResult<QuickCode, QuickCodeException> {
         logOperation(LoggerConstants.FLOW_STARTED)
         val authenticateResponse = authenticator.authenticate(
             user,
+            projectUrl,
             null,
             pinProvider,
             arrayOf(AuthenticatorScopes.QUICK_CODE.value),
@@ -100,8 +104,10 @@ internal class Verificator(
         )
 
         logOperation(LoggerConstants.VerificatorOperations.QUICK_CODE_REQUEST)
-        val quickCodeResponse =
-            verificationApi.executeQuickCodeVerificationRequest(quickCodeVerificationRequestBody)
+        val quickCodeResponse = verificationApi.executeQuickCodeVerificationRequest(
+            quickCodeVerificationRequestBody,
+            projectUrl
+        )
 
         if (quickCodeResponse is MIRACLError) {
             return MIRACLError(quickCodeResponse.value)
@@ -118,10 +124,11 @@ internal class Verificator(
         val userId = verificationUri.getQueryParameter("user_id") ?: ""
         val code = verificationUri.getQueryParameter("code") ?: ""
 
-        return getActivationToken(userId, code)
+        return getActivationToken(verificationUri.toProjectUrl(), userId, code)
     }
 
     suspend fun getActivationToken(
+        projectUrl: String,
         userId: String,
         code: String
     ): MIRACLResult<ActivationTokenResponse, ActivationTokenException> {
@@ -138,7 +145,7 @@ internal class Verificator(
 
         logOperation(LoggerConstants.VerificatorOperations.ACTIVATION_TOKEN_REQUEST)
         val confirmationResult =
-            verificationApi.executeConfirmationRequest(confirmationRequestBody)
+            verificationApi.executeConfirmationRequest(confirmationRequestBody, projectUrl)
 
         if (confirmationResult is MIRACLError) {
             return MIRACLError(confirmationResult.value)

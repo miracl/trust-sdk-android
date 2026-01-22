@@ -9,6 +9,7 @@ import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.User
 import com.miracl.trust.model.isEmpty
 import com.miracl.trust.model.revoke
+import com.miracl.trust.network.toProjectUrl
 import com.miracl.trust.registration.RegistratorContract
 import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.session.SessionApi
@@ -31,6 +32,7 @@ internal enum class AuthenticatorScopes(val value: String) {
 internal interface AuthenticatorContract {
     suspend fun authenticate(
         user: User,
+        projectUrl: String,
         accessId: String?,
         pinProvider: PinProvider,
         scope: Array<String>,
@@ -84,6 +86,7 @@ internal class Authenticator(
 
     override suspend fun authenticate(
         user: User,
+        projectUrl: String,
         accessId: String?,
         pinProvider: PinProvider,
         scope: Array<String>,
@@ -111,7 +114,7 @@ internal class Authenticator(
             // Update the status of the authentication session, if any
             accessId?.let {
                 logOperation(LoggerConstants.AuthenticatorOperations.UPDATE_SESSION_STATUS)
-                sessionApi.executeUpdateSessionRequest(accessId, user.userId)
+                sessionApi.executeUpdateSessionRequest(accessId, user.userId, projectUrl)
             }
 
             var pinEntered: String? =
@@ -150,7 +153,7 @@ internal class Authenticator(
 
             logOperation(LoggerConstants.AuthenticatorOperations.CLIENT_PASS_1_REQUEST)
             val pass1ResponseResult =
-                authenticationApi.executePass1Request(pass1RequestBody, user.projectId)
+                authenticationApi.executePass1Request(pass1RequestBody, projectUrl)
             if (pass1ResponseResult is MIRACLError) {
                 val exception = pass1ResponseResult.value
                 if (exception is AuthenticationException.Revoked) {
@@ -187,7 +190,7 @@ internal class Authenticator(
 
             logOperation(LoggerConstants.AuthenticatorOperations.CLIENT_PASS_2_REQUEST)
             val pass2ResponseResult =
-                authenticationApi.executePass2Request(pass2RequestBody, user.projectId)
+                authenticationApi.executePass2Request(pass2RequestBody, projectUrl)
             if (pass2ResponseResult is MIRACLError) {
                 return MIRACLError(pass2ResponseResult.value)
             }
@@ -202,7 +205,7 @@ internal class Authenticator(
 
             logOperation(LoggerConstants.AuthenticatorOperations.AUTHENTICATE_REQUEST)
             val authenticationResponseResult =
-                authenticationApi.executeAuthenticateRequest(authenticateRequest, user.projectId)
+                authenticationApi.executeAuthenticateRequest(authenticateRequest, projectUrl)
             if (authenticationResponseResult is MIRACLError) {
                 val exception = authenticationResponseResult.value
                 if (exception is AuthenticationException.Revoked) {
@@ -218,6 +221,7 @@ internal class Authenticator(
                 val renewResponse = registrator.register(
                     userId = user.userId,
                     projectId = user.projectId,
+                    projectUrl = projectUrl,
                     activationToken = token,
                     pinProvider = { it.consume(pinEntered) },
                     deviceName = deviceName,
@@ -230,6 +234,7 @@ internal class Authenticator(
                     logOperation(LoggerConstants.AuthenticatorOperations.RENEW_SECRET_AUTHENTICATE)
                     return authenticate(
                         renewResponse.value,
+                        projectUrl,
                         accessId,
                         { it.consume(pinEntered) },
                         scope,
@@ -255,7 +260,14 @@ internal class Authenticator(
         deviceName: String
     ): MIRACLResult<AuthenticateResponse, AuthenticationException> {
         val result =
-            authenticate(user, crossDeviceSession.sessionId, pinProvider, scope, deviceName)
+            authenticate(
+                user,
+                crossDeviceSession.projectUrl,
+                crossDeviceSession.sessionId,
+                pinProvider,
+                scope,
+                deviceName
+            )
 
         if (result is MIRACLError && result.value is AuthenticationException.InvalidAuthenticationSession) {
             return MIRACLError(AuthenticationException.InvalidCrossDeviceSession)
@@ -274,7 +286,7 @@ internal class Authenticator(
         val accessId = appLink.fragment
             ?: return MIRACLError(AuthenticationException.InvalidAppLink)
 
-        return authenticate(user, accessId, pinProvider, scope, deviceName)
+        return authenticate(user, appLink.toProjectUrl(), accessId, pinProvider, scope, deviceName)
     }
 
     override suspend fun authenticateWithQRCode(
@@ -284,11 +296,10 @@ internal class Authenticator(
         scope: Array<String>,
         deviceName: String
     ): MIRACLResult<AuthenticateResponse, AuthenticationException> {
-        val accessId =
-            Uri.parse(qrCode)?.fragment
-                ?: return MIRACLError(AuthenticationException.InvalidQRCode)
+        val uri = Uri.parse(qrCode)
+        val accessId = uri?.fragment ?: return MIRACLError(AuthenticationException.InvalidQRCode)
 
-        return authenticate(user, accessId, pinProvider, scope, deviceName)
+        return authenticate(user, uri.toProjectUrl(), accessId, pinProvider, scope, deviceName)
     }
 
     override suspend fun authenticateWithNotificationPayload(
@@ -305,7 +316,8 @@ internal class Authenticator(
             return MIRACLError(AuthenticationException.InvalidPushNotificationPayload)
         }
 
-        val accessId = Uri.parse(qrUrl)?.fragment ?: return MIRACLError(
+        val uri = Uri.parse(qrUrl)
+        val accessId = uri?.fragment ?: return MIRACLError(
             AuthenticationException.InvalidPushNotificationPayload
         )
 
@@ -313,7 +325,7 @@ internal class Authenticator(
             AuthenticationException.UserNotFound
         )
 
-        return authenticate(user, accessId, pinProvider, scope, deviceName)
+        return authenticate(user, uri.toProjectUrl(), accessId, pinProvider, scope, deviceName)
     }
 
     private fun revokeUser(user: User) {
