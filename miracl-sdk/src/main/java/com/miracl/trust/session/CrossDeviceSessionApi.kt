@@ -48,15 +48,18 @@ internal data class CrossDeviceSessionResponse(
 internal interface CrossDeviceSessionApi {
     suspend fun executeGetSessionRequest(
         sessionId: String,
+        projectUrl: String
     ): MIRACLResult<CrossDeviceSessionResponse, CrossDeviceSessionException>
 
     suspend fun executeUpdateCrossDeviceSessionForSigningRequest(
         sessionId: String,
-        signature: Signature
+        signature: Signature,
+        projectUrl: String
     ): MIRACLResult<Unit, Exception>
 
     suspend fun executeAbortSessionRequest(
-        sessionId: String
+        sessionId: String,
+        projectUrl: String
     ): MIRACLResult<Unit, CrossDeviceSessionException>
 }
 
@@ -67,6 +70,7 @@ internal class CrossDeviceSessionApiManager(
 ) : CrossDeviceSessionApi {
     override suspend fun executeGetSessionRequest(
         sessionId: String,
+        projectUrl: String
     ): MIRACLResult<CrossDeviceSessionResponse, CrossDeviceSessionException> {
         val requestBody =
             CrossDeviceSessionRequestBody(sessionId, CrossDeviceSessionStatus.WID.value)
@@ -78,7 +82,7 @@ internal class CrossDeviceSessionApiManager(
                 headers = null,
                 body = crossDeviceSessionRequestAsJson,
                 params = null,
-                url = apiSettings.codeStatusUrl
+                url = apiSettings.codeStatusUrl(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)
@@ -101,7 +105,8 @@ internal class CrossDeviceSessionApiManager(
 
     override suspend fun executeUpdateCrossDeviceSessionForSigningRequest(
         sessionId: String,
-        signature: Signature
+        signature: Signature,
+        projectUrl: String
     ): MIRACLResult<Unit, Exception> {
         try {
             val signatureJson = jsonUtil.toJsonString(signature)
@@ -121,7 +126,7 @@ internal class CrossDeviceSessionApiManager(
                 headers = null,
                 body = crossDeviceSessionRequestAsJson,
                 params = null,
-                url = apiSettings.codeStatusUrl
+                url = apiSettings.codeStatusUrl(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)
@@ -135,7 +140,10 @@ internal class CrossDeviceSessionApiManager(
         }
     }
 
-    override suspend fun executeAbortSessionRequest(sessionId: String): MIRACLResult<Unit, CrossDeviceSessionException> {
+    override suspend fun executeAbortSessionRequest(
+        sessionId: String,
+        projectUrl: String
+    ): MIRACLResult<Unit, CrossDeviceSessionException> {
         val requestBody =
             CrossDeviceSessionRequestBody(sessionId, CrossDeviceSessionStatus.ABORT.value)
 
@@ -146,7 +154,7 @@ internal class CrossDeviceSessionApiManager(
                 headers = null,
                 body = crossDeviceSessionRequestAsJson,
                 params = null,
-                url = apiSettings.codeStatusUrl
+                url = apiSettings.codeStatusUrl(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)

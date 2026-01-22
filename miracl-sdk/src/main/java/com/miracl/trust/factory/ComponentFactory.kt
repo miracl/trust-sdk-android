@@ -5,6 +5,7 @@ import com.miracl.trust.authentication.AuthenticationApi
 import com.miracl.trust.authentication.Authenticator
 import com.miracl.trust.authentication.AuthenticatorContract
 import com.miracl.trust.crypto.Crypto
+import com.miracl.trust.project.ProjectApi
 import com.miracl.trust.registration.*
 import com.miracl.trust.session.*
 import com.miracl.trust.signing.DocumentSigner
@@ -16,8 +17,8 @@ internal class ComponentFactory(
 ) {
     private val crypto: Crypto = Crypto()
 
-    fun defaultUserStorage(projectId: String): UserStorage =
-        RoomDatabaseModule(context, projectId).userStorage()
+    fun defaultUserStorage(): UserStorage =
+        RoomDatabaseModule(context).userStorage()
 
     fun createVerificator(
         authenticator: AuthenticatorContract,

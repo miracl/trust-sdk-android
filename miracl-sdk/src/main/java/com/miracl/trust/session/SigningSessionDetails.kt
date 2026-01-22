@@ -27,6 +27,7 @@ public class SigningSessionDetails internal constructor(
     public val expireTime: Long,
     userId: String,
     projectId: String,
+    projectUrl: String,
     projectName: String,
     projectLogoUrl: String,
     pinLength: Int,
@@ -39,6 +40,7 @@ public class SigningSessionDetails internal constructor(
 ) : SessionDetails(
     userId,
     projectId,
+    projectUrl,
     projectName,
     projectLogoUrl,
     pinLength,

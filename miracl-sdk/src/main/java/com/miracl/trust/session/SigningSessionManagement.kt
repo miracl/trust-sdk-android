@@ -4,6 +4,7 @@ import android.net.Uri
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
+import com.miracl.trust.network.toProjectUrl
 import com.miracl.trust.util.log.Loggable
 import com.miracl.trust.util.log.LoggerConstants
 
@@ -17,12 +18,15 @@ internal class SigningSessionManager(
     private val signingSessionApi: SigningSessionApi
 ) : SigningSessionManagerContract, Loggable {
 
-    private suspend fun getSigningSessionDetails(sessionId: String): MIRACLResult<SigningSessionDetails, SigningSessionException> {
+    private suspend fun getSigningSessionDetails(
+        sessionId: String,
+        projectUrl: String
+    ): MIRACLResult<SigningSessionDetails, SigningSessionException> {
         logOperation(LoggerConstants.FLOW_STARTED)
 
         logOperation(LoggerConstants.SigningSessionManagementOperations.SESSION_DETAILS_REQUEST)
         val sessionDetailsResult =
-            signingSessionApi.executeSigningSessionDetailsRequest(sessionId)
+            signingSessionApi.executeSigningSessionDetailsRequest(sessionId, projectUrl)
 
         if (sessionDetailsResult is MIRACLError) {
             return MIRACLError(sessionDetailsResult.value)
@@ -37,6 +41,7 @@ internal class SigningSessionManager(
             status = SigningSessionStatus.fromString(signingSessionDetailsResponse.status),
             expireTime = signingSessionDetailsResponse.expireTime,
             projectId = signingSessionDetailsResponse.projectId,
+            projectUrl = projectUrl,
             projectName = signingSessionDetailsResponse.projectName,
             projectLogoUrl = signingSessionDetailsResponse.projectLogoUrl,
             pinLength = signingSessionDetailsResponse.pinLength,
@@ -57,15 +62,16 @@ internal class SigningSessionManager(
         val sessionId = appLink.fragment
             ?: return MIRACLError(SigningSessionException.InvalidAppLink)
 
-        return getSigningSessionDetails(sessionId)
+        return getSigningSessionDetails(sessionId, appLink.toProjectUrl())
     }
 
     override suspend fun getSigningSessionDetailsFromQRCode(qrCode: String): MIRACLResult<SigningSessionDetails, SigningSessionException> {
-        val sessionId = Uri.parse(qrCode)?.fragment ?: return MIRACLError(
+        val uri = Uri.parse(qrCode)
+        val sessionId = uri?.fragment ?: return MIRACLError(
             SigningSessionException.InvalidQRCode
         )
 
-        return getSigningSessionDetails(sessionId)
+        return getSigningSessionDetails(sessionId, uri.toProjectUrl())
     }
 
     override suspend fun abortSigningSession(signingSessionDetails: SigningSessionDetails): MIRACLResult<Unit, SigningSessionException> {
@@ -77,7 +83,10 @@ internal class SigningSessionManager(
 
         logOperation(LoggerConstants.SigningSessionManagementOperations.ABORT_SESSION_REQUEST)
         val abortSigningSessionResult =
-            signingSessionApi.executeSigningSessionAbortRequest(signingSessionDetails.sessionId)
+            signingSessionApi.executeSigningSessionAbortRequest(
+                signingSessionDetails.sessionId,
+                signingSessionDetails.projectUrl
+            )
 
         if (abortSigningSessionResult is MIRACLError) {
             return MIRACLError(abortSigningSessionResult.value)

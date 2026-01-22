@@ -14,10 +14,25 @@ internal enum class SessionStatus(val value: String) {
 }
 
 internal interface SessionManagerContract {
-    suspend fun getSessionDetailsFromAppLink(appLink: Uri): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException>
-    suspend fun getSessionDetailsFromQRCode(qrCode: String): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException>
-    suspend fun getSessionDetailsFromNotificationPayload(payload: Map<String, String>): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException>
-    suspend fun abortSession(authenticationSessionDetails: AuthenticationSessionDetails): MIRACLResult<Unit, AuthenticationSessionException>
+    suspend fun getSessionDetailsFromAppLink(
+        appLink: Uri,
+        projectUrl: String
+    ): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException>
+
+    suspend fun getSessionDetailsFromQRCode(
+        qrCode: String,
+        projectUrl: String
+    ): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException>
+
+    suspend fun getSessionDetailsFromNotificationPayload(
+        payload: Map<String, String>,
+        projectUrl: String
+    ): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException>
+
+    suspend fun abortSession(
+        authenticationSessionDetails: AuthenticationSessionDetails,
+        projectUrl: String
+    ): MIRACLResult<Unit, AuthenticationSessionException>
 }
 
 internal class SessionManager(
@@ -27,12 +42,15 @@ internal class SessionManager(
         const val PUSH_NOTIFICATION_QR_URL = "qrURL"
     }
 
-    private suspend fun getSessionDetails(accessId: String): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException> {
+    private suspend fun getSessionDetails(
+        accessId: String,
+        projectUrl: String
+    ): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException> {
         logOperation(LoggerConstants.FLOW_STARTED)
 
         logOperation(LoggerConstants.SessionManagementOperations.CODE_STATUS_REQUEST)
         val codeStatusResult =
-            sessionApi.executeCodeStatusRequest(accessId, SessionStatus.WID.value)
+            sessionApi.executeCodeStatusRequest(accessId, SessionStatus.WID.value, null, projectUrl)
 
         if (codeStatusResult is MIRACLError) {
             return MIRACLError(codeStatusResult.value)
@@ -59,34 +77,47 @@ internal class SessionManager(
         return MIRACLSuccess(authenticationSessionDetails)
     }
 
-    override suspend fun getSessionDetailsFromAppLink(appLink: Uri): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException> {
+    override suspend fun getSessionDetailsFromAppLink(
+        appLink: Uri,
+        projectUrl: String
+    ): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException> {
         val accessId = appLink.fragment
             ?: return MIRACLError(AuthenticationSessionException.InvalidAppLink)
 
-        return getSessionDetails(accessId)
+        return getSessionDetails(accessId = accessId, projectUrl = projectUrl)
     }
 
-    override suspend fun getSessionDetailsFromQRCode(qrCode: String): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException> {
-        val accessId = Uri.parse(qrCode)?.fragment
+    override suspend fun getSessionDetailsFromQRCode(
+        qrCode: String,
+        projectUrl: String
+    ): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException> {
+        val uri = Uri.parse(qrCode)
+        val accessId = uri?.fragment
             ?: return MIRACLError(AuthenticationSessionException.InvalidQRCode)
 
-        return getSessionDetails(accessId)
+        return getSessionDetails(accessId = accessId, projectUrl = projectUrl)
     }
 
-    override suspend fun getSessionDetailsFromNotificationPayload(payload: Map<String, String>): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException> {
+    override suspend fun getSessionDetailsFromNotificationPayload(
+        payload: Map<String, String>,
+        projectUrl: String
+    ): MIRACLResult<AuthenticationSessionDetails, AuthenticationSessionException> {
         val qrUrl = payload[PUSH_NOTIFICATION_QR_URL]
 
         if (qrUrl.isNullOrBlank()) {
             return MIRACLError(AuthenticationSessionException.InvalidNotificationPayload)
         }
-
-        val accessId = Uri.parse(qrUrl)?.fragment
+        val uri = Uri.parse(qrUrl)
+        val accessId = uri?.fragment
             ?: return MIRACLError(AuthenticationSessionException.InvalidNotificationPayload)
 
-        return getSessionDetails(accessId)
+        return getSessionDetails(accessId = accessId, projectUrl = projectUrl)
     }
 
-    override suspend fun abortSession(authenticationSessionDetails: AuthenticationSessionDetails): MIRACLResult<Unit, AuthenticationSessionException> {
+    override suspend fun abortSession(
+        authenticationSessionDetails: AuthenticationSessionDetails,
+        projectUrl: String
+    ): MIRACLResult<Unit, AuthenticationSessionException> {
         logOperation(LoggerConstants.FLOW_STARTED)
 
         if (authenticationSessionDetails.accessId.isBlank()) {
@@ -94,8 +125,10 @@ internal class SessionManager(
         }
 
         logOperation(LoggerConstants.SessionManagementOperations.ABORT_SESSION_REQUEST)
-        val codeStatusResult =
-            sessionApi.executeAbortSessionRequest(authenticationSessionDetails.accessId)
+        val codeStatusResult = sessionApi.executeAbortSessionRequest(
+            authenticationSessionDetails.accessId,
+            projectUrl
+        )
 
         if (codeStatusResult is MIRACLError) {
             return MIRACLError(codeStatusResult.value)

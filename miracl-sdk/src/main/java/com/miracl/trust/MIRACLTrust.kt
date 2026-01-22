@@ -2,33 +2,18 @@ package com.miracl.trust
 
 import android.content.Context
 import android.net.Uri
-import androidx.annotation.VisibleForTesting
 import com.miracl.trust.authentication.*
-import com.miracl.trust.authentication.AuthenticatorScopes
 import com.miracl.trust.configuration.*
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.delegate.ResultHandler
-import com.miracl.trust.factory.ComponentFactory
 import com.miracl.trust.model.QuickCode
 import com.miracl.trust.model.User
-import com.miracl.trust.network.ApiRequestExecutor
-import com.miracl.trust.network.ApiSettings
 import com.miracl.trust.registration.*
 import com.miracl.trust.session.*
-import com.miracl.trust.session.SessionApiManager
-import com.miracl.trust.session.SessionManagerContract
-import com.miracl.trust.session.SigningSessionApiManager
-import com.miracl.trust.session.SigningSessionManagerContract
 import com.miracl.trust.signing.*
 import com.miracl.trust.storage.UserStorageException
-import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.UrlValidator
-import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import com.miracl.trust.util.log.Logger
-import com.miracl.trust.util.log.LoggerConstants
-import com.miracl.trust.util.toUserDto
-import com.miracl.trust.util.toUser
-import kotlinx.coroutines.*
 import kotlin.jvm.Throws
 
 /**
@@ -42,6 +27,7 @@ public class MIRACLTrust private constructor(
     context: Context,
     configuration: Configuration
 ) {
+
     public companion object {
         internal var logger: Logger? = null
             private set
@@ -73,104 +59,20 @@ public class MIRACLTrust private constructor(
     }
 
     //region Properties
-    private val apiSettings: ApiSettings
-    private val verificator: Verificator
-    private val registrator: RegistratorContract
-    private val documentSigner: DocumentSigner
-    private val authenticator: AuthenticatorContract
-    private val userStorage: UserStorage
-    private val sessionManager: SessionManagerContract
-    private val signingSessionManager: SigningSessionManagerContract
-    private val crossDeviceSessionManager: CrossDeviceSessionManagerContract
-
-    private val miraclTrustScope: CoroutineScope
-
-    @VisibleForTesting
-    internal var resultHandlerDispatcher: CoroutineDispatcher = Dispatchers.Main
-
-    private val deviceName: String = configuration.deviceName
+    internal val base: MIRACLTrustCore
 
     /** Project ID setting for the application in MIRACL Trust platform. */
     public var projectId: String = configuration.projectId
         private set
 
+    private var projectUrl: String = configuration.projectUrl
+
     //endregion
 
     //region Initialization
     init {
-        logger = configuration.logger
-
-        val apiRequestExecutor = ApiRequestExecutor(
-            configuration.httpRequestExecutor,
-            KotlinxSerializationJsonUtil,
-            configuration.applicationInfo
-        )
-
-        val componentFactory = configuration.componentFactory ?: ComponentFactory(context)
-        apiSettings = ApiSettings(configuration.projectUrl)
-
-        miraclTrustScope = CoroutineScope(SupervisorJob() + configuration.miraclCoroutineContext)
-
-        userStorage = configuration.userStorage
-            ?: componentFactory.defaultUserStorage(configuration.projectId)
-        userStorage.loadStorage()
-
-        val registrationApi = RegistrationApiManager(
-            apiRequestExecutor = apiRequestExecutor,
-            jsonUtil = KotlinxSerializationJsonUtil,
-            apiSettings = apiSettings
-        )
-
-        registrator = componentFactory.createRegistrator(registrationApi, userStorage)
-
-        val authenticationApi =
-            AuthenticationApiManager(
-                apiRequestExecutor = apiRequestExecutor,
-                jsonUtil = KotlinxSerializationJsonUtil,
-                apiSettings = apiSettings
-            )
-
-        val sessionApi =
-            SessionApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
-
-        sessionManager = componentFactory.createSessionManager(sessionApi)
-
-        val crossDeviceSessionApi = CrossDeviceSessionApiManager(
-            apiRequestExecutor,
-            KotlinxSerializationJsonUtil,
-            apiSettings
-        )
-
-        crossDeviceSessionManager =
-            componentFactory.createCrossDeviceSessionManager(crossDeviceSessionApi)
-
-        authenticator =
-            componentFactory.createAuthenticator(
-                authenticationApi,
-                sessionApi,
-                registrator,
-                userStorage
-            )
-
-        val verificationApi = VerificationApiManager(
-            jsonUtil = KotlinxSerializationJsonUtil,
-            apiRequestExecutor = apiRequestExecutor,
-            apiSettings = apiSettings
-        )
-
-        verificator =
-            componentFactory.createVerificator(authenticator, verificationApi, userStorage)
-
-        val signingSessionApi =
-            SigningSessionApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
-        signingSessionManager = componentFactory.createSigningSessionManager(signingSessionApi)
-
-        documentSigner = componentFactory.createDocumentSigner(
-            authenticator = authenticator,
-            userStorage = userStorage,
-            signingSessionApi = signingSessionApi,
-            crossDeviceSessionApi = crossDeviceSessionApi
-        )
+        MIRACLTrustCore.configure(context, ConfigurationCore(configuration))
+        base = MIRACLTrustCore.getInstance()
     }
     //endregion
 
@@ -206,7 +108,7 @@ public class MIRACLTrust private constructor(
         }
 
         this.projectId = projectId
-        this.apiSettings.projectUrl = projectUrl
+        this.projectUrl = projectUrl
     }
     //endregion
 
@@ -227,20 +129,8 @@ public class MIRACLTrust private constructor(
         appLink: Uri,
         resultHandler: ResultHandler<AuthenticationSessionDetails, AuthenticationSessionException>
     ) {
-        miraclTrustScope.launch {
-            sessionManager.getSessionDetailsFromAppLink(appLink).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.SESSION_MANAGER_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.getAuthenticationSessionDetailsFromAppLink(appLink, projectUrl, resultHandler)
+        // TODO: Add check for project mismatch?
     }
 
     /**
@@ -259,20 +149,7 @@ public class MIRACLTrust private constructor(
         qrCode: String,
         resultHandler: ResultHandler<AuthenticationSessionDetails, AuthenticationSessionException>
     ) {
-        miraclTrustScope.launch {
-            sessionManager.getSessionDetailsFromQRCode(qrCode).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.SESSION_MANAGER_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.getAuthenticationSessionDetailsFromQRCode(qrCode, projectUrl, resultHandler)
     }
 
     /**
@@ -291,20 +168,7 @@ public class MIRACLTrust private constructor(
         payload: Map<String, String>,
         resultHandler: ResultHandler<AuthenticationSessionDetails, AuthenticationSessionException>
     ) {
-        miraclTrustScope.launch {
-            sessionManager.getSessionDetailsFromNotificationPayload(payload).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.SESSION_MANAGER_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.getAuthenticationSessionDetailsFromNotificationPayload(payload, projectUrl, resultHandler)
     }
 
     /**
@@ -320,20 +184,7 @@ public class MIRACLTrust private constructor(
         authenticationSessionDetails: AuthenticationSessionDetails,
         resultHandler: ResultHandler<Unit, AuthenticationSessionException>
     ) {
-        miraclTrustScope.launch {
-            sessionManager.abortSession(authenticationSessionDetails).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.SESSION_MANAGER_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.abortAuthenticationSession(authenticationSessionDetails, projectUrl, resultHandler)
     }
     //endregion
 
@@ -354,20 +205,7 @@ public class MIRACLTrust private constructor(
         appLink: Uri,
         resultHandler: ResultHandler<SigningSessionDetails, SigningSessionException>
     ) {
-        miraclTrustScope.launch {
-            signingSessionManager.getSigningSessionDetailsFromAppLink(appLink).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.SIGNING_SESSION_MANAGER_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.getSigningSessionDetailsFromAppLink(appLink, resultHandler)
     }
 
     /**
@@ -386,20 +224,7 @@ public class MIRACLTrust private constructor(
         qrCode: String,
         resultHandler: ResultHandler<SigningSessionDetails, SigningSessionException>
     ) {
-        miraclTrustScope.launch {
-            signingSessionManager.getSigningSessionDetailsFromQRCode(qrCode).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.SIGNING_SESSION_MANAGER_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.getSigningSessionDetailsFromQRCode(qrCode, resultHandler)
     }
 
     /**
@@ -415,21 +240,7 @@ public class MIRACLTrust private constructor(
         signingSessionDetails: SigningSessionDetails,
         resultHandler: ResultHandler<Unit, SigningSessionException>
     ) {
-        miraclTrustScope.launch {
-            signingSessionManager.abortSigningSession(signingSessionDetails)
-                .also { result ->
-                    if (result is MIRACLError) {
-                        logError(
-                            LoggerConstants.SIGNING_SESSION_MANAGER_TAG,
-                            result.value
-                        )
-                    }
-
-                    withContext(resultHandlerDispatcher) {
-                        resultHandler.onResult(result)
-                    }
-                }
-        }
+        base.abortSigningSession(signingSessionDetails, resultHandler)
     }
     //endregion
 
@@ -448,20 +259,7 @@ public class MIRACLTrust private constructor(
         appLink: Uri,
         resultHandler: ResultHandler<CrossDeviceSession, CrossDeviceSessionException>
     ) {
-        miraclTrustScope.launch {
-            crossDeviceSessionManager.getCrossDeviceSessionFromAppLink(appLink).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.getCrossDeviceSessionFromAppLink(appLink, projectUrl, resultHandler)
     }
 
     /**
@@ -478,20 +276,7 @@ public class MIRACLTrust private constructor(
         qrCode: String,
         resultHandler: ResultHandler<CrossDeviceSession, CrossDeviceSessionException>
     ) {
-        miraclTrustScope.launch {
-            crossDeviceSessionManager.getCrossDeviceSessionFromQRCode(qrCode).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.getCrossDeviceSessionFromQRCode(qrCode, projectUrl, resultHandler)
     }
 
     /**
@@ -508,21 +293,7 @@ public class MIRACLTrust private constructor(
         payload: Map<String, String>,
         resultHandler: ResultHandler<CrossDeviceSession, CrossDeviceSessionException>
     ) {
-        miraclTrustScope.launch {
-            crossDeviceSessionManager.getCrossDeviceSessionFromNotificationPayload(payload)
-                .also { result ->
-                    if (result is MIRACLError) {
-                        logError(
-                            LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG,
-                            result.value
-                        )
-                    }
-
-                    withContext(resultHandlerDispatcher) {
-                        resultHandler.onResult(result)
-                    }
-                }
-        }
+        base.getCrossDeviceSessionFromNotificationPayload(payload, projectUrl, resultHandler)
     }
 
     /**
@@ -539,20 +310,7 @@ public class MIRACLTrust private constructor(
         crossDeviceSession: CrossDeviceSession,
         resultHandler: ResultHandler<Unit, CrossDeviceSessionException>
     ) {
-        miraclTrustScope.launch {
-            crossDeviceSessionManager.abortSession(crossDeviceSession).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.SESSION_MANAGER_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.abortCrossDeviceSession(crossDeviceSession, projectUrl, resultHandler)
     }
     //endregion
 
@@ -572,24 +330,12 @@ public class MIRACLTrust private constructor(
         userId: String,
         resultHandler: ResultHandler<VerificationResponse, VerificationException>
     ) {
-        miraclTrustScope.launch {
-            verificator.sendVerificationEmail(
-                userId = userId,
-                projectId = projectId,
-                deviceName = deviceName
-            ).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.VERIFICATOR_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.sendVerificationEmail(
+            userId = userId,
+            projectId = projectId,
+            projectUrl = projectUrl,
+            resultHandler = resultHandler
+        )
     }
 
     /**
@@ -609,25 +355,13 @@ public class MIRACLTrust private constructor(
         authenticationSessionDetails: AuthenticationSessionDetails,
         resultHandler: ResultHandler<VerificationResponse, VerificationException>
     ) {
-        miraclTrustScope.launch {
-            verificator.sendVerificationEmail(
-                userId = userId,
-                projectId = projectId,
-                deviceName = deviceName,
-                authenticationSessionDetails = authenticationSessionDetails
-            ).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.VERIFICATOR_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.sendVerificationEmail(
+            userId = userId,
+            projectId = projectId,
+            projectUrl = projectUrl,
+            authenticationSessionDetails = authenticationSessionDetails,
+            resultHandler = resultHandler
+        )
     }
 
     /**
@@ -648,25 +382,13 @@ public class MIRACLTrust private constructor(
         crossDeviceSession: CrossDeviceSession,
         resultHandler: ResultHandler<VerificationResponse, VerificationException>
     ) {
-        miraclTrustScope.launch {
-            verificator.sendVerificationEmail(
-                userId = userId,
-                projectId = projectId,
-                deviceName = deviceName,
-                crossDeviceSession = crossDeviceSession
-            ).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.VERIFICATOR_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.sendVerificationEmail(
+            userId = userId,
+            projectId = projectId,
+            projectUrl = projectUrl,
+            crossDeviceSession = crossDeviceSession,
+            resultHandler = resultHandler
+        )
     }
 
     /**
@@ -684,24 +406,12 @@ public class MIRACLTrust private constructor(
         pinProvider: PinProvider,
         resultHandler: ResultHandler<QuickCode, QuickCodeException>
     ) {
-        miraclTrustScope.launch {
-            verificator.generateQuickCode(
-                user,
-                pinProvider,
-                deviceName
-            ).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.VERIFICATOR_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.generateQuickCode(
+            user = user,
+            projectUrl = projectUrl,
+            pinProvider = pinProvider,
+            resultHandler = resultHandler
+        )
     }
 
     /**
@@ -717,22 +427,7 @@ public class MIRACLTrust private constructor(
         verificationUri: Uri,
         resultHandler: ResultHandler<ActivationTokenResponse, ActivationTokenException>
     ) {
-        miraclTrustScope.launch {
-            verificator.getActivationToken(
-                verificationUri
-            ).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.VERIFICATOR_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.getActivationToken(verificationUri, projectUrl, resultHandler)
     }
 
     /**
@@ -750,23 +445,14 @@ public class MIRACLTrust private constructor(
         code: String,
         resultHandler: ResultHandler<ActivationTokenResponse, ActivationTokenException>
     ) {
-        miraclTrustScope.launch {
-            verificator.getActivationToken(
-                userId, code
-            ).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.VERIFICATOR_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.getActivationToken(
+            userId = userId,
+            code = code,
+            projectUrl = projectUrl,
+            resultHandler = resultHandler
+        )
     }
+
     //endregion
 
     //region Authentication User Registration
@@ -792,28 +478,17 @@ public class MIRACLTrust private constructor(
         pushNotificationsToken: String? = null,
         resultHandler: ResultHandler<User, RegistrationException>
     ) {
-        miraclTrustScope.launch {
-            registrator.register(
-                userId,
-                projectId,
-                activationToken,
-                pinProvider,
-                deviceName,
-                pushNotificationsToken
-            ).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.REGISTRATOR_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
+        base.register(
+            userId,
+            projectId,
+            projectUrl,
+            activationToken,
+            pinProvider,
+            pushNotificationsToken,
+            resultHandler
+        )
     }
+
     //endregion
 
     //region Authentication
@@ -838,40 +513,7 @@ public class MIRACLTrust private constructor(
         pinProvider: PinProvider,
         resultHandler: ResultHandler<String, AuthenticationException>
     ) {
-        miraclTrustScope.launch {
-            authenticator.authenticate(
-                user,
-                null,
-                pinProvider,
-                arrayOf(AuthenticatorScopes.JWT.value),
-                deviceName
-            ).also { result ->
-                when (result) {
-                    is MIRACLSuccess -> {
-                        val token = result.value.jwt
-
-                        withContext(resultHandlerDispatcher) {
-                            if (token != null) {
-                                resultHandler.onResult(MIRACLSuccess(token))
-                            } else {
-                                resultHandler.onResult(MIRACLError(AuthenticationException.AuthenticationFail()))
-                            }
-                        }
-                    }
-
-                    is MIRACLError -> {
-                        logError(
-                            LoggerConstants.AUTHENTICATOR_TAG,
-                            result.value
-                        )
-
-                        withContext(resultHandlerDispatcher) {
-                            resultHandler.onResult(MIRACLError(result.value))
-                        }
-                    }
-                }
-            }
-        }
+        base.authenticate(user, projectUrl, pinProvider, resultHandler)
     }
 
     /**
@@ -895,34 +537,7 @@ public class MIRACLTrust private constructor(
         pinProvider: PinProvider,
         resultHandler: ResultHandler<Unit, AuthenticationException>
     ) {
-        miraclTrustScope.launch {
-            authenticator.authenticateWithCrossDeviceSession(
-                user,
-                crossDeviceSession,
-                pinProvider,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
-            ).also { result ->
-                when (result) {
-                    is MIRACLSuccess -> {
-                        withContext(resultHandlerDispatcher) {
-                            resultHandler.onResult(MIRACLSuccess(Unit))
-                        }
-                    }
-
-                    is MIRACLError -> {
-                        logError(
-                            LoggerConstants.AUTHENTICATOR_TAG,
-                            result.value
-                        )
-
-                        withContext(resultHandlerDispatcher) {
-                            resultHandler.onResult(MIRACLError(result.value))
-                        }
-                    }
-                }
-            }
-        }
+        base.authenticate(user, crossDeviceSession, projectUrl, pinProvider, resultHandler)
     }
 
     /**
@@ -945,34 +560,7 @@ public class MIRACLTrust private constructor(
         pinProvider: PinProvider,
         resultHandler: ResultHandler<Unit, AuthenticationException>
     ) {
-        miraclTrustScope.launch {
-            authenticator.authenticateWithAppLink(
-                user,
-                appLink,
-                pinProvider,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
-            ).also { result ->
-                when (result) {
-                    is MIRACLSuccess -> {
-                        withContext(resultHandlerDispatcher) {
-                            resultHandler.onResult(MIRACLSuccess(Unit))
-                        }
-                    }
-
-                    is MIRACLError -> {
-                        logError(
-                            LoggerConstants.AUTHENTICATOR_TAG,
-                            result.value
-                        )
-
-                        withContext(resultHandlerDispatcher) {
-                            resultHandler.onResult(MIRACLError(result.value))
-                        }
-                    }
-                }
-            }
-        }
+        base.authenticateWithAppLink(user, appLink, projectUrl, pinProvider, resultHandler)
     }
 
     /**
@@ -995,34 +583,7 @@ public class MIRACLTrust private constructor(
         pinProvider: PinProvider,
         resultHandler: ResultHandler<Unit, AuthenticationException>
     ) {
-        miraclTrustScope.launch {
-            authenticator.authenticateWithQRCode(
-                user,
-                qrCode,
-                pinProvider,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
-            ).also { result ->
-                when (result) {
-                    is MIRACLSuccess -> {
-                        withContext(resultHandlerDispatcher) {
-                            resultHandler.onResult(MIRACLSuccess(Unit))
-                        }
-                    }
-
-                    is MIRACLError -> {
-                        logError(
-                            LoggerConstants.AUTHENTICATOR_TAG,
-                            result.value
-                        )
-
-                        withContext(resultHandlerDispatcher) {
-                            resultHandler.onResult(MIRACLError(result.value))
-                        }
-                    }
-                }
-            }
-        }
+        base.authenticateWithQRCode(user, qrCode, projectUrl, pinProvider, resultHandler)
     }
 
     /**
@@ -1043,33 +604,7 @@ public class MIRACLTrust private constructor(
         pinProvider: PinProvider,
         resultHandler: ResultHandler<Unit, AuthenticationException>
     ) {
-        miraclTrustScope.launch {
-            authenticator.authenticateWithNotificationPayload(
-                payload,
-                pinProvider,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
-            ).also { result ->
-                when (result) {
-                    is MIRACLSuccess -> {
-                        withContext(resultHandlerDispatcher) {
-                            resultHandler.onResult(MIRACLSuccess(Unit))
-                        }
-                    }
-
-                    is MIRACLError -> {
-                        logError(
-                            LoggerConstants.AUTHENTICATOR_TAG,
-                            result.value
-                        )
-
-                        withContext(resultHandlerDispatcher) {
-                            resultHandler.onResult(MIRACLError(result.value))
-                        }
-                    }
-                }
-            }
-        }
+        base.authenticateWithNotificationPayload(payload, projectUrl, pinProvider, resultHandler)
     }
     //endregion
 
@@ -1090,27 +625,7 @@ public class MIRACLTrust private constructor(
         pinProvider: PinProvider,
         resultHandler: ResultHandler<SigningResult, SigningException>
     ) {
-        miraclTrustScope.launch {
-            documentSigner
-                .sign(
-                    message,
-                    user,
-                    pinProvider,
-                    deviceName
-                )
-                .also { result ->
-                    if (result is MIRACLError) {
-                        logError(
-                            LoggerConstants.DOCUMENT_SIGNER_TAG,
-                            result.value
-                        )
-                    }
-
-                    withContext(resultHandlerDispatcher) {
-                        resultHandler.onResult(result)
-                    }
-                }
-        }
+        base.sign(message, user, projectUrl, pinProvider, resultHandler)
     }
 
     /**
@@ -1132,28 +647,7 @@ public class MIRACLTrust private constructor(
         pinProvider: PinProvider,
         resultHandler: ResultHandler<SigningResult, SigningException>
     ) {
-        miraclTrustScope.launch {
-            documentSigner
-                .sign(
-                    message,
-                    user,
-                    pinProvider,
-                    deviceName,
-                    signingSessionDetails
-                )
-                .also { result ->
-                    if (result is MIRACLError) {
-                        logError(
-                            LoggerConstants.DOCUMENT_SIGNER_TAG,
-                            result.value
-                        )
-                    }
-
-                    withContext(resultHandlerDispatcher) {
-                        resultHandler.onResult(result)
-                    }
-                }
-        }
+        base.sign(message, user, signingSessionDetails, projectUrl, pinProvider, resultHandler)
     }
 
     /**
@@ -1175,27 +669,7 @@ public class MIRACLTrust private constructor(
         pinProvider: PinProvider,
         resultHandler: ResultHandler<Unit, SigningException>
     ) {
-        miraclTrustScope.launch {
-            documentSigner
-                .sign(
-                    crossDeviceSession = crossDeviceSession,
-                    user = user,
-                    pinProvider = pinProvider,
-                    deviceName = deviceName
-                )
-                .also { result ->
-                    if (result is MIRACLError) {
-                        logError(
-                            LoggerConstants.DOCUMENT_SIGNER_TAG,
-                            result.value
-                        )
-                    }
-
-                    withContext(resultHandlerDispatcher) {
-                        resultHandler.onResult(result)
-                    }
-                }
-        }
+        base.sign(crossDeviceSession, user, projectUrl, pinProvider, resultHandler)
     }
     //endregion
 
@@ -1205,13 +679,7 @@ public class MIRACLTrust private constructor(
      * @return a list of users.
      */
     public suspend fun getUsers(): List<User> {
-        return withContext(Dispatchers.IO) {
-            try {
-                userStorage.all().map { it.toUser() }
-            } catch (ex: Exception) {
-                throw UserStorageException(ex)
-            }
-        }
+        return base.getUsers()
     }
 
     /**
@@ -1221,19 +689,7 @@ public class MIRACLTrust private constructor(
      * - If an error occurs, the result is [MIRACLError] with a [UserStorageException].
      */
     public fun getUsers(resultHandler: ResultHandler<List<User>, UserStorageException>) {
-        miraclTrustScope.launch {
-            try {
-                val users = userStorage.all().map { it.toUser() }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(MIRACLSuccess(users))
-                }
-            } catch (ex: Exception) {
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(MIRACLError(UserStorageException(ex)))
-                }
-            }
-        }
+        base.getUsers(resultHandler)
     }
 
     /**
@@ -1243,13 +699,7 @@ public class MIRACLTrust private constructor(
      * this userId on the device.
      */
     public suspend fun getUser(userId: String): User? {
-        return withContext(Dispatchers.IO) {
-            try {
-                userStorage.getUser(userId, projectId)?.toUser()
-            } catch (ex: Exception) {
-                throw UserStorageException(ex)
-            }
-        }
+        return base.getUser(userId, projectId)
     }
 
     /**
@@ -1261,19 +711,7 @@ public class MIRACLTrust private constructor(
      * - If an error occurs, the result is [MIRACLError] with a [UserStorageException].
      */
     public fun getUser(userId: String, resultHandler: ResultHandler<User?, UserStorageException>) {
-        miraclTrustScope.launch {
-            try {
-                val user = userStorage.getUser(userId, projectId)?.toUser()
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(MIRACLSuccess(user))
-                }
-            } catch (ex: Exception) {
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(MIRACLError(UserStorageException(ex)))
-                }
-            }
-        }
+        base.getUser(userId, projectId, resultHandler)
     }
 
     /**
@@ -1281,13 +719,7 @@ public class MIRACLTrust private constructor(
      * @param user the user to be deleted.
      */
     public suspend fun delete(user: User) {
-        withContext(Dispatchers.IO) {
-            try {
-                userStorage.delete(user.toUserDto())
-            } catch (ex: Exception) {
-                throw UserStorageException(ex)
-            }
-        }
+        base.delete(user)
     }
 
     /**
@@ -1298,31 +730,7 @@ public class MIRACLTrust private constructor(
      * - If an error occurs, the result is [MIRACLError] with a [UserStorageException].
      */
     public fun delete(user: User, resultHandler: ResultHandler<Unit, UserStorageException>) {
-        miraclTrustScope.launch {
-            try {
-                userStorage.delete(user.toUserDto())
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(MIRACLSuccess(Unit))
-                }
-            } catch (ex: Exception) {
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(MIRACLError(UserStorageException(ex)))
-                }
-            }
-        }
-    }
-    //endregion
-
-    //region Private
-    private fun logError(tag: String, exception: Exception) {
-        logger?.error(
-            tag,
-            LoggerConstants.FLOW_ERROR
-                .format(
-                    exception
-                )
-        )
+        base.delete(user, resultHandler)
     }
     //endregion
 }
