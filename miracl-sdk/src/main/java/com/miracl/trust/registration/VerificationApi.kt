@@ -56,15 +56,18 @@ internal data class ConfirmationResponse(
 
 internal interface VerificationApi {
     suspend fun executeVerificationRequest(
-        verificationRequestBody: VerificationRequestBody
+        verificationRequestBody: VerificationRequestBody,
+        projectUrl: String
     ): MIRACLResult<VerificationRequestResponse, VerificationException>
 
     suspend fun executeQuickCodeVerificationRequest(
-        quickCodeVerificationRequestBody: QuickCodeVerificationRequestBody
+        quickCodeVerificationRequestBody: QuickCodeVerificationRequestBody,
+        projectUrl: String
     ): MIRACLResult<QuickCodeVerificationResponse, QuickCodeException>
 
     suspend fun executeConfirmationRequest(
-        confirmationRequestBody: ConfirmationRequestBody
+        confirmationRequestBody: ConfirmationRequestBody,
+        projectUrl: String
     ): MIRACLResult<ConfirmationResponse, ActivationTokenException>
 }
 
@@ -81,7 +84,8 @@ internal class VerificationApiManager(
     }
 
     override suspend fun executeVerificationRequest(
-        verificationRequestBody: VerificationRequestBody
+        verificationRequestBody: VerificationRequestBody,
+        projectUrl: String
     ): MIRACLResult<VerificationRequestResponse, VerificationException> {
         try {
             val requestBodyJson = jsonUtil.toJsonString(verificationRequestBody)
@@ -90,7 +94,7 @@ internal class VerificationApiManager(
                 headers = null,
                 body = requestBodyJson,
                 params = null,
-                url = apiSettings.verificationUrl
+                url = apiSettings.verificationUrl(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)
@@ -119,7 +123,8 @@ internal class VerificationApiManager(
     }
 
     override suspend fun executeQuickCodeVerificationRequest(
-        quickCodeVerificationRequestBody: QuickCodeVerificationRequestBody
+        quickCodeVerificationRequestBody: QuickCodeVerificationRequestBody,
+        projectUrl: String
     ): MIRACLResult<QuickCodeVerificationResponse, QuickCodeException> {
         try {
             val requestBodyJson = jsonUtil.toJsonString(quickCodeVerificationRequestBody)
@@ -128,7 +133,7 @@ internal class VerificationApiManager(
                 headers = null,
                 body = requestBodyJson,
                 params = null,
-                url = apiSettings.quickCodeVerificationUrl
+                url = apiSettings.quickCodeVerificationUrl(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)
@@ -146,7 +151,8 @@ internal class VerificationApiManager(
     }
 
     override suspend fun executeConfirmationRequest(
-        confirmationRequestBody: ConfirmationRequestBody
+        confirmationRequestBody: ConfirmationRequestBody,
+        projectUrl: String
     ): MIRACLResult<ConfirmationResponse, ActivationTokenException> {
         try {
             val requestBodyJson = jsonUtil.toJsonString(confirmationRequestBody)
@@ -155,7 +161,7 @@ internal class VerificationApiManager(
                 headers = null,
                 body = requestBodyJson,
                 params = null,
-                url = apiSettings.verificationConfirmationUrl
+                url = apiSettings.verificationConfirmationUrl(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)

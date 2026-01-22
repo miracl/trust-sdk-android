@@ -38,7 +38,7 @@ internal data class DVSClientSecretResponse(
 internal interface RegistrationApi {
     suspend fun executeRegisterRequest(
         registerRequestBody: RegisterRequestBody,
-        projectId: String
+        projectUrl: String
     ): MIRACLResult<RegisterResponse, RegistrationException>
 
     suspend fun executeDVSClientSecretRequest(
@@ -58,7 +58,7 @@ internal class RegistrationApiManager(
 
     override suspend fun executeRegisterRequest(
         registerRequestBody: RegisterRequestBody,
-        projectId: String
+        projectUrl: String
     ): MIRACLResult<RegisterResponse, RegistrationException> {
         try {
             val registerRequestAsJson = jsonUtil.toJsonString(registerRequestBody)
@@ -68,7 +68,7 @@ internal class RegistrationApiManager(
                     headers = null,
                     body = registerRequestAsJson,
                     params = null,
-                    url = apiSettings.registerUrl
+                    url = apiSettings.registerUrl(projectUrl)
                 )
 
             val result = apiRequestExecutor.execute(registerRequest)

@@ -56,17 +56,20 @@ internal data class SigningSessionAbortRequestBody(
 
 internal interface SigningSessionApi {
     suspend fun executeSigningSessionDetailsRequest(
-        sessionId: String
+        sessionId: String,
+        projectUrl: String
     ): MIRACLResult<SigningSessionDetailsResponse, SigningSessionException>
 
     suspend fun executeSigningSessionUpdateRequest(
         id: String,
         signature: Signature,
-        timestamp: Int
+        timestamp: Int,
+        projectUrl: String
     ): MIRACLResult<SigningSessionUpdateResponse, SigningSessionException>
 
     suspend fun executeSigningSessionAbortRequest(
-        sessionId: String
+        sessionId: String,
+        projectUrl: String
     ): MIRACLResult<Unit, SigningSessionException>
 }
 
@@ -79,7 +82,10 @@ internal class SigningSessionApiManager(
         const val INVALID_REQUEST_PARAMETERS = "INVALID_REQUEST_PARAMETERS"
     }
 
-    override suspend fun executeSigningSessionDetailsRequest(sessionId: String): MIRACLResult<SigningSessionDetailsResponse, SigningSessionException> {
+    override suspend fun executeSigningSessionDetailsRequest(
+        sessionId: String,
+        projectUrl: String
+    ): MIRACLResult<SigningSessionDetailsResponse, SigningSessionException> {
         val requestBody = SigningSessionDetailsRequestBody(sessionId)
 
         try {
@@ -89,7 +95,7 @@ internal class SigningSessionApiManager(
                 headers = null,
                 body = sessionDetailsRequestAsJson,
                 params = null,
-                url = apiSettings.signingSessionDetailsUrl
+                url = apiSettings.signingSessionDetailsUrl(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)
@@ -118,7 +124,8 @@ internal class SigningSessionApiManager(
     override suspend fun executeSigningSessionUpdateRequest(
         id: String,
         signature: Signature,
-        timestamp: Int
+        timestamp: Int,
+        projectUrl: String
     ): MIRACLResult<SigningSessionUpdateResponse, SigningSessionException> {
         val requestBody = SigningSessionUpdateRequestBody(id, signature, timestamp)
 
@@ -129,7 +136,7 @@ internal class SigningSessionApiManager(
                 headers = null,
                 body = sessionUpdateRequestAsJson,
                 params = null,
-                url = apiSettings.signingSessionUrl
+                url = apiSettings.signingSessionUrl(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)
@@ -155,7 +162,10 @@ internal class SigningSessionApiManager(
         }
     }
 
-    override suspend fun executeSigningSessionAbortRequest(sessionId: String): MIRACLResult<Unit, SigningSessionException> {
+    override suspend fun executeSigningSessionAbortRequest(
+        sessionId: String,
+        projectUrl: String
+    ): MIRACLResult<Unit, SigningSessionException> {
         val requestBody = SigningSessionAbortRequestBody(sessionId)
 
         try {
@@ -165,7 +175,7 @@ internal class SigningSessionApiManager(
                 headers = null,
                 body = sessionRequestAsJson,
                 params = null,
-                url = apiSettings.signingSessionUrl
+                url = apiSettings.signingSessionUrl(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)

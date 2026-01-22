@@ -24,6 +24,7 @@ internal interface RegistratorContract {
     suspend fun register(
         userId: String,
         projectId: String,
+        projectUrl: String,
         activationToken: String,
         pinProvider: PinProvider,
         deviceName: String,
@@ -44,6 +45,7 @@ internal class Registrator(
     override suspend fun register(
         userId: String,
         projectId: String,
+        projectUrl: String,
         activationToken: String,
         pinProvider: PinProvider,
         deviceName: String,
@@ -79,7 +81,7 @@ internal class Registrator(
         try {
             logOperation(LoggerConstants.RegistratorOperations.REGISTER_REQUEST)
             val registerResponseResult =
-                registrationApi.executeRegisterRequest(registerRequestBody, projectId)
+                registrationApi.executeRegisterRequest(registerRequestBody, projectUrl)
             if (registerResponseResult is MIRACLError) {
                 return MIRACLError(registerResponseResult.value)
             }

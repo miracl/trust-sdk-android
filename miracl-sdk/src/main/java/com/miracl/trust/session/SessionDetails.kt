@@ -17,6 +17,7 @@ package com.miracl.trust.session
 public sealed class SessionDetails(
     public val userId: String,
     public val projectId: String,
+    public val projectUrl: String,
     public val projectName: String,
     public val projectLogoUrl: String,
     public val pinLength: Int,

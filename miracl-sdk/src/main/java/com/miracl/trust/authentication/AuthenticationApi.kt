@@ -50,17 +50,17 @@ internal data class Pass2Response(@SerialName("authOTT") val authOtt: String)
 internal interface AuthenticationApi {
     suspend fun executePass1Request(
         pass1RequestBody: Pass1RequestBody,
-        projectId: String
+        projectUrl: String
     ): MIRACLResult<Pass1Response, AuthenticationException>
 
     suspend fun executePass2Request(
         pass2RequestBody: Pass2RequestBody,
-        projectId: String
+        projectUrl: String
     ): MIRACLResult<Pass2Response, AuthenticationException>
 
     suspend fun executeAuthenticateRequest(
         authenticationRequestBody: AuthenticateRequestBody,
-        projectId: String
+        projectUrl: String
     ): MIRACLResult<AuthenticateResponse, AuthenticationException>
 }
 
@@ -82,7 +82,7 @@ internal class AuthenticationApiManager(
 
     override suspend fun executePass1Request(
         pass1RequestBody: Pass1RequestBody,
-        projectId: String
+        projectUrl: String
     ): MIRACLResult<Pass1Response, AuthenticationException> {
         try {
             val pass1RequestBodyAsJson = jsonUtil.toJsonString(pass1RequestBody)
@@ -91,7 +91,7 @@ internal class AuthenticationApiManager(
                 headers = null,
                 body = pass1RequestBodyAsJson,
                 params = null,
-                url = apiSettings.pass1Url
+                url = apiSettings.pass1Url(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)
@@ -117,7 +117,7 @@ internal class AuthenticationApiManager(
 
     override suspend fun executePass2Request(
         pass2RequestBody: Pass2RequestBody,
-        projectId: String
+        projectUrl: String
     ): MIRACLResult<Pass2Response, AuthenticationException> {
         try {
             val pass2RequestBodyAsJson = jsonUtil.toJsonString(pass2RequestBody)
@@ -126,7 +126,7 @@ internal class AuthenticationApiManager(
                 headers = null,
                 body = pass2RequestBodyAsJson,
                 params = null,
-                url = apiSettings.pass2Url
+                url = apiSettings.pass2Url(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)
@@ -145,7 +145,7 @@ internal class AuthenticationApiManager(
 
     override suspend fun executeAuthenticateRequest(
         authenticationRequestBody: AuthenticateRequestBody,
-        projectId: String
+        projectUrl: String
     ): MIRACLResult<AuthenticateResponse, AuthenticationException> {
         try {
             val authenticateRequestBodyAsJson = jsonUtil.toJsonString(authenticationRequestBody)
@@ -154,7 +154,7 @@ internal class AuthenticationApiManager(
                 headers = null,
                 body = authenticateRequestBodyAsJson,
                 params = null,
-                url = apiSettings.authenticateUrl
+                url = apiSettings.authenticateUrl(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)

@@ -39,16 +39,19 @@ internal interface SessionApi {
     suspend fun executeCodeStatusRequest(
         accessId: String,
         status: String,
-        userId: String? = null
+        userId: String? = null,
+        projectUrl: String
     ): MIRACLResult<CodeStatusResponse, AuthenticationSessionException>
 
     suspend fun executeAbortSessionRequest(
-        accessId: String
+        accessId: String,
+        projectUrl: String
     ): MIRACLResult<Unit, AuthenticationSessionException>
 
     suspend fun executeUpdateSessionRequest(
         accessId: String,
-        userId: String
+        userId: String,
+        projectUrl: String
     ): MIRACLResult<Unit, Exception>
 }
 
@@ -60,7 +63,8 @@ internal class SessionApiManager(
     override suspend fun executeCodeStatusRequest(
         accessId: String,
         status: String,
-        userId: String?
+        userId: String?,
+        projectUrl: String
     ): MIRACLResult<CodeStatusResponse, AuthenticationSessionException> {
         val requestBody = CodeStatusRequestBody(accessId, status, userId)
 
@@ -71,7 +75,7 @@ internal class SessionApiManager(
                 headers = null,
                 body = codeStatusRequestAsJson,
                 params = null,
-                url = apiSettings.codeStatusUrl
+                url = apiSettings.codeStatusUrl(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)
@@ -92,7 +96,10 @@ internal class SessionApiManager(
         }
     }
 
-    override suspend fun executeAbortSessionRequest(accessId: String): MIRACLResult<Unit, AuthenticationSessionException> {
+    override suspend fun executeAbortSessionRequest(
+        accessId: String,
+        projectUrl: String
+    ): MIRACLResult<Unit, AuthenticationSessionException> {
         val requestBody = CodeStatusRequestBody(accessId, SessionStatus.ABORT.value)
 
         try {
@@ -102,7 +109,7 @@ internal class SessionApiManager(
                 headers = null,
                 body = codeStatusRequestAsJson,
                 params = null,
-                url = apiSettings.codeStatusUrl
+                url = apiSettings.codeStatusUrl(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)
@@ -118,7 +125,8 @@ internal class SessionApiManager(
 
     override suspend fun executeUpdateSessionRequest(
         accessId: String,
-        userId: String
+        userId: String,
+        projectUrl: String
     ): MIRACLResult<Unit, Exception> {
         val requestBody = CodeStatusRequestBody(accessId, SessionStatus.USER.value, userId)
 
@@ -129,7 +137,7 @@ internal class SessionApiManager(
                 headers = null,
                 body = codeStatusRequestAsJson,
                 params = null,
-                url = apiSettings.codeStatusUrl
+                url = apiSettings.codeStatusUrl(projectUrl)
             )
 
             val result = apiRequestExecutor.execute(apiRequest)

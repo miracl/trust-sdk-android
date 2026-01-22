@@ -19,6 +19,7 @@ public class AuthenticationSessionDetails internal constructor(
     public val accessId: String,
     userId: String,
     projectId: String,
+    projectUrl: String,
     projectName: String,
     projectLogoUrl: String,
     pinLength: Int,
@@ -31,6 +32,7 @@ public class AuthenticationSessionDetails internal constructor(
 ) : SessionDetails(
     userId,
     projectId,
+    projectUrl,
     projectName,
     projectLogoUrl,
     pinLength,

@@ -25,6 +25,7 @@ public class CrossDeviceSession(
     public val sessionDescription: String,
     public val userId: String,
     public val projectId: String,
+    public val projectUrl: String,
     public val projectName: String,
     public val projectLogoUrl: String,
     public val pinLength: Int,

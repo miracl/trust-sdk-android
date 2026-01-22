@@ -4,6 +4,7 @@ import android.net.Uri
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
+import com.miracl.trust.network.toProjectUrl
 import com.miracl.trust.util.log.Loggable
 import com.miracl.trust.util.log.LoggerConstants
 
@@ -21,11 +22,14 @@ internal class CrossDeviceSessionManager(
         const val PUSH_NOTIFICATION_QR_URL = "qrURL"
     }
 
-    private suspend fun getCrossDeviceSession(sessionId: String): MIRACLResult<CrossDeviceSession, CrossDeviceSessionException> {
+    private suspend fun getCrossDeviceSession(
+        sessionId: String,
+        projectUrl: String
+    ): MIRACLResult<CrossDeviceSession, CrossDeviceSessionException> {
         logOperation(LoggerConstants.FLOW_STARTED)
 
         logOperation(LoggerConstants.SessionManagementOperations.CODE_STATUS_REQUEST)
-        val codeStatusResult = crossDeviceSessionApi.executeGetSessionRequest(sessionId)
+        val codeStatusResult = crossDeviceSessionApi.executeGetSessionRequest(sessionId, projectUrl)
 
         if (codeStatusResult is MIRACLError) {
             return MIRACLError(codeStatusResult.value)
@@ -37,6 +41,7 @@ internal class CrossDeviceSessionManager(
             sessionDescription = codeStatusResponse.description,
             userId = codeStatusResponse.prerollId,
             projectId = codeStatusResponse.projectId,
+            projectUrl = projectUrl,
             projectName = codeStatusResponse.projectName,
             projectLogoUrl = codeStatusResponse.projectLogoUrl,
             pinLength = codeStatusResponse.pinLength,
@@ -58,14 +63,15 @@ internal class CrossDeviceSessionManager(
         val sessionId = appLink.fragment
             ?: return MIRACLError(CrossDeviceSessionException.InvalidAppLink)
 
-        return getCrossDeviceSession(sessionId)
+        return getCrossDeviceSession(sessionId, appLink.toProjectUrl())
     }
 
     override suspend fun getCrossDeviceSessionFromQRCode(qrCode: String): MIRACLResult<CrossDeviceSession, CrossDeviceSessionException> {
-        val sessionId = Uri.parse(qrCode)?.fragment
+        val uri = Uri.parse(qrCode)
+        val sessionId = uri?.fragment
             ?: return MIRACLError(CrossDeviceSessionException.InvalidQRCode)
 
-        return getCrossDeviceSession(sessionId)
+        return getCrossDeviceSession(sessionId, uri.toProjectUrl())
     }
 
     override suspend fun getCrossDeviceSessionFromNotificationPayload(payload: Map<String, String>): MIRACLResult<CrossDeviceSession, CrossDeviceSessionException> {
@@ -75,10 +81,11 @@ internal class CrossDeviceSessionManager(
             return MIRACLError(CrossDeviceSessionException.InvalidNotificationPayload)
         }
 
-        val sessionId = Uri.parse(qrUrl)?.fragment
+        val uri = Uri.parse(qrUrl)
+        val sessionId = uri?.fragment
             ?: return MIRACLError(CrossDeviceSessionException.InvalidNotificationPayload)
 
-        return getCrossDeviceSession(sessionId)
+        return getCrossDeviceSession(sessionId, uri.toProjectUrl())
     }
 
     override suspend fun abortSession(crossDeviceSession: CrossDeviceSession): MIRACLResult<Unit, CrossDeviceSessionException> {
@@ -91,6 +98,7 @@ internal class CrossDeviceSessionManager(
         logOperation(LoggerConstants.SessionManagementOperations.ABORT_SESSION_REQUEST)
         val codeStatusResult = crossDeviceSessionApi.executeAbortSessionRequest(
             sessionId = crossDeviceSession.sessionId,
+            projectUrl = crossDeviceSession.projectUrl
         )
 
         if (codeStatusResult is MIRACLError) {

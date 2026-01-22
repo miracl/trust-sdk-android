@@ -1,6 +1,8 @@
 package com.miracl.trust.network
 
-internal class ApiSettings(var projectUrl: String) {
+import android.net.Uri
+
+internal class ApiSettings {
     companion object {
         const val REGISTER_URL = "/registration"
         const val PASS1_URL = "/rps/v2/pass1"
@@ -14,35 +16,44 @@ internal class ApiSettings(var projectUrl: String) {
         const val SIGNING_SESSION_DETAILS_PATH = "/dvs/session/details"
     }
 
-    val registerUrl
-        get() = projectUrl.appendPath(REGISTER_URL)
+    fun registerUrl(projectUrl: String) =
+        projectUrl.appendPath(REGISTER_URL)
 
-    val pass1Url
-        get() = projectUrl.appendPath(PASS1_URL)
+    fun pass1Url(projectUrl: String) =
+        projectUrl.appendPath(PASS1_URL)
 
-    val pass2Url
-        get() = projectUrl.appendPath(PASS2_URL)
+    fun pass2Url(projectUrl: String) =
+        projectUrl.appendPath(PASS2_URL)
 
-    val authenticateUrl
-        get() = projectUrl.appendPath(AUTHENTICATE_URL)
+    fun authenticateUrl(projectUrl: String) =
+        projectUrl.appendPath(AUTHENTICATE_URL)
 
-    val verificationUrl
-        get() = projectUrl.appendPath(VERIFICATION_URL)
+    fun verificationUrl(projectUrl: String) =
+        projectUrl.appendPath(VERIFICATION_URL)
 
-    val quickCodeVerificationUrl
-        get() = projectUrl.appendPath(QUICK_CODE_VERIFICATION_URL)
+    fun quickCodeVerificationUrl(projectUrl: String) =
+        projectUrl.appendPath(QUICK_CODE_VERIFICATION_URL)
 
-    val verificationConfirmationUrl
-        get() = projectUrl.appendPath(VERIFICATION_CONFIRMATION_URL)
+    fun verificationConfirmationUrl(projectUrl: String) =
+        projectUrl.appendPath(VERIFICATION_CONFIRMATION_URL)
 
-    val codeStatusUrl
-        get() = projectUrl.appendPath(CODE_STATUS_URL)
+    fun codeStatusUrl(projectUrl: String) =
+        projectUrl.appendPath(CODE_STATUS_URL)
 
-    val signingSessionUrl
-        get() = projectUrl.appendPath(SIGNING_SESSION_PATH)
+    fun signingSessionUrl(projectUrl: String) =
+        projectUrl.appendPath(SIGNING_SESSION_PATH)
 
-    val signingSessionDetailsUrl
-        get() = projectUrl.appendPath(SIGNING_SESSION_DETAILS_PATH)
+    fun signingSessionDetailsUrl(projectUrl: String) =
+        projectUrl.appendPath(SIGNING_SESSION_DETAILS_PATH)
+}
+
+internal fun Uri.toProjectUrl(): String {
+    val scheme = this.scheme ?: return ""
+    val host = this.host ?: return ""
+
+    val newHost = host.replace(".app", ".io")
+
+    return "$scheme://$newHost"
 }
 
 internal fun String.appendPath(path: String): String {
