@@ -47,7 +47,6 @@ class MIRACLTrustUnitTest {
     private val loggerMock = mockk<Logger>()
     private val verificatorMock = mockk<Verificator>()
     private val sessionManagerMock = mockk<SessionManagerContract>()
-    private val signingSessionManagerMock = mockk<SigningSessionManagerContract>()
     private val crossDeviceSessionManagerMock = mockk<CrossDeviceSessionManagerContract>()
 
     private val testCoroutineDispatcher = StandardTestDispatcher()
@@ -417,175 +416,6 @@ class MIRACLTrustUnitTest {
         // Assert
         val capturingSlot =
             CapturingSlot<MIRACLResult<Unit, AuthenticationSessionException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        Assert.assertTrue(capturingSlot.captured is MIRACLError)
-        Assert.assertEquals(exception, (capturingSlot.captured as MIRACLError).value)
-    }
-
-
-    @Test
-    fun `getSigningSessionDetailsFromAppLink calls result handler with MIRACLSuccess when session details are retrieved`() {
-        // Arrange
-        val appLinkMock = mockkClass(Uri::class)
-        val signingSessionDetails = mockkClass(SigningSessionDetails::class)
-
-        coEvery {
-            signingSessionManagerMock.getSigningSessionDetailsFromAppLink(appLinkMock)
-        } returns MIRACLSuccess(signingSessionDetails)
-
-        val resultHandlerMock =
-            mockk<ResultHandler<SigningSessionDetails, SigningSessionException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.getSigningSessionDetailsFromAppLink(
-            appLink = appLinkMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot =
-            CapturingSlot<MIRACLResult<SigningSessionDetails, SigningSessionException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        Assert.assertTrue(capturingSlot.captured is MIRACLSuccess)
-        Assert.assertEquals(signingSessionDetails, (capturingSlot.captured as MIRACLSuccess).value)
-    }
-
-    @Test
-    fun `getSigningSessionDetailsFromAppLink calls result handler with MIRACLError when session details retrieval was unsuccessful`() {
-        // Arrange
-        val appLinkMock = mockkClass(Uri::class)
-        val exception = SigningSessionException.GetSigningSessionDetailsFail(null)
-
-        coEvery {
-            signingSessionManagerMock.getSigningSessionDetailsFromAppLink(appLinkMock)
-        } returns MIRACLError(exception)
-
-        val resultHandlerMock =
-            mockk<ResultHandler<SigningSessionDetails, SigningSessionException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.getSigningSessionDetailsFromAppLink(
-            appLink = appLinkMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot =
-            CapturingSlot<MIRACLResult<SigningSessionDetails, SigningSessionException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        Assert.assertTrue(capturingSlot.captured is MIRACLError)
-        Assert.assertEquals(exception, (capturingSlot.captured as MIRACLError).value)
-    }
-
-    @Test
-    fun `getSigningSessionDetailsFromQRCode calls result handler with MIRACLSuccess when session details are retrieved`() {
-        // Arrange
-        val qrCode = "https://mcl.mpin.io/dvs/#sessionId"
-        val signingSessionDetails = mockkClass(SigningSessionDetails::class)
-
-        coEvery {
-            signingSessionManagerMock.getSigningSessionDetailsFromQRCode(qrCode)
-        } returns MIRACLSuccess(signingSessionDetails)
-
-        val resultHandlerMock =
-            mockk<ResultHandler<SigningSessionDetails, SigningSessionException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.getSigningSessionDetailsFromQRCode(
-            qrCode = qrCode,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot =
-            CapturingSlot<MIRACLResult<SigningSessionDetails, SigningSessionException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        Assert.assertTrue(capturingSlot.captured is MIRACLSuccess)
-        Assert.assertEquals(signingSessionDetails, (capturingSlot.captured as MIRACLSuccess).value)
-    }
-
-    @Test
-    fun `getSigningSessionDetailsFromQRCode calls result handler with MIRACLError when session details retrieval was unsuccessful`() {
-        // Arrange
-        val qrCode = "https://mcl.mpin.io/dvs/#sessionId"
-        val exception = SigningSessionException.GetSigningSessionDetailsFail(null)
-
-        coEvery {
-            signingSessionManagerMock.getSigningSessionDetailsFromQRCode(qrCode)
-        } returns MIRACLError(exception)
-
-        val resultHandlerMock =
-            mockk<ResultHandler<SigningSessionDetails, SigningSessionException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.getSigningSessionDetailsFromQRCode(
-            qrCode = qrCode,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot =
-            CapturingSlot<MIRACLResult<SigningSessionDetails, SigningSessionException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        Assert.assertTrue(capturingSlot.captured is MIRACLError)
-        Assert.assertEquals(exception, (capturingSlot.captured as MIRACLError).value)
-    }
-
-    @Test
-    fun `abortSigningSession calls result handler with MIRACLSuccess when session abort is successful`() {
-        // Arrange
-        val signingSessionDetails = mockkClass(SigningSessionDetails::class)
-
-        coEvery {
-            signingSessionManagerMock.abortSigningSession(signingSessionDetails)
-        } returns MIRACLSuccess(Unit)
-
-        val resultHandlerMock = mockk<ResultHandler<Unit, SigningSessionException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.abortSigningSession(signingSessionDetails, resultHandlerMock)
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<Unit, SigningSessionException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        Assert.assertTrue(capturingSlot.captured is MIRACLSuccess)
-    }
-
-    @Test
-    fun `abortSigningSession calls result handler with MIRACLError when session abort fails`() {
-        // Arrange
-        val signingSessionDetails = mockkClass(SigningSessionDetails::class)
-        val exception = SigningSessionException.AbortSigningSessionFail(null)
-
-        coEvery {
-            signingSessionManagerMock.abortSigningSession(signingSessionDetails)
-        } returns MIRACLError(exception)
-
-        val resultHandlerMock = mockk<ResultHandler<Unit, SigningSessionException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.abortSigningSession(signingSessionDetails, resultHandlerMock)
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<Unit, SigningSessionException>>()
         coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
 
         Assert.assertTrue(capturingSlot.captured is MIRACLError)
@@ -3086,92 +2916,6 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
-    fun `sign with signingSessionDetails passes the MIRACLSuccess to result handler on success`() {
-        // Arrange
-        val signingSessionDetails = mockkClass(SigningSessionDetails::class)
-        val signingResult = SigningResult(
-            signature = Signature(
-                mpinId = randomHexString(),
-                U = randomHexString(),
-                V = randomHexString(),
-                publicKey = randomHexString(),
-                dtas = randomUuidString(),
-                hash = randomHexString(),
-                timestamp = Date().secondsSince1970()
-            ), timestamp = Date()
-        )
-        coEvery {
-            documentSignerMock.sign(
-                message = any(),
-                user = any(),
-                pinProvider = any(),
-                deviceName = any(),
-                signingSessionDetails = any()
-            )
-        } returns MIRACLSuccess(signingResult)
-
-        val resultHandlerMock = mockk<ResultHandler<SigningResult, SigningException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.sign(
-            message = randomByteArray(),
-            user = mockk(),
-            signingSessionDetails = signingSessionDetails,
-            pinProvider = pinProviderMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<SigningResult, SigningException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        val captured = capturingSlot.captured
-
-        Assert.assertTrue(captured is MIRACLSuccess)
-        Assert.assertEquals(signingResult, (captured as MIRACLSuccess).value)
-    }
-
-    @Test
-    fun `Sign with signingSessionDetails passes the MIRACLError to result handler on fail`() {
-        // Arrange
-        val signingSessionDetails = mockkClass(SigningSessionDetails::class)
-        val signingException = SigningException.SigningFail()
-        coEvery {
-            documentSignerMock.sign(
-                message = any(),
-                user = any(),
-                pinProvider = any(),
-                deviceName = any(),
-                signingSessionDetails = any()
-            )
-        } returns MIRACLError(signingException)
-
-        val resultHandlerMock = mockk<ResultHandler<SigningResult, SigningException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.sign(
-            message = randomByteArray(),
-            user = mockk(),
-            signingSessionDetails = signingSessionDetails,
-            pinProvider = pinProviderMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<SigningResult, SigningException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        val captured = capturingSlot.captured
-
-        Assert.assertTrue(captured is MIRACLError)
-        Assert.assertEquals(signingException, (captured as MIRACLError).value)
-    }
-
-    @Test
     fun `sign with CrossDeviceSession returns MIRACLSuccess on success`() =
         runTest(testCoroutineDispatcher) {
             // Arrange
@@ -3374,7 +3118,6 @@ class MIRACLTrustUnitTest {
             componentFactoryMock.createDocumentSigner(
                 any(),
                 any(),
-                any(),
                 any()
             )
         } returns documentSignerMock
@@ -3384,9 +3127,6 @@ class MIRACLTrustUnitTest {
         every {
             componentFactoryMock.createSessionManager(any())
         } returns sessionManagerMock
-        every {
-            componentFactoryMock.createSigningSessionManager(any())
-        } returns signingSessionManagerMock
         every {
             componentFactoryMock.createCrossDeviceSessionManager(any())
         } returns crossDeviceSessionManagerMock
