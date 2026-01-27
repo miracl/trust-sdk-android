@@ -29,7 +29,6 @@ public final class com/miracl/trust/MIRACLTrust {
 	public final fun abortAuthenticationSession (Lcom/miracl/trust/session/AuthenticationSessionDetails;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun abortCrossDeviceSession (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final synthetic fun abortCrossDeviceSession (Lcom/miracl/trust/session/CrossDeviceSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun abortSigningSession (Lcom/miracl/trust/session/SigningSessionDetails;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun authenticate (Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final synthetic fun authenticate (Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun authenticate (Lcom/miracl/trust/model/User;Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
@@ -60,8 +59,6 @@ public final class com/miracl/trust/MIRACLTrust {
 	public final synthetic fun getCrossDeviceSessionFromQRCode (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun getInstance ()Lcom/miracl/trust/MIRACLTrust;
 	public final fun getProjectId ()Ljava/lang/String;
-	public final fun getSigningSessionDetailsFromAppLink (Landroid/net/Uri;Lcom/miracl/trust/delegate/ResultHandler;)V
-	public final fun getSigningSessionDetailsFromQRCode (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun getUser (Ljava/lang/String;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun getUser (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getUsers (Lcom/miracl/trust/delegate/ResultHandler;)V
@@ -81,7 +78,6 @@ public final class com/miracl/trust/MIRACLTrust {
 	public final synthetic fun sign (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final synthetic fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/session/SigningSessionDetails;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun updateProjectSettings (Ljava/lang/String;Ljava/lang/String;)V
 }
 
@@ -554,58 +550,6 @@ public abstract class com/miracl/trust/session/SessionDetails {
 	public final fun getVerificationCustomText ()Ljava/lang/String;
 	public final fun getVerificationMethod ()Lcom/miracl/trust/session/VerificationMethod;
 	public final fun getVerificationUrl ()Ljava/lang/String;
-}
-
-public final class com/miracl/trust/session/SigningSessionDetails : com/miracl/trust/session/SessionDetails {
-	public final fun getExpireTime ()J
-	public final fun getSessionId ()Ljava/lang/String;
-	public final fun getSigningDescription ()Ljava/lang/String;
-	public final fun getSigningHash ()Ljava/lang/String;
-	public final fun getStatus ()Lcom/miracl/trust/session/SigningSessionStatus;
-	public fun toString ()Ljava/lang/String;
-}
-
-public abstract class com/miracl/trust/session/SigningSessionException : java/lang/Exception {
-	public synthetic fun <init> (Ljava/lang/Exception;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/Exception;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
-public final class com/miracl/trust/session/SigningSessionException$AbortSigningSessionFail : com/miracl/trust/session/SigningSessionException {
-}
-
-public final class com/miracl/trust/session/SigningSessionException$CompleteSigningSessionFail : com/miracl/trust/session/SigningSessionException {
-}
-
-public final class com/miracl/trust/session/SigningSessionException$GetSigningSessionDetailsFail : com/miracl/trust/session/SigningSessionException {
-}
-
-public final class com/miracl/trust/session/SigningSessionException$InvalidAppLink : com/miracl/trust/session/SigningSessionException {
-	public static final field INSTANCE Lcom/miracl/trust/session/SigningSessionException$InvalidAppLink;
-}
-
-public final class com/miracl/trust/session/SigningSessionException$InvalidQRCode : com/miracl/trust/session/SigningSessionException {
-	public static final field INSTANCE Lcom/miracl/trust/session/SigningSessionException$InvalidQRCode;
-}
-
-public final class com/miracl/trust/session/SigningSessionException$InvalidSigningSession : com/miracl/trust/session/SigningSessionException {
-	public static final field INSTANCE Lcom/miracl/trust/session/SigningSessionException$InvalidSigningSession;
-}
-
-public final class com/miracl/trust/session/SigningSessionException$InvalidSigningSessionDetails : com/miracl/trust/session/SigningSessionException {
-	public static final field INSTANCE Lcom/miracl/trust/session/SigningSessionException$InvalidSigningSessionDetails;
-}
-
-public final class com/miracl/trust/session/SigningSessionStatus : java/lang/Enum {
-	public static final field Active Lcom/miracl/trust/session/SigningSessionStatus;
-	public static final field Companion Lcom/miracl/trust/session/SigningSessionStatus$Companion;
-	public static final field Signed Lcom/miracl/trust/session/SigningSessionStatus;
-	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lcom/miracl/trust/session/SigningSessionStatus;
-	public static fun values ()[Lcom/miracl/trust/session/SigningSessionStatus;
-}
-
-public final class com/miracl/trust/session/SigningSessionStatus$Companion {
-	public final fun fromString (Ljava/lang/String;)Lcom/miracl/trust/session/SigningSessionStatus;
 }
 
 public final class com/miracl/trust/session/VerificationMethod : java/lang/Enum {

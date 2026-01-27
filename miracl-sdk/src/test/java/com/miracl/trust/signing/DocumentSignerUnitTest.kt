@@ -19,11 +19,6 @@ import com.miracl.trust.randomUuidString
 import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.session.CrossDeviceSessionApi
 import com.miracl.trust.session.IdentityType
-import com.miracl.trust.session.SigningSessionApi
-import com.miracl.trust.session.SigningSessionDetails
-import com.miracl.trust.session.SigningSessionException
-import com.miracl.trust.session.SigningSessionStatus
-import com.miracl.trust.session.SigningSessionUpdateResponse
 import com.miracl.trust.session.VerificationMethod
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.hexStringToByteArray
@@ -39,7 +34,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import java.util.Date
 import kotlin.random.Random
 
 @ExperimentalCoroutinesApi
@@ -58,7 +52,6 @@ class DocumentSignerUnitTest {
     private val authenticatorContractMock = mockk<AuthenticatorContract>()
     private val pinProviderMock = PinProvider { it.consume(pin) }
     private val userStorageMock = mockk<UserStorage>()
-    private val signingSessionApiMock = mockk<SigningSessionApi>()
     private val crossDeviceSessionApiMock = mockk<CrossDeviceSessionApi>()
 
     @Before
@@ -101,7 +94,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -125,77 +117,6 @@ class DocumentSignerUnitTest {
         }
 
     @Test
-    fun `sign with SigningSessionDetails should return MIRACLSuccess with Signature as a result on success`() =
-        runTest {
-            // Arrange
-            val message = randomByteArray()
-            val signingUser = createSigningUser()
-            val signingSessionDetails = createSigningSessionDetails()
-
-            coEvery {
-                authenticatorContractMock.authenticate(
-                    signingUser,
-                    any(),
-                    any(),
-                    arrayOf(AuthenticatorScopes.SIGNING_AUTHENTICATION.value),
-                    deviceName
-                )
-            } returns MIRACLSuccess(mockk())
-
-            val u = randomByteArray()
-            val v = randomByteArray()
-            coEvery {
-                cryptoMock.sign(
-                    message,
-                    mpinId.plus(publicKey),
-                    token,
-                    any(),
-                    pin.toInt()
-                )
-            } returns MIRACLSuccess(SigningResult(u, v))
-
-            coEvery {
-                signingSessionApiMock.executeSigningSessionUpdateRequest(any(), any(), any())
-            } returns MIRACLSuccess(SigningSessionUpdateResponse("signed"))
-
-            val documentSigner =
-                DocumentSigner(
-                    cryptoMock,
-                    authenticatorContractMock,
-                    userStorageMock,
-                    signingSessionApiMock,
-                    crossDeviceSessionApiMock
-                )
-
-            // Act
-            val result = documentSigner.sign(
-                message,
-                signingUser,
-                pinProviderMock,
-                deviceName,
-                signingSessionDetails
-            )
-
-            // Assert
-            Assert.assertTrue(result is MIRACLSuccess)
-            val signature = (result as MIRACLSuccess).value.signature
-            Assert.assertEquals(message.toHexString(), signature.hash)
-            Assert.assertEquals(u.toHexString(), signature.U)
-            Assert.assertEquals(v.toHexString(), signature.V)
-            Assert.assertEquals(dtas, signature.dtas)
-            Assert.assertEquals(mpinId.toHexString(), signature.mpinId)
-            Assert.assertEquals(publicKey.toHexString(), signature.publicKey)
-
-            coVerify {
-                signingSessionApiMock.executeSigningSessionUpdateRequest(
-                    id = signingSessionDetails.sessionId,
-                    signature = signature,
-                    timestamp = any()
-                )
-            }
-        }
-
-    @Test
     fun `sign should return MIRACLError when user is revoked`() =
         runTest {
             // Arrange
@@ -207,7 +128,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -240,7 +160,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -273,7 +192,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -306,7 +224,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -351,7 +268,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -396,7 +312,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -428,7 +343,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -449,40 +363,6 @@ class DocumentSignerUnitTest {
         }
 
     @Test
-    fun `sign should return MIRACLError when sessionId in SigningSessionDetails is empty`() =
-        runTest {
-            // Arrange
-            val message = randomByteArray()
-            val signingUser = createSigningUser()
-            val signingSessionDetails = createSigningSessionDetails(sessionId = " ")
-
-            val documentSigner =
-                DocumentSigner(
-                    cryptoMock,
-                    authenticatorContractMock,
-                    userStorageMock,
-                    signingSessionApiMock,
-                    crossDeviceSessionApiMock
-                )
-
-            // Act
-            val result = documentSigner.sign(
-                message,
-                signingUser,
-                pinProviderMock,
-                deviceName,
-                signingSessionDetails
-            )
-
-            // Assert
-            Assert.assertTrue(result is MIRACLError)
-            Assert.assertEquals(
-                SigningException.InvalidSigningSessionDetails,
-                (result as MIRACLError).value
-            )
-        }
-
-    @Test
     fun `sign should return MIRACLError on empty pin entered`() {
         runTest {
             // Arrange
@@ -495,7 +375,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -526,7 +405,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -557,7 +435,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -588,7 +465,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -629,7 +505,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -670,7 +545,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -713,7 +587,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -766,7 +639,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -818,7 +690,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -869,7 +740,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -884,195 +754,6 @@ class DocumentSignerUnitTest {
             // Assert
             Assert.assertTrue(result is MIRACLError)
             Assert.assertTrue((result as MIRACLError).value is SigningException.SigningFail)
-        }
-
-    @Test
-    fun `sign should return correct MIRACLError when signingSessionUpdateRequest returns InvalidSigningSession`() =
-        runTest {
-            // Arrange
-            val message = randomByteArray()
-            val signingUser = createSigningUser()
-            val signingSessionDetails = createSigningSessionDetails()
-
-            coEvery {
-                authenticatorContractMock.authenticate(
-                    signingUser,
-                    any(),
-                    any(),
-                    arrayOf(AuthenticatorScopes.SIGNING_AUTHENTICATION.value),
-                    deviceName
-                )
-            } returns MIRACLSuccess(mockk())
-
-            val u = randomByteArray()
-            val v = randomByteArray()
-            coEvery {
-                cryptoMock.sign(
-                    message,
-                    mpinId.plus(publicKey),
-                    token,
-                    any(),
-                    any()
-                )
-            } returns MIRACLSuccess(SigningResult(u, v))
-
-            coEvery {
-                signingSessionApiMock.executeSigningSessionUpdateRequest(
-                    signingSessionDetails.sessionId,
-                    any(),
-                    any()
-                )
-            } returns MIRACLError(SigningSessionException.InvalidSigningSession)
-
-            val documentSigner = DocumentSigner(
-                cryptoMock,
-                authenticatorContractMock,
-                userStorageMock,
-                signingSessionApiMock,
-                crossDeviceSessionApiMock
-            )
-
-            // Act
-            val result = documentSigner.sign(
-                message,
-                signingUser,
-                pinProviderMock,
-                deviceName,
-                signingSessionDetails
-            )
-
-            // Assert
-            Assert.assertTrue(result is MIRACLError)
-            Assert.assertEquals(
-                SigningException.InvalidSigningSession,
-                (result as MIRACLError).value
-            )
-        }
-
-    @Test
-    fun `sign should return MIRACLError when signingSessionUpdateRequest fails`() =
-        runTest {
-            // Arrange
-            val message = randomByteArray()
-            val signingUser = createSigningUser()
-            val signingSessionDetails = createSigningSessionDetails()
-
-            coEvery {
-                authenticatorContractMock.authenticate(
-                    signingUser,
-                    any(),
-                    any(),
-                    arrayOf(AuthenticatorScopes.SIGNING_AUTHENTICATION.value),
-                    deviceName
-                )
-            } returns MIRACLSuccess(mockk())
-
-            val u = randomByteArray()
-            val v = randomByteArray()
-            coEvery {
-                cryptoMock.sign(
-                    message,
-                    mpinId.plus(publicKey),
-                    token,
-                    any(),
-                    any()
-                )
-            } returns MIRACLSuccess(SigningResult(u, v))
-
-            val exception = SigningSessionException.CompleteSigningSessionFail(null)
-            coEvery {
-                signingSessionApiMock.executeSigningSessionUpdateRequest(
-                    signingSessionDetails.sessionId,
-                    any(),
-                    any()
-                )
-            } returns MIRACLError(exception)
-
-            val documentSigner = DocumentSigner(
-                cryptoMock,
-                authenticatorContractMock,
-                userStorageMock,
-                signingSessionApiMock,
-                crossDeviceSessionApiMock
-            )
-
-            // Act
-            val result = documentSigner.sign(
-                message,
-                signingUser,
-                pinProviderMock,
-                deviceName,
-                signingSessionDetails
-            )
-
-            // Assert
-            Assert.assertTrue(result is MIRACLError)
-            Assert.assertTrue((result as MIRACLError).value is SigningException.SigningFail)
-            Assert.assertEquals(exception, result.value.cause)
-        }
-
-    @Test
-    fun `sign should return MIRACLError when signingSessionUpdateRequest returns active session status`() =
-        runTest {
-            // Arrange
-            val message = randomByteArray()
-            val signingUser = createSigningUser()
-            val signingSessionDetails = createSigningSessionDetails()
-
-            coEvery {
-                authenticatorContractMock.authenticate(
-                    signingUser,
-                    any(),
-                    any(),
-                    arrayOf(AuthenticatorScopes.SIGNING_AUTHENTICATION.value),
-                    deviceName
-                )
-            } returns MIRACLSuccess(mockk())
-
-            val u = randomByteArray()
-            val v = randomByteArray()
-            coEvery {
-                cryptoMock.sign(
-                    message,
-                    mpinId.plus(publicKey),
-                    token,
-                    any(),
-                    any()
-                )
-            } returns MIRACLSuccess(SigningResult(u, v))
-
-            coEvery {
-                signingSessionApiMock.executeSigningSessionUpdateRequest(
-                    signingSessionDetails.sessionId,
-                    any(),
-                    any()
-                )
-            } returns MIRACLSuccess(SigningSessionUpdateResponse("active"))
-
-            val documentSigner =
-                DocumentSigner(
-                    cryptoMock,
-                    authenticatorContractMock,
-                    userStorageMock,
-                    signingSessionApiMock,
-                    crossDeviceSessionApiMock
-                )
-
-            // Act
-            val result = documentSigner.sign(
-                message,
-                signingUser,
-                pinProviderMock,
-                deviceName,
-                signingSessionDetails
-            )
-
-            // Assert
-            Assert.assertTrue(result is MIRACLError)
-            Assert.assertEquals(
-                SigningException.InvalidSigningSession,
-                (result as MIRACLError).value
-            )
         }
 
     @Test
@@ -1117,7 +798,6 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    signingSessionApiMock,
                     crossDeviceSessionApiMock
                 )
 
@@ -1150,7 +830,7 @@ class DocumentSignerUnitTest {
         }
 
     @Test
-    fun `sign with CrossDeviceSession should return MIRACLError when updateSigningSessionRequest fails`() =
+    fun `sign with CrossDeviceSession should return MIRACLError when updateCrossDeviceSessionForSigningRequest fails`() =
         runTest {
             // Arrange
             val signingUser = createSigningUser()
@@ -1178,7 +858,7 @@ class DocumentSignerUnitTest {
                 )
             } returns MIRACLSuccess(SigningResult(u, v))
 
-            val exception = SigningSessionException.CompleteSigningSessionFail(null)
+            val exception = Exception()
             coEvery {
                 crossDeviceSessionApiMock.executeUpdateCrossDeviceSessionForSigningRequest(
                     sessionId = crossDeviceSession.sessionId,
@@ -1190,7 +870,6 @@ class DocumentSignerUnitTest {
                 cryptoMock,
                 authenticatorContractMock,
                 userStorageMock,
-                signingSessionApiMock,
                 crossDeviceSessionApiMock
             )
 
@@ -1219,44 +898,6 @@ class DocumentSignerUnitTest {
             dtas = dtas,
             publicKey = publicKey
         )
-
-    private fun createSigningSessionDetails(
-        sessionId: String = randomUuidString(),
-        hash: String = randomHexString(),
-        description: String = randomUuidString(),
-        status: SigningSessionStatus = SigningSessionStatus.Active,
-        expireTime: Long = Date().time,
-        userId: String = this.userId,
-        projectId: String = this.projectId,
-        projectName: String = randomUuidString(),
-        projectLogoUrl: String = randomUuidString(),
-        pinLength: Int = this.pinLength,
-        verificationMethod: VerificationMethod = VerificationMethod.FullCustom,
-        verificationUrl: String = randomUuidString(),
-        verificationCustomText: String = randomUuidString(),
-        identityType: IdentityType = IdentityType.Email,
-        identityTypeLabel: String = randomUuidString(),
-        quickCodeEnabled: Boolean = Random.nextBoolean(),
-    ): SigningSessionDetails {
-        return SigningSessionDetails(
-            sessionId = sessionId,
-            signingHash = hash,
-            signingDescription = description,
-            status = status,
-            expireTime = expireTime,
-            userId = userId,
-            projectId = projectId,
-            projectName = projectName,
-            projectLogoUrl = projectLogoUrl,
-            pinLength = pinLength,
-            verificationMethod = verificationMethod,
-            verificationUrl = verificationUrl,
-            verificationCustomText = verificationCustomText,
-            identityType = identityType,
-            identityTypeLabel = identityTypeLabel,
-            quickCodeEnabled = quickCodeEnabled
-        )
-    }
 
     private fun createCrossDeviceSession(
         sessionId: String = randomUuidString(),

@@ -17,8 +17,6 @@ import com.miracl.trust.registration.*
 import com.miracl.trust.session.*
 import com.miracl.trust.session.SessionApiManager
 import com.miracl.trust.session.SessionManagerContract
-import com.miracl.trust.session.SigningSessionApiManager
-import com.miracl.trust.session.SigningSessionManagerContract
 import com.miracl.trust.signing.*
 import com.miracl.trust.storage.UserStorageException
 import com.miracl.trust.storage.UserStorage
@@ -81,7 +79,6 @@ public class MIRACLTrust private constructor(
     private val authenticator: AuthenticatorContract
     private val userStorage: UserStorage
     private val sessionManager: SessionManagerContract
-    private val signingSessionManager: SigningSessionManagerContract
     private val crossDeviceSessionManager: CrossDeviceSessionManagerContract
 
     private val miraclTrustCoroutineContext: CoroutineContext
@@ -164,14 +161,9 @@ public class MIRACLTrust private constructor(
         verificator =
             componentFactory.createVerificator(authenticator, verificationApi, userStorage)
 
-        val signingSessionApi =
-            SigningSessionApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
-        signingSessionManager = componentFactory.createSigningSessionManager(signingSessionApi)
-
         documentSigner = componentFactory.createDocumentSigner(
             authenticator = authenticator,
             userStorage = userStorage,
-            signingSessionApi = signingSessionApi,
             crossDeviceSessionApi = crossDeviceSessionApi
         )
     }
@@ -336,102 +328,6 @@ public class MIRACLTrust private constructor(
                     resultHandler.onResult(result)
                 }
             }
-        }
-    }
-    //endregion
-
-    //region Signing Session management
-    /**
-     * Get `signing` session details from MIRACL platform based on session identifier.
-     *
-     * Use this method to get signing session details for application that tries to sign
-     * against MIRACL Platform with the usage of AppLink.
-     *
-     * @param appLink a URI provided by the Intent.
-     * @param resultHandler a callback to handle the result of getting signing session details.
-     * - If successful, the result is [MIRACLSuccess] with the [SigningSessionDetails].
-     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
-     * operation.
-     */
-    public fun getSigningSessionDetailsFromAppLink(
-        appLink: Uri,
-        resultHandler: ResultHandler<SigningSessionDetails, SigningSessionException>
-    ) {
-        miraclTrustScope.launch {
-            signingSessionManager.getSigningSessionDetailsFromAppLink(appLink).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.SIGNING_SESSION_MANAGER_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
-    }
-
-    /**
-     * Get `signing` session details from MIRACL platform based on session identifier.
-     *
-     * Use this method to get signing session details for application that tries to sign
-     * against MIRACL Platform with the usage of QR Code.
-     *
-     * @param qrCode a string read from the QR code.
-     * @param resultHandler a callback to handle the result of getting signing session details.
-     * - If successful, the result is [MIRACLSuccess] with the [SigningSessionDetails].
-     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
-     * operation.
-     */
-    public fun getSigningSessionDetailsFromQRCode(
-        qrCode: String,
-        resultHandler: ResultHandler<SigningSessionDetails, SigningSessionException>
-    ) {
-        miraclTrustScope.launch {
-            signingSessionManager.getSigningSessionDetailsFromQRCode(qrCode).also { result ->
-                if (result is MIRACLError) {
-                    logError(
-                        LoggerConstants.SIGNING_SESSION_MANAGER_TAG,
-                        result.value
-                    )
-                }
-
-                withContext(resultHandlerDispatcher) {
-                    resultHandler.onResult(result)
-                }
-            }
-        }
-    }
-
-    /**
-     * Cancel the signing session.
-     *
-     * @param signingSessionDetails details for the signing session.
-     * @param resultHandler a callback to handle the result of session abort.
-     * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
-     * operation.
-     */
-    public fun abortSigningSession(
-        signingSessionDetails: SigningSessionDetails,
-        resultHandler: ResultHandler<Unit, SigningSessionException>
-    ) {
-        miraclTrustScope.launch {
-            signingSessionManager.abortSigningSession(signingSessionDetails)
-                .also { result ->
-                    if (result is MIRACLError) {
-                        logError(
-                            LoggerConstants.SIGNING_SESSION_MANAGER_TAG,
-                            result.value
-                        )
-                    }
-
-                    withContext(resultHandlerDispatcher) {
-                        resultHandler.onResult(result)
-                    }
-                }
         }
     }
     //endregion
@@ -1587,49 +1483,6 @@ public class MIRACLTrust private constructor(
                     user,
                     pinProvider,
                     deviceName
-                )
-                .also { result ->
-                    if (result is MIRACLError) {
-                        logError(
-                            LoggerConstants.DOCUMENT_SIGNER_TAG,
-                            result.value
-                        )
-                    }
-
-                    withContext(resultHandlerDispatcher) {
-                        resultHandler.onResult(result)
-                    }
-                }
-        }
-    }
-
-    /**
-     * Create a cryptographic signature of the given document.
-     * @param message the hash of the given document.
-     * @param user a user to sign with.
-     * @param signingSessionDetails details for the signing session.
-     * @param pinProvider a callback called from the SDK, when the signing identity PIN is required.
-     * @param resultHandler a callback to handle the result of the signing.
-     * - If successful, the result is [MIRACLSuccess].
-     * - If an error occurs, the result is [MIRACLError] with exception describing issues with the
-     * operation.
-     * @suppress
-     */
-    public fun sign(
-        message: ByteArray,
-        user: User,
-        signingSessionDetails: SigningSessionDetails,
-        pinProvider: PinProvider,
-        resultHandler: ResultHandler<SigningResult, SigningException>
-    ) {
-        miraclTrustScope.launch {
-            documentSigner
-                .sign(
-                    message,
-                    user,
-                    pinProvider,
-                    deviceName,
-                    signingSessionDetails
                 )
                 .also { result ->
                     if (result is MIRACLError) {

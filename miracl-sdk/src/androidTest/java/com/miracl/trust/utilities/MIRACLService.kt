@@ -56,17 +56,6 @@ internal data class ConfirmationRequestBody(val userId: String, val code: String
 internal data class ConfirmationResponse(val actToken: String)
 
 @Serializable
-data class SigningSessionCreateRequestBody(
-    @SerialName("projectID") val projectId: String,
-    @SerialName("userID") val userId: String,
-    @SerialName("hash") val hash: String,
-    @SerialName("description") val description: String
-)
-
-@Serializable
-data class SigningSessionCreateResponse(val id: String, val qrURL: String, val expireTime: Long)
-
-@Serializable
 data class VerifySignatureRequestBody(
     val signature: Signature,
     val timestamp: Int
@@ -193,32 +182,6 @@ object MIRACLService {
         )
 
         (requestExecutor.execute(apiRequest) as MIRACLSuccess).value
-    }
-
-    fun createSigningSession(
-        projectId: String,
-        projectUrl: String,
-        userId: String,
-        hash: String,
-        description: String
-    ): SigningSessionCreateResponse = runBlocking {
-        val apiRequest = ApiRequest(
-            method = HttpMethod.POST,
-            headers = null,
-            body = json.encodeToString(
-                SigningSessionCreateRequestBody(
-                    projectId,
-                    userId,
-                    hash,
-                    description
-                )
-            ),
-            params = null,
-            url = "$projectUrl/dvs/session"
-        )
-
-        val result = requestExecutor.execute(apiRequest)
-        json.decodeFromString<SigningSessionCreateResponse>((result as MIRACLSuccess).value)
     }
 
     fun verifySignature(
