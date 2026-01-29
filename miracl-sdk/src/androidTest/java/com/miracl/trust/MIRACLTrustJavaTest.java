@@ -6,7 +6,6 @@ import static com.miracl.trust.utilities.UtilitiesKt.USER_PIN_LENGTH;
 import static com.miracl.trust.utilities.UtilitiesKt.getUnixTime;
 import static com.miracl.trust.utilities.UtilitiesKt.randomHash;
 import static com.miracl.trust.utilities.UtilitiesKt.randomNumericPin;
-import static com.miracl.trust.utilities.UtilitiesKt.randomUuidString;
 
 import android.content.Context;
 import android.net.Uri;
@@ -28,8 +27,6 @@ import com.miracl.trust.session.AuthenticationSessionException;
 import com.miracl.trust.session.CrossDeviceSession;
 import com.miracl.trust.session.CrossDeviceSessionException;
 import com.miracl.trust.session.SessionDetails;
-import com.miracl.trust.session.SigningSessionDetails;
-import com.miracl.trust.session.SigningSessionException;
 import com.miracl.trust.signing.Signature;
 import com.miracl.trust.signing.SigningException;
 import com.miracl.trust.signing.SigningResult;
@@ -37,7 +34,6 @@ import com.miracl.trust.storage.UserStorageException;
 import com.miracl.trust.utilities.GmailService;
 import com.miracl.trust.utilities.JwtHelper;
 import com.miracl.trust.utilities.MIRACLService;
-import com.miracl.trust.utilities.SigningSessionCreateResponse;
 import com.miracl.trust.utilities.VerifySignatureResponse;
 
 import org.junit.Assert;
@@ -340,63 +336,6 @@ public class MIRACLTrustJavaTest {
                     ((MIRACLSuccess<AuthenticationSessionDetails, AuthenticationSessionException>) result).getValue();
             miraclTrust.abortAuthenticationSession(sessionDetails, abortSessionResult -> {
                 Assert.assertTrue(abortSessionResult instanceof MIRACLSuccess);
-            });
-        });
-        testCoroutineDispatcher.getScheduler().advanceUntilIdle();
-    }
-
-    @Test
-    public void testGetSigningSessionDetailsFromAppLink() {
-        String hash = randomUuidString();
-        String description = randomUuidString();
-        SigningSessionCreateResponse signingSessionCreateResponse =
-                MIRACLService.INSTANCE.createSigningSession(projectId, projectUrl, USER_ID, hash, description);
-        Uri appLink = Uri.parse(signingSessionCreateResponse.getQrURL());
-        miraclTrust.getSigningSessionDetailsFromAppLink(appLink, result -> {
-            Assert.assertTrue(result instanceof MIRACLSuccess);
-
-            SigningSessionDetails sessionDetails =
-                    ((MIRACLSuccess<SigningSessionDetails, SigningSessionException>) result).getValue();
-            Assert.assertEquals(signingSessionCreateResponse.getId(), sessionDetails.getSessionId());
-            Assert.assertEquals(projectId, sessionDetails.getProjectId());
-            Assert.assertEquals(hash, sessionDetails.getSigningHash());
-            Assert.assertEquals(description, sessionDetails.getSigningDescription());
-        });
-        testCoroutineDispatcher.getScheduler().advanceUntilIdle();
-    }
-
-    @Test
-    public void testGetSigningSessionDetailsFromQRCode() {
-        String hash = randomUuidString();
-        String description = randomUuidString();
-        SigningSessionCreateResponse signingSessionCreateResponse =
-                MIRACLService.INSTANCE.createSigningSession(projectId, projectUrl, USER_ID, hash, description);
-        String qrCode = signingSessionCreateResponse.getQrURL();
-        miraclTrust.getSigningSessionDetailsFromQRCode(qrCode, result -> {
-            Assert.assertTrue(result instanceof MIRACLSuccess);
-
-            SigningSessionDetails sessionDetails =
-                    ((MIRACLSuccess<SigningSessionDetails, SigningSessionException>) result).getValue();
-            Assert.assertEquals(signingSessionCreateResponse.getId(), sessionDetails.getSessionId());
-            Assert.assertEquals(projectId, sessionDetails.getProjectId());
-            Assert.assertEquals(hash, sessionDetails.getSigningHash());
-            Assert.assertEquals(description, sessionDetails.getSigningDescription());
-        });
-        testCoroutineDispatcher.getScheduler().advanceUntilIdle();
-    }
-
-    @Test
-    public void testAbortSigningSession() {
-        String hash = randomUuidString();
-        String description = randomUuidString();
-        Uri appLink = Uri.parse(MIRACLService.INSTANCE.createSigningSession(projectId, projectUrl, USER_ID, hash, description).getQrURL());
-        miraclTrust.getSigningSessionDetailsFromAppLink(appLink, result -> {
-            Assert.assertTrue(result instanceof MIRACLSuccess);
-
-            SigningSessionDetails sessionDetails =
-                    ((MIRACLSuccess<SigningSessionDetails, SigningSessionException>) result).getValue();
-            miraclTrust.abortSigningSession(sessionDetails, abortSigningSessionResult -> {
-                Assert.assertTrue(abortSigningSessionResult instanceof MIRACLSuccess);
             });
         });
         testCoroutineDispatcher.getScheduler().advanceUntilIdle();

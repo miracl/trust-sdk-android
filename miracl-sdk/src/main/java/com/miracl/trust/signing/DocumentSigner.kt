@@ -13,10 +13,6 @@ import com.miracl.trust.model.User
 import com.miracl.trust.model.isEmpty
 import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.session.CrossDeviceSessionApi
-import com.miracl.trust.session.SigningSessionApi
-import com.miracl.trust.session.SigningSessionDetails
-import com.miracl.trust.session.SigningSessionException
-import com.miracl.trust.session.SigningSessionStatus
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.acquirePin
 import com.miracl.trust.util.hexStringToByteArray
@@ -31,19 +27,17 @@ internal class DocumentSigner(
     private val crypto: Crypto,
     private val authenticator: AuthenticatorContract,
     private val userStorage: UserStorage,
-    private val signingSessionApi: SigningSessionApi,
     private val crossDeviceSessionApi: CrossDeviceSessionApi
 ) : Loggable {
     suspend fun sign(
         message: ByteArray,
         user: User,
         pinProvider: PinProvider,
-        deviceName: String,
-        signingSessionDetails: SigningSessionDetails? = null
+        deviceName: String
     ): MIRACLResult<SigningResult, SigningException> {
         logOperation(LoggerConstants.FLOW_STARTED)
 
-        validateInputParameters(user, message, signingSessionDetails)?.let { error ->
+        validateInputParameters(user, message)?.let { error ->
             return MIRACLError(error)
         }
 
@@ -106,12 +100,8 @@ internal class DocumentSigner(
             timestamp = timestamp.secondsSince1970()
         )
 
-        if (signingSessionDetails == null) {
-            logOperation(LoggerConstants.FLOW_FINISHED)
-            return MIRACLSuccess(SigningResult(signature, timestamp))
-        }
-
-        return completeSigningSession(signingSessionDetails, signature, timestamp)
+        logOperation(LoggerConstants.FLOW_FINISHED)
+        return MIRACLSuccess(SigningResult(signature, timestamp))
     }
 
     suspend fun sign(
@@ -146,43 +136,9 @@ internal class DocumentSigner(
         return MIRACLSuccess(Unit)
     }
 
-    private suspend fun completeSigningSession(
-        signingSessionDetails: SigningSessionDetails,
-        signature: Signature,
-        timestamp: Date
-    ): MIRACLResult<SigningResult, SigningException> {
-        logOperation(LoggerConstants.DocumentSignerOperations.UPDATE_SIGNING_SESSION_REQUEST)
-        val updateSigningSessionResult =
-            signingSessionApi.executeSigningSessionUpdateRequest(
-                signingSessionDetails.sessionId,
-                signature,
-                timestamp.secondsSince1970()
-            )
-
-        if (updateSigningSessionResult is MIRACLError) {
-            if (updateSigningSessionResult.value is SigningSessionException.InvalidSigningSession) {
-                return MIRACLError(SigningException.InvalidSigningSession)
-            }
-
-            return MIRACLError(SigningException.SigningFail(updateSigningSessionResult.value))
-        }
-
-        val signingSessionStatus = SigningSessionStatus.fromString(
-            (updateSigningSessionResult as MIRACLSuccess).value.status
-        )
-
-        if (signingSessionStatus != SigningSessionStatus.Signed) {
-            return MIRACLError(SigningException.InvalidSigningSession)
-        }
-
-        logOperation(LoggerConstants.FLOW_FINISHED)
-        return MIRACLSuccess(SigningResult(signature, timestamp))
-    }
-
     private fun validateInputParameters(
         user: User,
-        message: ByteArray,
-        signingSessionDetails: SigningSessionDetails?
+        message: ByteArray
     ): SigningException? {
         if (user.isEmpty()) {
             return SigningException.InvalidUserData
@@ -194,10 +150,6 @@ internal class DocumentSigner(
 
         if (message.isEmpty()) {
             return SigningException.EmptyMessageHash
-        }
-
-        if (signingSessionDetails?.sessionId?.isBlank() == true) {
-            return SigningException.InvalidSigningSessionDetails
         }
 
         return null

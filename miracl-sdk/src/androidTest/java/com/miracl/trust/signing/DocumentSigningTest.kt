@@ -20,16 +20,9 @@ import com.miracl.trust.registration.RegistrationApiManager
 import com.miracl.trust.registration.Registrator
 import com.miracl.trust.session.CrossDeviceSessionApiManager
 import com.miracl.trust.session.CrossDeviceSessionManager
-import com.miracl.trust.session.IdentityType
 import com.miracl.trust.session.SessionApiManager
-import com.miracl.trust.session.SigningSessionApiManager
-import com.miracl.trust.session.SigningSessionDetails
-import com.miracl.trust.session.SigningSessionManager
-import com.miracl.trust.session.SigningSessionStatus
-import com.miracl.trust.session.VerificationMethod
 import com.miracl.trust.storage.room.RoomUserStorage
 import com.miracl.trust.storage.room.UserDatabase
-import com.miracl.trust.util.hexStringToByteArray
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import com.miracl.trust.util.secondsSince1970
 import com.miracl.trust.util.toHexString
@@ -42,13 +35,11 @@ import com.miracl.trust.utilities.WRONG_FORMAT_PIN
 import com.miracl.trust.utilities.generateWrongPin
 import com.miracl.trust.utilities.randomHash
 import com.miracl.trust.utilities.randomNumericPin
-import com.miracl.trust.utilities.randomPinLength
 import com.miracl.trust.utilities.randomUuidString
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import kotlin.random.Random
 
 class DocumentSigningTest {
     private val projectId = BuildConfig.CUV_PROJECT_ID
@@ -56,7 +47,6 @@ class DocumentSigningTest {
     private val serviceAccountToken = BuildConfig.CUV_SERVICE_ACCOUNT_TOKEN
 
     private lateinit var userStorage: RoomUserStorage
-    private lateinit var signingSessionManager: SigningSessionManager
     private lateinit var crossDeviceSessionManager: CrossDeviceSessionManager
     private lateinit var documentSigner: DocumentSigner
 
@@ -76,10 +66,6 @@ class DocumentSigningTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val userDatabase = Room.inMemoryDatabaseBuilder(context, UserDatabase::class.java).build()
         userStorage = RoomUserStorage(userDatabase)
-
-        val signingSessionApi =
-            SigningSessionApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
-        signingSessionManager = SigningSessionManager(signingSessionApi)
 
         val crossDeviceSessionApi = CrossDeviceSessionApiManager(
             apiRequestExecutor,
@@ -103,7 +89,6 @@ class DocumentSigningTest {
             crypto,
             authenticator,
             userStorage,
-            signingSessionApi,
             crossDeviceSessionApi
         )
 
@@ -149,36 +134,6 @@ class DocumentSigningTest {
         val jwks = MIRACLService.getDvsJwkSet(projectUrl)
         val claims = JwtHelper.parseSignedClaims(verifySignatureResponse.certificate, jwks)
         Assert.assertEquals(message.toHexString(), claims.payload["hash"])
-    }
-
-    @Test
-    fun testSuccessfulDocumentSigningWithSigningSessionDetails() = runBlocking {
-        // Sign
-        val signingSessionDetails = createSigningSession()
-        val result = documentSigner.sign(
-            message = signingSessionDetails.signingHash.hexStringToByteArray(),
-            user = user,
-            pinProvider = pinProvider,
-            deviceName = Build.MODEL,
-            signingSessionDetails = signingSessionDetails
-        )
-        Assert.assertTrue(result is MIRACLSuccess)
-
-        // Verify the signature
-        val signingResult = (result as MIRACLSuccess).value
-        Assert.assertEquals(signingSessionDetails.signingHash, signingResult.signature.hash)
-
-        val verifySignatureResponse = MIRACLService.verifySignature(
-            projectId = projectId,
-            projectUrl = projectUrl,
-            serviceAccountToken = serviceAccountToken,
-            signature = signingResult.signature,
-            timestamp = signingResult.timestamp.secondsSince1970()
-        )
-
-        val jwks = MIRACLService.getDvsJwkSet(projectUrl)
-        val claims = JwtHelper.parseSignedClaims(verifySignatureResponse.certificate, jwks)
-        Assert.assertEquals(signingSessionDetails.signingHash, claims.payload["hash"])
     }
 
     @Test
@@ -402,63 +357,5 @@ class DocumentSigningTest {
         // Assert
         Assert.assertTrue(signingResult is MIRACLError)
         Assert.assertEquals(SigningException.Revoked, (signingResult as MIRACLError).value)
-    }
-
-    @Test
-    fun testSigningInvalidSession() = runBlocking {
-        // Arrange
-        val invalidSigningSessionDetails = SigningSessionDetails(
-            sessionId = "invalidSessionId",
-            signingHash = randomUuidString(),
-            signingDescription = randomUuidString(),
-            status = SigningSessionStatus.Active,
-            expireTime = 0,
-            userId = randomUuidString(),
-            projectId = randomUuidString(),
-            projectName = randomUuidString(),
-            projectLogoUrl = randomUuidString(),
-            pinLength = randomPinLength(),
-            verificationMethod = VerificationMethod.StandardEmail,
-            verificationUrl = randomUuidString(),
-            verificationCustomText = randomUuidString(),
-            identityType = IdentityType.Email,
-            identityTypeLabel = randomUuidString(),
-            quickCodeEnabled = Random.nextBoolean()
-        )
-
-        // Act
-        val signingResult = documentSigner.sign(
-            "hash".toByteArray(),
-            user,
-            pinProvider,
-            Build.MODEL,
-            invalidSigningSessionDetails
-        )
-
-        // Assert
-        Assert.assertTrue(signingResult is MIRACLError)
-        Assert.assertEquals(
-            SigningException.InvalidSigningSession,
-            (signingResult as MIRACLError).value
-        )
-    }
-
-    private suspend fun createSigningSession(
-        hash: String = randomHash().toHexString(),
-        description: String = randomUuidString()
-    ): SigningSessionDetails {
-        val qrCode = MIRACLService.createSigningSession(
-            projectId = projectId,
-            projectUrl = projectUrl,
-            userId = USER_ID,
-            hash = hash,
-            description = description
-        ).qrURL
-
-        val getSigningSessionDetailsResult =
-            signingSessionManager.getSigningSessionDetailsFromQRCode(qrCode)
-        Assert.assertTrue(getSigningSessionDetailsResult is MIRACLSuccess)
-
-        return (getSigningSessionDetailsResult as MIRACLSuccess).value
     }
 }
