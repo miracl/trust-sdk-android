@@ -125,8 +125,6 @@ options for that:
   [sendVerificationEmail](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/send-verification-email.html)
   method:
 
-  Kotlin:
-
   ```kotlin
   miraclTrust.sendVerificationEmail(
       userId = USER_ID,
@@ -144,7 +142,27 @@ options for that:
   )
   ```
 
-  Java:
+  <details>
+    <summary>Using coroutines</summary>
+
+  ```kotlin
+  val result = miraclTrust.sendVerificationEmail(userId = USER_ID)
+  when (result) {
+      is MIRACLSuccess -> {
+          // Verification email is sent.
+      }
+
+      is MIRACLError -> {
+          val error = result.value
+          // Verification email is not sent due to an error.
+      }
+  }
+  ```
+
+  </details>
+
+  <details>
+    <summary>Using Java</summary>
 
   ```java
   miraclTrust.sendVerificationEmail(
@@ -161,6 +179,8 @@ options for that:
       }
   );
   ```
+
+  </details>
   
   Then, a verification email is sent, and a
   [VerificationResponse](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.registration/-verification-response/index.html)
@@ -206,8 +226,6 @@ options for that:
       [getActivationToken](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-activation-token.html)
       method:
 
-      Kotlin:
-
       ```kotlin
       intent?.data?.let { verificationUri ->
           miraclTrust.getActivationToken(
@@ -231,7 +249,32 @@ options for that:
       }
       ```
 
-      Java:
+      <details>
+        <summary>Using coroutines</summary>
+
+      ```kotlin
+      intent?.data?.let { verificationUri ->
+          val result = miraclTrust.getActivationToken(verificationUri)
+          when (result) {
+              is MIRACLSuccess -> {
+                  val userId = result.value.userId
+                  val activationToken = result.value.activationToken
+
+                  // Use the activation token and the User ID to register the user.
+              }
+
+              is MIRACLError -> {
+                  val error = result.value
+                  // Cannot obtain activation token due to an error.
+              }
+          }
+      }
+      ```
+
+      </details>
+
+      <details>
+        <summary>Using Java</summary>
 
       ```java
       Uri verificationUri = intent.getData();
@@ -257,14 +300,14 @@ options for that:
       }
       ```
 
+      </details>
+
    - [Email Code](https://miracl.com/resources/docs/guides/built-in-user-verification/email-code/):
 
       When the end user enters the verification code, the application must
       confirm the verification by passing it to the
       [getActivationToken](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-activation-token.html)
       method:
-
-       Kotlin:
 
       ```kotlin
       miraclTrust.getActivationToken(userId, code) { result ->
@@ -284,7 +327,30 @@ options for that:
       }
       ```
 
-      Java:
+      <details>
+        <summary>Using coroutines</summary>
+
+      ```kotlin
+      val result = miraclTrust.getActivationToken(userId, code)
+      when (result) {
+          is MIRACLSuccess -> {
+              val userId = result.value.userId
+              val activationToken = result.value.activationToken
+
+              // Use the activation token and the User ID to register the user.
+          }
+
+          is MIRACLError -> {
+              val error = result.value
+              // Cannot obtain activation token due to an error.
+          }
+      }
+      ```
+
+      </details>
+
+      <details>
+        <summary>Using Java</summary>
 
       ```java
       miraclTrust.getActivationToken(userId, code, result -> {
@@ -307,6 +373,8 @@ options for that:
       });
       ```
 
+      </details>
+
 1. Pass the User ID (email or any string you use for identification), activation
    token (received from verification), [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
    and [ResultHandler](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-result-handler/index.html)
@@ -316,8 +384,6 @@ options for that:
    together with the registered user as its value. Otherwise, [MIRACLError](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-error/index.html)
    with a [RegistrationException](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.registration/-registration-exception/index.html)
    is passed in the callback.
-
-   Kotlin:
 
    ```kotlin
    miraclTrust.register(
@@ -343,7 +409,36 @@ options for that:
    )
    ```
 
-   Java:
+   <details>
+     <summary>Using coroutines</summary>
+
+   ```kotlin
+   val result = miraclTrust.register(
+       userId = USER_ID,
+       activationToken = activationToken,
+       pinProvider = { pinConsumer ->
+           // Ask the user to create a PIN code for their new User ID.
+           // Then pass the PIN code to the PinConsumer.
+           pinConsumer.consume(userPin)
+       }
+   )
+
+   when (result) {
+       is MIRACLSuccess -> {
+           val user = result.value
+       }
+
+       is MIRACLError -> {
+           val error = result.value
+           // Cannot register user due to an error.
+       }
+   }
+   ```
+
+   </details>
+
+   <details>
+     <summary>Using Java</summary>
 
    ```java
    miraclTrust.register(
@@ -365,6 +460,8 @@ options for that:
        }
    );
    ```
+
+   </details>
 
    If you call the
    [register](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/register.html)
@@ -389,8 +486,6 @@ authentication token for а registered user.
 Use [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
 the same way it is used during registration.
 
-Kotlin:
-
 ```kotlin
 miraclTrust.authenticate(
     user = user,
@@ -409,7 +504,28 @@ miraclTrust.authenticate(
 )
 ```
 
-Java:
+<details>
+  <summary>Using coroutines</summary>
+
+```kotlin
+val result = miraclTrust.authenticate(user = user, pinProvider = pinProvider)
+
+when (result) {
+    is MIRACLSuccess -> {
+        // user is authenticated
+        val jwt = result.value
+    }
+
+    is MIRACLError -> {
+        // user is not authenticated
+    }
+}
+```
+
+</details>
+
+<details>
+  <summary>Using Java</summary>
 
 ```java
 miraclTrust.authenticate(
@@ -426,6 +542,8 @@ miraclTrust.authenticate(
 );
 ```
 
+</details>
+
 After the JWT authentication token is generated, it needs to be sent to the
 application server for [verification](https://miracl.com/resources/docs/guides/authentication/jwt-verification/).
 
@@ -437,8 +555,6 @@ To authenticate a user on another application, there are three options:
 
   Use the [authenticateWithAppLink](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-app-link.html)
   method:
-
-  Kotlin:
 
   ```kotlin
   intent.data?.let { appLink ->
@@ -461,7 +577,33 @@ To authenticate a user on another application, there are three options:
   }
   ```
 
-  Java:
+  <details>
+    <summary>Using coroutines</summary>
+
+  ```kotlin
+  intent.data?.let { appLink ->
+      val result = miraclTrust.authenticateWithAppLink(
+          user = user,
+          appLink = appLink,
+          pinProvider = pinProvider
+      )
+
+      when (result) {
+          is MIRACLSuccess -> {
+              // user is authenticated
+          }
+
+          is MIRACLError -> {
+              // user is not authenticated
+          }
+      }
+  }
+  ```
+
+  </details>
+
+  <details>
+    <summary>Using Java</summary>
 
   ```java
   Uri appLink = getIntent().getData();
@@ -481,12 +623,12 @@ To authenticate a user on another application, there are three options:
   }
   ```
 
+  </details>
+
 - Authenticate with QR code
 
   Use the [authenticateWithQRCode](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-q-r-code.html)
   method:
-
-  Kotlin:
 
   ```kotlin
   miraclTrust.authenticateWithQRCode(
@@ -506,7 +648,31 @@ To authenticate a user on another application, there are three options:
   )
   ```
 
-  Java:
+  <details>
+  <summary>Using coroutines</summary>
+
+  ```kotlin
+  val result = miraclTrust.authenticateWithQRCode(
+      user = user,
+      qrCode = qrCode,
+      pinProvider = pinProvider
+  )
+
+  when (result) {
+      is MIRACLSuccess -> {
+          // user is authenticated
+      }
+
+      is MIRACLError -> {
+          // user is not authenticated
+      }
+  }
+  ```
+
+  </details>
+
+  <details>
+    <summary>Using Java</summary>
 
   ```java
   miraclTrust.authenticateWithQRCode(
@@ -523,13 +689,13 @@ To authenticate a user on another application, there are three options:
   );
   ```
 
+  </details>
+
 - Authenticate with
   [notification](https://developer.android.com/guide/topics/ui/notifiers/notifications)
 
   Use the [authenticateWithNotificationPayload](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-notification-payload.html)
   method:
-
-  Kotlin:
 
   ```kotlin
   val payload = remoteMessage.data
@@ -549,7 +715,31 @@ To authenticate a user on another application, there are three options:
   )
   ```
 
-  Java:
+  <details>
+  <summary>Using coroutines</summary>
+
+  ```kotlin
+  val payload = remoteMessage.data
+  val result = miraclTrust.authenticateWithNotificationPayload(
+      payload = payload,
+      pinProvider = pinProvider
+  )
+
+  when (result) {
+      is MIRACLSuccess -> {
+          // user is authenticated
+      }
+
+      is MIRACLError -> {
+          // user is not authenticated
+      }
+  }
+  ```
+
+  </details>
+
+  <details>
+    <summary>Using Java</summary>
 
   ```java
   Map<String, String> payload = remoteMessage.getData();
@@ -566,6 +756,8 @@ To authenticate a user on another application, there are three options:
   );
   ```
 
+  </details>
+
 For more information about authenticating users on custom applications, see
 [Cross-Device Authentication](https://miracl.com/resources/docs/guides/how-to/custom-mobile-authentication/).
 
@@ -579,8 +771,6 @@ In the context of this SDK, we refer to it as 'Signing'.
 To sign a document, use the
 [sign](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/sign.html)
 method as follows:
-
-Kotlin:
 
 ```kotlin
 miraclTrust.sign(
@@ -600,7 +790,28 @@ miraclTrust.sign(
 }
 ```
 
-Java:
+<details>
+  <summary>Using coroutines</summary>
+
+```kotlin
+val result = miraclTrust.sign(hashedMessage, user, pinProvider)
+
+when (result) {
+    is MIRACLSuccess -> {
+        val signingResult = result.value
+    }
+
+    is MIRACLError -> {
+        val error = result.value
+        // Cannot sign the message/document due to an error.
+    }
+}
+```
+
+</details>
+
+<details>
+  <summary>Using Java</summary>
 
 ```java
 miraclTrust.sign(
@@ -620,6 +831,8 @@ miraclTrust.sign(
 );
 ```
 
+</details>
+
 The signature needs to be verified. This is done when the signature and the
 timestamp are sent to the application server, which then makes an HTTP call to the
 [POST /dvs/verify](https://miracl.com/resources/docs/guides/dvs/dvs-web-plugin/#api-reference)
@@ -635,8 +848,6 @@ process.
 To generate a QuickCode, call the [generateQuickCode](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/generate-quick-code.html)
 method with an already registered [User](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.model/-user/index.html)
 object:
-
-Kotlin:
 
 ```kotlin
 miraclTrust.generateQuickCode(
@@ -655,7 +866,28 @@ miraclTrust.generateQuickCode(
 }
 ```
 
-Java:
+<details>
+  <summary>Using coroutines</summary>
+
+```kotlin
+val result = miraclTrust.generateQuickCode(user, pinProvider)
+
+when (result) {
+    is MIRACLSuccess -> {
+        val quickCode = result.value
+    }
+
+    is MIRACLError -> {
+        val error = result.value
+        // handle error
+    }
+}
+```
+
+</details>
+
+<details>
+  <summary>Using Java</summary>
 
 ```java
 miraclTrust.generateQuickCode(
@@ -674,6 +906,8 @@ miraclTrust.generateQuickCode(
 );
 ```
 
+</details>
+
 ### User Management
 
 The MIRACL Trust Android SDK provides several methods for managing users registered
@@ -685,8 +919,6 @@ previously registered users.
 To retrieve a specific registered user by their User ID, use the
 [getUser](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-user.html)
 method:
-
-Kotlin:
 
 ```kotlin
 miraclTrust.getUser(userId = USER_ID) { result ->
@@ -707,7 +939,23 @@ miraclTrust.getUser(userId = USER_ID) { result ->
 }
 ```
 
-Java:
+<details>
+  <summary>Using coroutines</summary>
+
+```kotlin
+val user = miraclTrust.getUser(userId = USER_ID)
+
+if (user != null) {
+    // User exists.
+} else {
+    // No user registered with this User ID.
+}
+```
+
+</details>
+
+<details>
+  <summary>Using Java</summary>
 
 ```java
 miraclTrust.getUser(USER_ID, result -> {
@@ -727,13 +975,13 @@ miraclTrust.getUser(USER_ID, result -> {
 });
 ```
 
+</details>
+
 #### Get all registered users
 
 To obtain the list of all users registered on а device, call the
 [getUsers](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-users.html)
 method:
-
-Kotlin:
 
 ```kotlin
 miraclTrust.getUsers { result ->
@@ -750,7 +998,17 @@ miraclTrust.getUsers { result ->
 }
 ```
 
-Java:
+<details>
+  <summary>Using coroutines</summary>
+
+```kotlin
+val users = miraclTrust.getUsers()
+```
+
+</details>
+
+<details>
+  <summary>Using Java</summary>
 
 ```java
 miraclTrust.getUsers(result -> {
@@ -766,13 +1024,13 @@ miraclTrust.getUsers(result -> {
 });
 ```
 
+</details>
+
 #### Delete a registered user
 
 To delete a previously registered user from a device, call the
 [delete](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/delete.html)
 method:
-
-Kotlin:
 
 ```kotlin
 miraclTrust.delete(
@@ -791,7 +1049,17 @@ miraclTrust.delete(
 )
 ```
 
-Java:
+<details>
+  <summary>Using coroutines</summary>
+
+```kotlin
+miraclTrust.delete(user)
+```
+
+</details>
+
+<details>
+  <summary>Using Java</summary>
 
 ```java
 miraclTrust.delete(user, result -> {
@@ -804,6 +1072,8 @@ miraclTrust.delete(user, result -> {
     }
 });
 ```
+
+</details>
 
 ## Dependencies
 
