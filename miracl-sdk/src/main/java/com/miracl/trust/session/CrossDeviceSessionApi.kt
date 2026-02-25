@@ -33,15 +33,6 @@ internal data class CrossDeviceSessionResponse(
     @SerialName("description") val description: String,
     @SerialName("prerollId") val prerollId: String,
     @SerialName("projectId") val projectId: String,
-    @SerialName("projectName") val projectName: String,
-    @SerialName("projectLogoURL") val projectLogoUrl: String,
-    @SerialName("pinLength") val pinLength: Int,
-    @SerialName("verificationMethod") val verificationMethod: String,
-    @SerialName("verificationURL") val verificationUrl: String,
-    @SerialName("verificationCustomText") val verificationCustomText: String,
-    @SerialName("identityType") val identityType: String,
-    @SerialName("identityTypeLabel") val identityTypeLabel: String,
-    @SerialName("enableRegistrationCode") val quickCodeEnabled: Boolean,
     @SerialName("hash") val hash: String
 )
 
