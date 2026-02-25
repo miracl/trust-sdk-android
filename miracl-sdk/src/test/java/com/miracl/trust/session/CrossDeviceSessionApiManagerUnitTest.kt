@@ -9,7 +9,6 @@ import com.miracl.trust.network.ApiRequestExecutor
 import com.miracl.trust.network.ApiSettings
 import com.miracl.trust.network.HttpMethod
 import com.miracl.trust.randomHexString
-import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
 import com.miracl.trust.signing.Signature
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
@@ -25,7 +24,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import java.util.Date
-import kotlin.random.Random
 
 class CrossDeviceSessionApiManagerUnitTest {
     private val httpRequestExecutorMock = mockk<ApiRequestExecutor>()
@@ -265,15 +263,6 @@ class CrossDeviceSessionApiManagerUnitTest {
         prerollId = randomUuidString(),
         description = randomUuidString(),
         projectId = randomUuidString(),
-        projectName = randomUuidString(),
-        projectLogoUrl = randomUuidString(),
-        pinLength = randomPinLength(),
-        verificationMethod = VerificationMethod.StandardEmail.name,
-        verificationUrl = randomUuidString(),
-        verificationCustomText = randomUuidString(),
-        identityType = IdentityType.Email.name,
-        identityTypeLabel = randomUuidString(),
-        quickCodeEnabled = Random.nextBoolean(),
         hash = randomUuidString()
     )
 

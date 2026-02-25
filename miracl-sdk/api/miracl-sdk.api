@@ -479,21 +479,12 @@ public final class com/miracl/trust/session/AuthenticationSessionException$Inval
 }
 
 public final class com/miracl/trust/session/CrossDeviceSession {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILcom/miracl/trust/session/VerificationMethod;Ljava/lang/String;Ljava/lang/String;Lcom/miracl/trust/session/IdentityType;Ljava/lang/String;ZLjava/lang/String;)V
-	public final fun getIdentityType ()Lcom/miracl/trust/session/IdentityType;
-	public final fun getIdentityTypeLabel ()Ljava/lang/String;
-	public final fun getPinLength ()I
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun getProjectId ()Ljava/lang/String;
-	public final fun getProjectLogoUrl ()Ljava/lang/String;
-	public final fun getProjectName ()Ljava/lang/String;
-	public final fun getQuickCodeEnabled ()Z
 	public final fun getSessionDescription ()Ljava/lang/String;
 	public final fun getSessionId ()Ljava/lang/String;
 	public final fun getSigningHash ()Ljava/lang/String;
 	public final fun getUserId ()Ljava/lang/String;
-	public final fun getVerificationCustomText ()Ljava/lang/String;
-	public final fun getVerificationMethod ()Lcom/miracl/trust/session/VerificationMethod;
-	public final fun getVerificationUrl ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
 }
 

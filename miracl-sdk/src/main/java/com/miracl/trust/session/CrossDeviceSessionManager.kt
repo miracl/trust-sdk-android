@@ -37,15 +37,6 @@ internal class CrossDeviceSessionManager(
             sessionDescription = codeStatusResponse.description,
             userId = codeStatusResponse.prerollId,
             projectId = codeStatusResponse.projectId,
-            projectName = codeStatusResponse.projectName,
-            projectLogoUrl = codeStatusResponse.projectLogoUrl,
-            pinLength = codeStatusResponse.pinLength,
-            verificationMethod = VerificationMethod.fromString(codeStatusResponse.verificationMethod),
-            verificationUrl = codeStatusResponse.verificationUrl,
-            verificationCustomText = codeStatusResponse.verificationCustomText,
-            identityType = IdentityType.fromString(codeStatusResponse.identityType),
-            identityTypeLabel = codeStatusResponse.identityTypeLabel,
-            quickCodeEnabled = codeStatusResponse.quickCodeEnabled,
             signingHash = codeStatusResponse.hash
         )
 

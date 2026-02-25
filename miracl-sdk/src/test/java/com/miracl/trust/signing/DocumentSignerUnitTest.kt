@@ -18,8 +18,6 @@ import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
 import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.session.CrossDeviceSessionApi
-import com.miracl.trust.session.IdentityType
-import com.miracl.trust.session.VerificationMethod
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.hexStringToByteArray
 import com.miracl.trust.util.toHexString
@@ -34,7 +32,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import kotlin.random.Random
 
 @ExperimentalCoroutinesApi
 class DocumentSignerUnitTest {
@@ -904,30 +901,12 @@ class DocumentSignerUnitTest {
         description: String = randomUuidString(),
         userId: String = this.userId,
         projectId: String = this.projectId,
-        projectName: String = randomUuidString(),
-        projectLogoUrl: String = randomUuidString(),
-        pinLength: Int = this.pinLength,
-        verificationMethod: VerificationMethod = VerificationMethod.FullCustom,
-        verificationUrl: String = randomUuidString(),
-        verificationCustomText: String = randomUuidString(),
-        identityType: IdentityType = IdentityType.Email,
-        identityTypeLabel: String = randomUuidString(),
-        quickCodeEnabled: Boolean = Random.nextBoolean(),
         hash: String = randomHexString()
     ) = CrossDeviceSession(
         sessionId = sessionId,
         sessionDescription = description,
         userId = userId,
         projectId = projectId,
-        projectName = projectName,
-        projectLogoUrl = projectLogoUrl,
-        pinLength = pinLength,
-        verificationMethod = verificationMethod,
-        verificationUrl = verificationUrl,
-        verificationCustomText = verificationCustomText,
-        identityType = identityType,
-        identityTypeLabel = identityTypeLabel,
-        quickCodeEnabled = quickCodeEnabled,
         signingHash = hash
     )
 }
