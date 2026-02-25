@@ -3,7 +3,6 @@ package com.miracl.trust.session
 import android.net.Uri
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
-import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
@@ -15,7 +14,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import kotlin.random.Random
 
 class CrossDeviceSessionManagerUnitTest {
     private val sessionId = randomUuidString()
@@ -51,36 +49,6 @@ class CrossDeviceSessionManagerUnitTest {
             Assert.assertEquals(crossDeviceSessionResponse.description, result.value.sessionDescription)
             Assert.assertEquals(crossDeviceSessionResponse.prerollId, result.value.userId)
             Assert.assertEquals(crossDeviceSessionResponse.projectId, result.value.projectId)
-            Assert.assertEquals(crossDeviceSessionResponse.projectName, result.value.projectName)
-            Assert.assertEquals(
-                crossDeviceSessionResponse.projectLogoUrl,
-                result.value.projectLogoUrl
-            )
-            Assert.assertEquals(crossDeviceSessionResponse.pinLength, result.value.pinLength)
-            Assert.assertEquals(
-                VerificationMethod.fromString(crossDeviceSessionResponse.verificationMethod),
-                result.value.verificationMethod
-            )
-            Assert.assertEquals(
-                crossDeviceSessionResponse.verificationUrl,
-                result.value.verificationUrl
-            )
-            Assert.assertEquals(
-                crossDeviceSessionResponse.verificationCustomText,
-                result.value.verificationCustomText
-            )
-            Assert.assertEquals(
-                IdentityType.fromString(crossDeviceSessionResponse.identityType),
-                result.value.identityType
-            )
-            Assert.assertEquals(
-                crossDeviceSessionResponse.identityTypeLabel,
-                result.value.identityTypeLabel
-            )
-            Assert.assertEquals(
-                crossDeviceSessionResponse.quickCodeEnabled,
-                result.value.quickCodeEnabled
-            )
             Assert.assertEquals(crossDeviceSessionResponse.hash, result.value.signingHash)
         }
 
@@ -342,16 +310,6 @@ class CrossDeviceSessionManagerUnitTest {
         description: String = randomUuidString(),
         userId: String = randomUuidString(),
         projectId: String = randomUuidString(),
-        projectName: String = randomUuidString(),
-        projectLogoUrl: String = randomUuidString(),
-        pinLength: Int = randomPinLength(),
-        verificationMethod: VerificationMethod = VerificationMethod.FullCustom,
-        verificationUrl: String = randomUuidString(),
-        verificationCustomText: String = randomUuidString(),
-        identityType: IdentityType = IdentityType.Email,
-        identityTypeLabel: String = randomUuidString(),
-        quickCodeEnabled: Boolean = Random.nextBoolean(),
-        limitQuickCodeRegistration: Boolean = Random.nextBoolean(),
         hash: String = randomUuidString()
     ): CrossDeviceSession {
         return CrossDeviceSession(
@@ -359,15 +317,6 @@ class CrossDeviceSessionManagerUnitTest {
             sessionDescription = description,
             userId = userId,
             projectId = projectId,
-            projectName = projectName,
-            projectLogoUrl = projectLogoUrl,
-            pinLength = pinLength,
-            verificationMethod = verificationMethod,
-            verificationUrl = verificationUrl,
-            verificationCustomText = verificationCustomText,
-            identityType = identityType,
-            identityTypeLabel = identityTypeLabel,
-            quickCodeEnabled = quickCodeEnabled,
             signingHash = hash
         )
     }
@@ -376,15 +325,6 @@ class CrossDeviceSessionManagerUnitTest {
         prerollId = randomUuidString(),
         description = randomUuidString(),
         projectId = randomUuidString(),
-        projectName = randomUuidString(),
-        projectLogoUrl = randomUuidString(),
-        pinLength = randomPinLength(),
-        verificationMethod = VerificationMethod.StandardEmail.name,
-        verificationUrl = randomUuidString(),
-        verificationCustomText = randomUuidString(),
-        identityType = IdentityType.Email.name,
-        identityTypeLabel = randomUuidString(),
-        quickCodeEnabled = Random.nextBoolean(),
         hash = randomUuidString()
     )
 }
