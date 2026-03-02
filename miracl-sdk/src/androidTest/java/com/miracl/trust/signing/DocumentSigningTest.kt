@@ -1,32 +1,17 @@
 package com.miracl.trust.signing
 
-import android.content.Context
-import android.os.Build
 import android.util.Base64
-import androidx.room.Room
-import androidx.test.core.app.ApplicationProvider
+import androidx.test.platform.app.InstrumentationRegistry
 import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
-import com.miracl.trust.authentication.AuthenticationApiManager
-import com.miracl.trust.authentication.Authenticator
-import com.miracl.trust.crypto.Crypto
+import com.miracl.trust.MIRACLTrust
+import com.miracl.trust.configuration.Configuration
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.User
-import com.miracl.trust.network.ApiRequestExecutor
-import com.miracl.trust.network.ApiSettings
-import com.miracl.trust.network.HttpsURLConnectionRequestExecutor
-import com.miracl.trust.registration.RegistrationApiManager
-import com.miracl.trust.registration.Registrator
-import com.miracl.trust.session.CrossDeviceSessionApiManager
-import com.miracl.trust.session.CrossDeviceSessionManager
-import com.miracl.trust.session.SessionApiManager
-import com.miracl.trust.storage.room.RoomUserStorage
-import com.miracl.trust.storage.room.UserDatabase
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import com.miracl.trust.util.secondsSince1970
 import com.miracl.trust.util.toHexString
-import com.miracl.trust.util.toUser
 import com.miracl.trust.utilities.JwtHelper
 import com.miracl.trust.utilities.MIRACLService
 import com.miracl.trust.utilities.USER_ID
@@ -36,7 +21,8 @@ import com.miracl.trust.utilities.generateWrongPin
 import com.miracl.trust.utilities.randomHash
 import com.miracl.trust.utilities.randomNumericPin
 import com.miracl.trust.utilities.randomUuidString
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -46,62 +32,31 @@ class DocumentSigningTest {
     private val projectUrl = BuildConfig.CUV_PROJECT_URL
     private val serviceAccountToken = BuildConfig.CUV_SERVICE_ACCOUNT_TOKEN
 
-    private lateinit var userStorage: RoomUserStorage
-    private lateinit var crossDeviceSessionManager: CrossDeviceSessionManager
-    private lateinit var documentSigner: DocumentSigner
+    private val testCoroutineDispatcher = StandardTestDispatcher()
 
+    private lateinit var miraclTrust: MIRACLTrust
     private lateinit var pin: String
     private lateinit var pinProvider: PinProvider
     private lateinit var user: User
 
     @Before
-    fun setUp() = runBlocking {
-        val httpRequestExecutor = HttpsURLConnectionRequestExecutor(10, 10)
-        val apiSettings = ApiSettings(projectUrl)
-        val apiRequestExecutor =
-            ApiRequestExecutor(httpRequestExecutor, KotlinxSerializationJsonUtil)
+    fun setUp() = runTest(testCoroutineDispatcher) {
+        val configuration = Configuration.Builder(projectId, projectUrl)
+            .coroutineContext(testCoroutineDispatcher)
+            .build()
 
-        val crypto = Crypto()
-
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val userDatabase = Room.inMemoryDatabaseBuilder(context, UserDatabase::class.java).build()
-        userStorage = RoomUserStorage(userDatabase)
-
-        val crossDeviceSessionApi = CrossDeviceSessionApiManager(
-            apiRequestExecutor,
-            KotlinxSerializationJsonUtil,
-            apiSettings
-        )
-        crossDeviceSessionManager = CrossDeviceSessionManager(crossDeviceSessionApi)
-
-        val sessionApi =
-            SessionApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
-
-        val registrationApi =
-            RegistrationApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
-        val registrator = Registrator(registrationApi, crypto, userStorage)
-
-        val authenticationApi =
-            AuthenticationApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
-        val authenticator =
-            Authenticator(authenticationApi, sessionApi, crypto, registrator, userStorage)
-        documentSigner = DocumentSigner(
-            crypto,
-            authenticator,
-            userStorage,
-            crossDeviceSessionApi
-        )
+        MIRACLTrust.configure(InstrumentationRegistry.getInstrumentation().context, configuration)
+        miraclTrust = MIRACLTrust.getInstance()
+        miraclTrust.resultHandlerDispatcher = testCoroutineDispatcher
 
         pin = randomNumericPin()
         pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
         val activationToken = MIRACLService.obtainActivationToken()
 
-        val registrationResult = registrator.register(
+        val registrationResult = miraclTrust.register(
             userId = USER_ID,
-            projectId = projectId,
             activationToken = activationToken,
             pinProvider = pinProvider,
-            deviceName = Build.MODEL,
             pushNotificationsToken = null
         )
         Assert.assertTrue(registrationResult is MIRACLSuccess)
@@ -110,14 +65,13 @@ class DocumentSigningTest {
     }
 
     @Test
-    fun testSuccessfulDocumentSigning() = runBlocking {
+    fun testSuccessfulDocumentSigning() = runTest(testCoroutineDispatcher) {
         // Sign
         val message = randomHash()
-        val result = documentSigner.sign(
+        val result = miraclTrust.sign(
             message = message,
             user = user,
-            pinProvider = pinProvider,
-            deviceName = Build.MODEL
+            pinProvider = pinProvider
         )
         Assert.assertTrue(result is MIRACLSuccess)
 
@@ -137,7 +91,7 @@ class DocumentSigningTest {
     }
 
     @Test
-    fun testSuccessfulDocumentSigningWithCrossDeviceSession() = runBlocking {
+    fun testSuccessfulDocumentSigningWithCrossDeviceSession() = runTest(testCoroutineDispatcher) {
         // Arrange
         val createSessionResponse = MIRACLService.obtainAccessId(
             projectId = projectId,
@@ -148,17 +102,16 @@ class DocumentSigningTest {
         )
 
         val getCrossDeviceSessionResult =
-            crossDeviceSessionManager.getCrossDeviceSessionFromQRCode(createSessionResponse.qrURL)
+            miraclTrust.getCrossDeviceSessionFromQRCode(createSessionResponse.qrURL)
         Assert.assertTrue(getCrossDeviceSessionResult is MIRACLSuccess)
 
         val crossDeviceSession = (getCrossDeviceSessionResult as MIRACLSuccess).value
 
         // Act
-        val result = documentSigner.sign(
+        val result = miraclTrust.sign(
             crossDeviceSession = crossDeviceSession,
             user = user,
-            pinProvider = pinProvider,
-            deviceName = Build.MODEL
+            pinProvider = pinProvider
         )
 
         // Assert
@@ -185,16 +138,15 @@ class DocumentSigningTest {
     }
 
     @Test
-    fun testSigningFailOnEmptyMessage() = runBlocking {
+    fun testSigningFailOnEmptyMessage() = runTest(testCoroutineDispatcher) {
         // Arrange
         val emptyMessage = "".toByteArray()
 
         // Act
-        val signingResult = documentSigner.sign(
+        val signingResult = miraclTrust.sign(
             message = emptyMessage,
             user = user,
-            pinProvider = pinProvider,
-            deviceName = Build.MODEL
+            pinProvider = pinProvider
         )
 
         // Assert
@@ -203,16 +155,15 @@ class DocumentSigningTest {
     }
 
     @Test
-    fun testSigningFailOnEmptyPin() = runBlocking {
+    fun testSigningFailOnEmptyPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val emptyPinProvider = PinProvider { pinConsumer -> pinConsumer.consume(null) }
 
         // Act
-        val signingResult = documentSigner.sign(
+        val signingResult = miraclTrust.sign(
             message = randomHash(),
             user = user,
-            pinProvider = emptyPinProvider,
-            deviceName = Build.MODEL
+            pinProvider = emptyPinProvider
         )
 
         // Assert
@@ -221,18 +172,17 @@ class DocumentSigningTest {
     }
 
     @Test
-    fun testSigningFailOnShorterPin() = runBlocking {
+    fun testSigningFailOnShorterPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val shorterPinProvider = PinProvider { pinConsumer ->
             pinConsumer.consume(randomNumericPin(USER_PIN_LENGTH - 1))
         }
 
         // Act
-        val signingResult = documentSigner.sign(
+        val signingResult = miraclTrust.sign(
             message = randomHash(),
             user = user,
-            pinProvider = shorterPinProvider,
-            deviceName = Build.MODEL
+            pinProvider = shorterPinProvider
         )
 
         // Assert
@@ -241,18 +191,17 @@ class DocumentSigningTest {
     }
 
     @Test
-    fun testSigningFailOnLongerPin() = runBlocking {
+    fun testSigningFailOnLongerPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val longerPinProvider = PinProvider { pinConsumer ->
             pinConsumer.consume(randomNumericPin(USER_PIN_LENGTH + 1))
         }
 
         // Act
-        val signingResult = documentSigner.sign(
+        val signingResult = miraclTrust.sign(
             message = randomHash(),
             user = user,
-            pinProvider = longerPinProvider,
-            deviceName = Build.MODEL
+            pinProvider = longerPinProvider
         )
 
         // Assert
@@ -261,18 +210,17 @@ class DocumentSigningTest {
     }
 
     @Test
-    fun testSigningFailOnWrongFormatPin() = runBlocking {
+    fun testSigningFailOnWrongFormatPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val wrongFormatPinProvider = PinProvider { pinConsumer ->
             pinConsumer.consume(WRONG_FORMAT_PIN)
         }
 
         // Act
-        val signingResult = documentSigner.sign(
+        val signingResult = miraclTrust.sign(
             message = randomHash(),
             user = user,
-            pinProvider = wrongFormatPinProvider,
-            deviceName = Build.MODEL
+            pinProvider = wrongFormatPinProvider
         )
 
         // Assert
@@ -281,18 +229,17 @@ class DocumentSigningTest {
     }
 
     @Test
-    fun testSigningFailOnWrongPin() = runBlocking {
+    fun testSigningFailOnWrongPin() = runTest(testCoroutineDispatcher) {
         // Arrange
         val wrongPinProvider = PinProvider { pinConsumer ->
             pinConsumer.consume(generateWrongPin(pin))
         }
 
         // Act
-        val signingResult = documentSigner.sign(
+        val signingResult = miraclTrust.sign(
             message = randomHash(),
             user = user,
-            pinProvider = wrongPinProvider,
-            deviceName = Build.MODEL
+            pinProvider = wrongPinProvider
         )
 
         // Assert
@@ -304,17 +251,16 @@ class DocumentSigningTest {
     }
 
     @Test
-    fun testSigningFailOnRevokedUser() = runBlocking {
+    fun testSigningFailOnRevokedUser() = runTest(testCoroutineDispatcher) {
         // Arrange
         val wrongPinProvider = PinProvider { pinConsumer ->
             pinConsumer.consume(generateWrongPin(pin))
         }
 
-        var signingResult = documentSigner.sign(
+        var signingResult = miraclTrust.sign(
             message = randomHash(),
             user = user,
-            pinProvider = wrongPinProvider,
-            deviceName = Build.MODEL
+            pinProvider = wrongPinProvider
         )
         Assert.assertTrue(signingResult is MIRACLError)
         Assert.assertEquals(
@@ -322,11 +268,10 @@ class DocumentSigningTest {
             (signingResult as MIRACLError).value
         )
 
-        signingResult = documentSigner.sign(
+        signingResult = miraclTrust.sign(
             message = randomHash(),
             user = user,
-            pinProvider = wrongPinProvider,
-            deviceName = Build.MODEL
+            pinProvider = wrongPinProvider
         )
         Assert.assertTrue(signingResult is MIRACLError)
         Assert.assertEquals(
@@ -334,24 +279,22 @@ class DocumentSigningTest {
             (signingResult as MIRACLError).value
         )
 
-        signingResult = documentSigner.sign(
+        signingResult = miraclTrust.sign(
             message = randomHash(),
             user = user,
-            pinProvider = wrongPinProvider,
-            deviceName = Build.MODEL
+            pinProvider = wrongPinProvider
         )
         Assert.assertTrue(signingResult is MIRACLError)
         Assert.assertEquals(SigningException.Revoked, (signingResult as MIRACLError).value)
 
-        user = userStorage.getUser(user.userId, user.projectId)!!.toUser()
+        user = miraclTrust.getUser(user.userId)!!
         Assert.assertTrue(user.revoked)
 
         // Act
-        signingResult = documentSigner.sign(
+        signingResult = miraclTrust.sign(
             message = randomHash(),
             user = user,
-            pinProvider = pinProvider,
-            deviceName = Build.MODEL
+            pinProvider = pinProvider
         )
 
         // Assert
