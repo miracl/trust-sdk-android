@@ -6,6 +6,8 @@ import androidx.annotation.VisibleForTesting
 import com.miracl.trust.authentication.*
 import com.miracl.trust.authentication.AuthenticatorScopes
 import com.miracl.trust.configuration.*
+import com.miracl.trust.configuration.factory.ConfigurationFactory
+import com.miracl.trust.configuration.factory.DefaultConfigurationFactory
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.delegate.ResultHandler
 import com.miracl.trust.factory.ComponentFactory
@@ -20,6 +22,7 @@ import com.miracl.trust.session.SessionManagerContract
 import com.miracl.trust.signing.*
 import com.miracl.trust.storage.UserStorageException
 import com.miracl.trust.storage.UserStorage
+import com.miracl.trust.storage.room.RoomDatabaseModule
 import com.miracl.trust.util.UrlValidator
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import com.miracl.trust.util.log.LoggerConstants
@@ -38,10 +41,23 @@ import kotlin.jvm.Throws
  */
 public class MIRACLTrust private constructor(
     context: Context,
+    projectId: String,
+    projectUrl: String,
     configuration: Configuration
 ) {
     public companion object {
         private const val NOT_INITIALIZED_EXCEPTION = "MIRACLTrust SDK not initialized!"
+
+        @VisibleForTesting
+        internal var configurationFactory: ConfigurationFactory = DefaultConfigurationFactory()
+
+        @Volatile
+        @VisibleForTesting
+        internal var defaultUserStorage: UserStorage? = null
+
+        @Volatile
+        @VisibleForTesting
+        internal var defaultConfiguration: Configuration? = null
 
         private lateinit var instance: MIRACLTrust
 
@@ -63,8 +79,78 @@ public class MIRACLTrust private constructor(
          */
         @JvmStatic
         public fun configure(context: Context, configuration: Configuration) {
-            instance = MIRACLTrust(context, configuration)
+            val projectId = requireNotNull(configuration.projectId) {
+                "MIRACLTrust SDK: Project ID is missing. Pass a valid Project ID to Configuration.Builder."
+            }
+
+            configuration.userStorage?.loadStorage()
+            instance = MIRACLTrust(
+                projectId = projectId,
+                projectUrl = configuration.projectUrl,
+                context = context,
+                configuration = configuration
+            )
         }
+
+        //region Authenticator API
+        /**
+         * This is an experimental API.
+         * @suppress
+         */
+        @MIRACLTrustAuthenticatorApi
+        public fun setDefaultConfiguration(configuration: Configuration) {
+            configuration.userStorage?.loadStorage()
+            this.defaultConfiguration = configuration
+        }
+
+        /**
+         * This is an experimental API.
+         * @suppress
+         */
+        @MIRACLTrustAuthenticatorApi
+        public fun createInstance(
+            context: Context,
+            projectId: String,
+            projectUrl: String
+        ): MIRACLTrust {
+            require(projectId.isNotEmpty()) {
+                "MIRACLTrust SDK: Project ID cannot be empty. Pass a valid Project ID when calling createInstance()."
+            }
+
+            require(UrlValidator.isValid(projectUrl)) {
+                "MIRACLTrust SDK: Project URL is invalid. Pass a valid URL when calling createInstance()."
+            }
+
+            val configuration = defaultConfiguration ?: configurationFactory.create()
+
+            return MIRACLTrust(context, projectId, projectUrl, configuration)
+        }
+
+        /**
+         * This is an experimental API.
+         * @suppress
+         */
+        @MIRACLTrustAuthenticatorApi
+        public suspend fun getUsers(context: Context): List<User> {
+            val userStorage =
+                defaultConfiguration?.userStorage ?: defaultUserStorage ?: synchronized(this) {
+                    val userStorage = defaultConfiguration?.userStorage ?: defaultUserStorage
+
+                    userStorage ?: RoomDatabaseModule(context, "").userStorage().also {
+                        it.loadStorage()
+                        defaultUserStorage = it
+                    }
+                }
+
+            return withContext(Dispatchers.IO) {
+                try {
+                    userStorage.all().map { it.toUser() }
+                } catch (ex: Exception) {
+                    throw UserStorageException(ex)
+                }
+            }
+        }
+        //endregion
     }
 
     //region Properties
@@ -84,10 +170,11 @@ public class MIRACLTrust private constructor(
     @VisibleForTesting
     internal var resultHandlerDispatcher: CoroutineDispatcher = Dispatchers.Main
 
-    private val deviceName: String = configuration.deviceName
+    @VisibleForTesting
+    internal val deviceName: String = configuration.deviceName
 
     /** Project ID setting for the application in the MIRACL Trust platform. */
-    public var projectId: String = configuration.projectId
+    public var projectId: String = projectId
         private set
 
     //endregion
@@ -101,14 +188,17 @@ public class MIRACLTrust private constructor(
         )
 
         val componentFactory = configuration.componentFactory ?: ComponentFactory(context, logger)
-        apiSettings = ApiSettings(configuration.projectUrl)
+        apiSettings = ApiSettings(projectUrl)
 
         miraclTrustCoroutineContext = configuration.miraclCoroutineContext
         miraclTrustScope = CoroutineScope(SupervisorJob() + configuration.miraclCoroutineContext)
 
-        userStorage = configuration.userStorage
-            ?: componentFactory.defaultUserStorage(configuration.projectId)
-        userStorage.loadStorage()
+        userStorage = configuration.userStorage ?: defaultUserStorage ?: synchronized(this) {
+            defaultUserStorage ?: componentFactory.defaultUserStorage(projectId).also {
+                it.loadStorage()
+                defaultUserStorage = it
+            }
+        }
 
         val registrationApi = RegistrationApiManager(
             apiRequestExecutor = apiRequestExecutor,
