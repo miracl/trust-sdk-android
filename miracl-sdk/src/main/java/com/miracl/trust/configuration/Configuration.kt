@@ -1,6 +1,7 @@
 package com.miracl.trust.configuration
 
 import android.os.Build
+import com.miracl.trust.MIRACLTrustAuthenticatorApi
 import com.miracl.trust.factory.ComponentFactory
 import com.miracl.trust.network.HttpRequestExecutor
 import com.miracl.trust.network.HttpsURLConnectionRequestExecutor
@@ -19,7 +20,7 @@ import kotlin.jvm.Throws
  * Instance is created through its [Builder].
  */
 public class Configuration private constructor(
-    internal val projectId: String,
+    internal val projectId: String?,
     internal val projectUrl: String,
     internal val deviceName: String,
     internal val applicationInfo: String? = null,
@@ -69,16 +70,12 @@ public class Configuration private constructor(
                 ")"
     }
 
-    /**
-     * Builds a [Configuration] object.
-     *
-     * @param projectId The unique identifier for your MIRACL Trust project.
-     * @param projectUrl The MIRACL Trust Project URL that is used for communication with the MIRACL Trust API.
-     */
-    public class Builder @JvmOverloads constructor(
-        internal val projectId: String,
-        internal val projectUrl: String = DEFAULT_PLATFORM_URL
-    ) {
+    /** Builds a [Configuration] object. */
+    public class Builder @MIRACLTrustAuthenticatorApi public constructor() {
+        internal var projectId: String? = null
+            private set
+        internal var projectUrl: String = DEFAULT_PLATFORM_URL
+            private set
         internal lateinit var deviceNameValue: String
             private set
         internal var applicationInfo: String? = null
@@ -99,6 +96,19 @@ public class Configuration private constructor(
             private set
         internal var readTimeout: Int = DEFAULT_READ_TIMEOUT_SECONDS
             private set
+
+        /**
+         * Creates a [Builder] object.
+         *
+         * @param projectId The unique identifier for your MIRACL Trust project.
+         * @param projectUrl The MIRACL Trust Project URL that is used for communication with the MIRACL Trust API.
+         */
+        @OptIn(MIRACLTrustAuthenticatorApi::class)
+        @JvmOverloads
+        public constructor(projectId: String, projectUrl: String = DEFAULT_PLATFORM_URL) : this() {
+            this.projectId = projectId
+            this.projectUrl = projectUrl
+        }
 
         internal fun componentFactory(componentFactory: ComponentFactory) =
             apply { this.componentFactory = componentFactory }
@@ -172,7 +182,7 @@ public class Configuration private constructor(
         /** Returns a [com.miracl.trust.configuration.Configuration] object. */
         @Throws(ConfigurationException::class)
         public fun build(): Configuration {
-            if (projectId.isBlank()) {
+            if (projectId?.isBlank() == true) {
                 throw ConfigurationException.EmptyProjectId
             }
 

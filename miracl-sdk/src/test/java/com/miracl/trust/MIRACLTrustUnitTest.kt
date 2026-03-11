@@ -4,6 +4,7 @@ import android.net.Uri
 import com.miracl.trust.authentication.*
 import com.miracl.trust.configuration.Configuration
 import com.miracl.trust.configuration.ConfigurationException
+import com.miracl.trust.configuration.factory.ConfigurationFactory
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.delegate.ResultHandler
 import com.miracl.trust.factory.ComponentFactory
@@ -15,6 +16,7 @@ import com.miracl.trust.signing.*
 import com.miracl.trust.storage.UserDto
 import com.miracl.trust.storage.UserStorageException
 import com.miracl.trust.storage.UserStorage
+import com.miracl.trust.storage.room.RoomDatabaseModule
 import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants
 import com.miracl.trust.util.secondsSince1970
@@ -23,6 +25,7 @@ import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -31,6 +34,7 @@ import kotlin.random.Random
 import kotlin.random.nextInt
 
 @ExperimentalCoroutinesApi
+@MIRACLTrustAuthenticatorApi
 class MIRACLTrustUnitTest {
     private val deviceName = randomUuidString()
     private val projectId = randomUuidString()
@@ -63,13 +67,228 @@ class MIRACLTrustUnitTest {
 
     @Before
     fun setUp() {
-        clearAllMocks()
-
         every { userStorageMock.loadStorage() } returns Unit
 
         setUpComponentFactoryMock()
         miraclTrust = configureMIRACLTrust()
     }
+
+    @After
+    fun tearDown() {
+        clearAllMocks()
+        MIRACLTrust.defaultConfiguration = null
+        MIRACLTrust.defaultUserStorage = null
+    }
+
+    @Test
+    fun `configure creates instance`() {
+        // Arrange
+        val projectId = randomUuidString()
+        val config = createConfiguration(projectId = projectId)
+
+        // Act
+        MIRACLTrust.configure(mockk(), config)
+
+        // Assert
+        val instance = MIRACLTrust.getInstance()
+        Assert.assertEquals(projectId, instance.projectId)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `configure throws exception when projectId is null`() {
+        // Arrange
+        val configuration = Configuration.Builder()
+            .deviceName(deviceName)
+            .build()
+
+        // Act
+        MIRACLTrust.configure(mockk(), configuration)
+    }
+
+    @Test
+    fun `configure loads the UserStorage from the configuration when there is one`() {
+        // Arrange
+        val userStorageMock = mockk<UserStorage>()
+        val config = Configuration.Builder(projectId, projectUrl)
+            .deviceName(deviceName)
+            .userStorage(userStorageMock)
+            .build()
+
+        every { userStorageMock.loadStorage() } just runs
+
+        // Act
+        MIRACLTrust.configure(
+            context = mockk(),
+            configuration = config
+        )
+
+        // Assert
+        verify { userStorageMock.loadStorage() }
+    }
+
+    @Test
+    fun `setDefaultConfiguration updates the default configuration`() {
+        // Arrange
+        val config = createConfiguration()
+
+        // Act
+        MIRACLTrust.setDefaultConfiguration(config)
+
+        // Assert
+        Assert.assertEquals(config, MIRACLTrust.defaultConfiguration)
+    }
+
+    @Test
+    fun `setDefaultConfiguration loads the UserStorage from configuration when there is one`() {
+        // Arrange
+        val userStorageMock = mockk<UserStorage>()
+        val config = Configuration.Builder(projectId, projectUrl)
+            .deviceName(deviceName)
+            .userStorage(userStorageMock)
+            .build()
+
+        every { userStorageMock.loadStorage() } just runs
+
+        // Act
+        MIRACLTrust.setDefaultConfiguration(config)
+
+        // Assert
+        verify { userStorageMock.loadStorage() }
+    }
+
+    @Test
+    fun `createInstance creates instance with the default configuration when there is one`() {
+        // Arrange
+        val deviceName = randomUuidString()
+        val config = createConfiguration(deviceName = deviceName)
+        MIRACLTrust.setDefaultConfiguration(config)
+
+        // Act
+        val sdk = MIRACLTrust.createInstance(mockk(), projectId, projectUrl)
+
+        // Assert
+        Assert.assertEquals(deviceName, sdk.deviceName)
+    }
+
+    @Test
+    fun `createInstance creates configuration when there isn't any`() = runTest {
+        // Arrange
+        val configuration = Configuration.Builder().deviceName(deviceName).build()
+        val configurationFactory = mockk<ConfigurationFactory>()
+        every { configurationFactory.create() } returns configuration
+
+        MIRACLTrust.configurationFactory = configurationFactory
+        MIRACLTrust.defaultConfiguration = null
+        MIRACLTrust.defaultUserStorage = userStorageMock
+
+        // Act
+        MIRACLTrust.createInstance(mockk(), projectId, projectUrl)
+
+        // Assert
+        verify { configurationFactory.create() }
+    }
+
+    @Test
+    fun `getUsers static method uses the UserStorage from configuration when there is one`() =
+        runTest {
+            // Arrange
+            val userStorageMock = mockk<UserStorage>()
+            val config = Configuration.Builder(projectId, projectUrl)
+                .deviceName(deviceName)
+                .userStorage(userStorageMock)
+                .build()
+
+            every { userStorageMock.loadStorage() } just runs
+            every { userStorageMock.all() } returns listOf()
+
+            MIRACLTrust.setDefaultConfiguration(config)
+
+            // Act
+            MIRACLTrust.getUsers(mockk())
+
+            // Assert
+            verify { userStorageMock.all() }
+        }
+
+    @Test
+    fun `getUsers static method uses the default UserStorage when there is one`() = runTest {
+        // Arrange
+        val userStorageMock = mockk<UserStorage>()
+        every { userStorageMock.all() } returns listOf()
+
+        MIRACLTrust.defaultConfiguration = null
+        MIRACLTrust.defaultUserStorage = userStorageMock
+
+        // Act
+        MIRACLTrust.getUsers(mockk())
+
+        // Assert
+        verify { userStorageMock.all() }
+    }
+
+    @Test
+    fun `getUsers static method creates default UserStorage when there isn't one`() = runTest {
+        // Arrange
+        MIRACLTrust.defaultConfiguration = null
+        MIRACLTrust.defaultUserStorage = null
+
+        val userStorageMock = mockk<UserStorage>()
+        every { userStorageMock.loadStorage() } just runs
+        every { userStorageMock.all() } returns listOf()
+
+        mockkConstructor(RoomDatabaseModule::class)
+        every { anyConstructed<RoomDatabaseModule>().userStorage() } returns userStorageMock
+
+        // Act
+        MIRACLTrust.getUsers(mockk())
+
+        // Assert
+        Assert.assertEquals(userStorageMock, MIRACLTrust.defaultUserStorage)
+        verify { userStorageMock.loadStorage() }
+        verify { userStorageMock.all() }
+    }
+
+    @Test
+    fun `getUsers static method returns list of users when there are registered users`() = runTest {
+        // Arrange
+        val userDtos = listOf(createRandomUser().toUserDto(), createRandomUser().toUserDto())
+
+        MIRACLTrust.defaultUserStorage = userStorageMock
+        every { userStorageMock.all() } returns userDtos
+
+        // Act
+        val users = MIRACLTrust.getUsers(mockk())
+
+        // Assert
+        assertUsersEqualDtos(users, userDtos)
+    }
+
+    @Test
+    fun `getUsers static method returns empty list when there aren't registered users`() = runTest {
+        // Arrange
+        val userDtos = listOf<UserDto>()
+        MIRACLTrust.defaultUserStorage = userStorageMock
+        every { userStorageMock.all() } returns userDtos
+
+        // Act
+        val users = miraclTrust.getUsers()
+
+        // Assert
+        Assert.assertTrue(users.isEmpty())
+    }
+
+    @Test(expected = UserStorageException::class)
+    fun `getUsers static method should wrap and rethrow the exception thrown by the userStorage`() =
+        runTest {
+            // Arrange
+            MIRACLTrust.defaultUserStorage = userStorageMock
+            every {
+                userStorageMock.all()
+            } throws Exception()
+
+            // Act
+            miraclTrust.getUsers()
+        }
 
     @Test
     fun `is created on init when no exception is thrown on configure`() = runTest {
@@ -106,6 +325,79 @@ class MIRACLTrustUnitTest {
 
         // Assert
         Assert.assertTrue(sdk.getUsers().isEmpty())
+    }
+
+    @Test
+    fun `uses the UserStorage from configuration when there is one`() = runTest {
+        // Arrange
+        val userStorageMock = mockk<UserStorage>()
+        val config = Configuration.Builder(projectId, projectUrl)
+            .deviceName(deviceName)
+            .userStorage(userStorageMock)
+            .build()
+
+        every { userStorageMock.loadStorage() } just runs
+        every { userStorageMock.all() } returns listOf()
+
+        // Act
+        MIRACLTrust.configure(
+            context = mockk(),
+            configuration = config
+        )
+        MIRACLTrust.getInstance().getUsers()
+
+        // Assert
+        verify { userStorageMock.all() }
+    }
+
+    @Test
+    fun `uses the default UserStorage when there is one`() = runTest {
+        // Arrange
+        val userStorageMock = mockk<UserStorage>()
+        MIRACLTrust.defaultUserStorage = userStorageMock
+        every { userStorageMock.all() } returns listOf()
+
+        val config = Configuration.Builder(projectId, projectUrl)
+            .deviceName(deviceName)
+            .build()
+
+        // Act
+        MIRACLTrust.configure(
+            context = mockk(),
+            configuration = config
+        )
+        MIRACLTrust.getInstance().getUsers()
+
+        // Assert
+        verify { userStorageMock.all() }
+    }
+
+    @Test
+    fun `creates default UserStorage when there isn't one`() = runTest {
+        // Arrange
+        val userStorageMock = mockk<UserStorage>()
+        val config = Configuration.Builder(projectId, projectUrl)
+            .deviceName(deviceName)
+            .componentFactory(componentFactoryMock)
+            .build()
+
+        every { userStorageMock.loadStorage() } just runs
+        every { userStorageMock.all() } returns listOf()
+
+        every { componentFactoryMock.defaultUserStorage(projectId) } returns userStorageMock
+
+        // Act
+        MIRACLTrust.configure(
+            context = mockk(),
+            configuration = config
+        )
+        MIRACLTrust.getInstance().getUsers()
+
+        // Assert
+        Assert.assertEquals(userStorageMock, MIRACLTrust.defaultUserStorage)
+        verify { componentFactoryMock.defaultUserStorage(projectId) }
+        verify { userStorageMock.loadStorage() }
+        verify { userStorageMock.all() }
     }
 
     @Test
@@ -3087,7 +3379,11 @@ class MIRACLTrustUnitTest {
         }
     }
 
-    private fun createConfiguration(): Configuration {
+    private fun createConfiguration(
+        projectId: String = this.projectId,
+        projectUrl: String = this.projectUrl,
+        deviceName: String = this.deviceName
+    ): Configuration {
         return Configuration.Builder(projectId, projectUrl)
             .deviceName(deviceName)
             .componentFactory(componentFactoryMock)
