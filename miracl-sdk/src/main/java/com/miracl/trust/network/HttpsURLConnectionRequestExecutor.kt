@@ -3,6 +3,7 @@ package com.miracl.trust.network
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
+import com.miracl.trust.MIRACLTrust
 import com.miracl.trust.util.log.Loggable
 import com.miracl.trust.util.log.LoggerConstants
 import com.miracl.trust.util.log.LoggerConstants.NETWORK_TAG
@@ -42,12 +43,12 @@ internal class HttpsURLConnectionRequestExecutor(
 
     /**
      * Implementation of the [HttpRequestExecutor.execute].
-     * @param apiRequest is a MIRACLTrust class that provides the needed data for
-     * a http request to be executed.
+     * @param apiRequest А [MIRACLTrust] class that provides the needed data for
+     * an HTTP request to be executed.
      * @return MIRACLResult<String, HttpRequestExecutorException>
-     * - If the result is success execute returns MIRACLSuccess with a string value of the
+     * - If successful, the execute returns a [MIRACLSuccess] with a string value of the
      * received response.
-     * - If the result is error execute returns the error with a message.
+     * - If an error occurs, the execute returns a [MIRACLError] with a message.
      * If an exception is thrown, the error passes the exception as an object.
      */
     override suspend fun execute(apiRequest: ApiRequest): MIRACLResult<String, HttpRequestExecutorException> {

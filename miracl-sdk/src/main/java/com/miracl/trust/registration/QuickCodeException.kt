@@ -1,17 +1,17 @@
 package com.miracl.trust.registration
 
 public sealed class QuickCodeException(cause: Throwable? = null) : Exception(cause) {
-    /** Pin code includes invalid symbols or pin length does not match. */
+    /** PIN code contains invalid symbols or PIN length does not match. */
     public object InvalidPin : QuickCodeException()
 
-    /** Pin not entered. */
+    /** PIN not entered. */
     public object PinCancelled : QuickCodeException()
 
     /** The authentication was not successful. */
     public object UnsuccessfulAuthentication : QuickCodeException()
 
-    /** The user is revoked because of too many unsuccessful authentication attempts or has not been
-     *  used in a substantial amount of time. The device needs to be re-registered.
+    /** The user was revoked due to too many failed authentication attempts or
+    prolonged inactivity. The device must be re-registered.
      */
     public object Revoked : QuickCodeException()
 

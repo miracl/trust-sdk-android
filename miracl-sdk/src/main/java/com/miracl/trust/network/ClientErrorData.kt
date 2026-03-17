@@ -1,10 +1,10 @@
 package com.miracl.trust.network
 
 /**
- * Client error representation which is returned by the MIRACL API.
+ * Client error representation which is returned by the MIRACL Trust API.
  *
- * @property code Code of the error.
- * @property info Human readable representation of the error.
+ * @property code The code of the error.
+ * @property info The human-readable representation of the error.
  * @property context Additional information received in the error response.
  */
 public class ClientErrorData internal constructor(

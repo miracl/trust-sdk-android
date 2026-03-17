@@ -4,8 +4,8 @@ import androidx.annotation.Keep
 import com.miracl.trust.MIRACLTrust
 
 /**
- * Response returned from [sendVerificationEmail][MIRACLTrust.sendVerificationEmail] method of [MIRACLTrust].
- * @property backoff Unix timestamp before a new verification email could be sent for the same user ID.
+ * Response returned from the [sendVerificationEmail][MIRACLTrust.sendVerificationEmail] method of [MIRACLTrust].
+ * @property backoff Unix timestamp after which a new verification email can be sent for the same User ID.
  * @property method Indicates the method of the verification.
  */
 @Keep

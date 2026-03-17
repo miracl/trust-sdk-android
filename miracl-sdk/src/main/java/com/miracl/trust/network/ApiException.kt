@@ -4,7 +4,7 @@ package com.miracl.trust.network
 public sealed class ApiException(public val url: String, cause: Throwable? = null) :
     Exception(cause) {
 
-    /** Error while executing HTTP request. */
+    /** Error while executing the HTTP request. */
     public class ExecutionError internal constructor(url: String = "", cause: Throwable? = null) :
         ApiException(url, cause)
 

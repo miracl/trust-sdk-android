@@ -5,10 +5,10 @@ import com.miracl.trust.util.toSHA256
 
 /**
  * Object representing the user in the platform.
- * @property userId Identifier of the user. Could be email, username, etc.
- * @property projectId Required to link the user with the project on the MIRACLTrust platform.
- * @property revoked Provides information if the user is revoked or not.
- * @property pinLength The number of the digits the user PIN should be.
+ * @property userId The identifier of the user.
+ * @property projectId Required to link the user with the project on the MIRACL Trust platform.
+ * @property revoked Provides information about whether the user is revoked or not.
+ * @property pinLength The number of digits in the user's PIN.
  */
 @Keep
 public class User internal constructor(

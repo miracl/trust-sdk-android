@@ -2,7 +2,7 @@ package com.miracl.trust.registration
 
 /** A class hierarchy that describes verification confirmation issues. */
 public sealed class ActivationTokenException(cause: Throwable? = null) : Exception(cause) {
-    /** Empty user ID in the App Link. */
+    /** Empty User ID in the App Link. */
     public object EmptyUserId : ActivationTokenException()
 
     /** Empty verification code in the App Link. */

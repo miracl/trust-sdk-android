@@ -4,10 +4,10 @@ import androidx.annotation.Keep
 import com.miracl.trust.MIRACLTrust
 
 /**
- * Response returned from [getActivationToken][MIRACLTrust.getActivationToken] method of [MIRACLTrust]
- * @property projectId Identifier of the project against which the verification is performed.
- * @property accessId Identifier of the session from which the verification started.
- * @property userId Identifier of the user that is currently verified.
+ * Response returned from the [getActivationToken][MIRACLTrust.getActivationToken] method of [MIRACLTrust].
+ * @property projectId The identifier of the project against which the verification is performed.
+ * @property accessId The identifier of the session from which the verification started.
+ * @property userId The identifier of the user that is currently being verified.
  * @property activationToken The activation token returned after successful user verification.
  */
 @Keep

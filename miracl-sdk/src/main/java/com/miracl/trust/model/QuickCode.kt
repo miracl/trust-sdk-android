@@ -5,7 +5,7 @@ import java.io.Serializable
 /**
  * Object representing QuickCode and its validity period.
  * @property code The issued QuickCode.
- * @property expireTime MIRACL MFA system time when the code will expire.
+ * @property expireTime The MIRACL Trust system time when the code will expire.
  * @property ttlSeconds The expiration period in seconds.
  */
 public class QuickCode internal constructor(

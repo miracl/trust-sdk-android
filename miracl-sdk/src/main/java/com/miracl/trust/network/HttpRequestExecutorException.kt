@@ -10,7 +10,7 @@ public sealed class HttpRequestExecutorException(
     public class HttpError(public val responseCode: Int, public val responseBody: String) :
         HttpRequestExecutorException()
 
-    /** Error while executing HTTP request. */
+    /** Error while executing the HTTP request. */
     public class ExecutionError(message: String? = null, cause: Throwable? = null) :
         HttpRequestExecutorException(message = message, cause = cause)
 
