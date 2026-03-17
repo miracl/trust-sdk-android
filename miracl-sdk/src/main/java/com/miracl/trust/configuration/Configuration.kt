@@ -13,10 +13,10 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.jvm.Throws
 
 /**
- * The Configuration class is used to set up the MIRACLTrust SDK. It provides a way
+ * The Configuration class is used to set up the MIRACL Trust SDK. It provides a way
  * to customize some of the SDK components.
  *
- * Instance is created though its [Builder]
+ * Instance is created through its [Builder].
  */
 public class Configuration private constructor(
     internal val projectId: String,
@@ -73,7 +73,7 @@ public class Configuration private constructor(
      * Builds a [Configuration] object.
      *
      * @param projectId The unique identifier for your MIRACL Trust project.
-     * @param projectUrl MIRACL Trust Project URL that is used for communication with the MIRACL Trust API.
+     * @param projectUrl The MIRACL Trust Project URL that is used for communication with the MIRACL Trust API.
      */
     public class Builder @JvmOverloads constructor(
         internal val projectId: String,
@@ -107,31 +107,31 @@ public class Configuration private constructor(
             apply { this.coroutineContext = coroutineContext }
 
         /**
-         * Sets additional information that will be sent via X-MIRACL-CLIENT HTTP header.
+         * Sets additional information that will be sent via the X-MIRACL-CLIENT HTTP header.
          */
         public fun applicationInfo(applicationInfo: String): Builder =
             apply { this.applicationInfo = applicationInfo }
 
         /**
-         * Sets value of device name.
+         * Sets the value of the device name.
          */
         public fun deviceName(deviceName: String): Builder =
             apply { this.deviceNameValue = deviceName }
 
         /**
-         * Provides implementation of the [HttpRequestExecutor] interface to be used by the SDK.
+         * Provides the implementation of the [HttpRequestExecutor] interface to be used by the SDK.
          */
         public fun httpRequestExecutor(httpRequestExecutor: HttpRequestExecutor): Builder =
             apply { this.httpRequestExecutorValue = httpRequestExecutor }
 
         /**
-         * Provides implementation of the [UserStorage] interface to be used by the SDK.
+         * Provides the implementation of the [UserStorage] interface to be used by the SDK.
          */
         public fun userStorage(userStorage: UserStorage): Builder =
             apply { this.userStorage = userStorage }
 
         /**
-         * Provides implementation of the [Logger] interface to be used by the SDK.
+         * Provides the implementation of the [Logger] interface to be used by the SDK.
          */
         public fun logger(logger: Logger): Builder =
             apply { this.loggerValue = logger }
@@ -139,32 +139,32 @@ public class Configuration private constructor(
         /**
          * Provides specific [Logger.LoggingLevel] to be used by the SDK default logger.
          *
-         * The default is [Logger.LoggingLevel.NONE]
+         * The default is [Logger.LoggingLevel.NONE].
          * >
          * **Has no effect if using custom logger provided by
-         * [logger(logger: Logger)][logger]**
+         * [logger(logger: Logger)][logger].**
          */
         public fun loggingLevel(loggingLevel: Logger.LoggingLevel): Builder =
             apply { this.loggingLevel = loggingLevel }
 
         /**
-         * Sets HTTP requests connect timeout in seconds to be used by the SDK default [HttpRequestExecutor].
+         * Sets the HTTP requests connect timeout in seconds to be used by the SDK default [HttpRequestExecutor].
          *
          * The default is 10 seconds.
          * >
-         * **Has no effect if using custom HTTP request executor provided by
-         * [httpRequestExecutor(httpRequestExecutor: HttpRequestExecutor)][httpRequestExecutor]**
+         * **Has no effect if using the custom HTTP request executor provided by
+         * [httpRequestExecutor(httpRequestExecutor: HttpRequestExecutor)][httpRequestExecutor].**
          */
         public fun connectTimeout(connectTimeout: Int): Builder =
             apply { this.connectTimeout = connectTimeout }
 
         /**
-         * Sets HTTP requests read timeout in seconds to be used by the SDK default [HttpRequestExecutor].
+         * Sets the HTTP requests read timeout in seconds to be used by the SDK default [HttpRequestExecutor].
          *
          * The default is 10 seconds.
          * >
-         * **Has no effect if using custom HTTP request executor provided by
-         * [httpRequestExecutor(httpRequestExecutor: HttpRequestExecutor)][httpRequestExecutor]**
+         * **Has no effect if using the custom HTTP request executor provided by
+         * [httpRequestExecutor(httpRequestExecutor: HttpRequestExecutor)][httpRequestExecutor].**
          */
         public fun readTimeout(readTimeout: Int): Builder =
             apply { this.readTimeout = readTimeout }

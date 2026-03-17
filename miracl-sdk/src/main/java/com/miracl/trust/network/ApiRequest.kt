@@ -1,7 +1,7 @@
 package com.miracl.trust.network
 
 /***
- * HttpMethod is a MIRACLTrust SDK representation of the HTTP methods
+ * HttpMethod is a MIRACL Trust SDK representation of the HTTP methods.
  */
 public enum class HttpMethod(public val method: String) {
     GET("GET"),
@@ -11,7 +11,7 @@ public enum class HttpMethod(public val method: String) {
 }
 
 /***
- * ApiRequest is a data class that keeps the main properties of a HTTP request.
+ * ApiRequest is a data class that keeps the main properties of an HTTP request.
  */
 public data class ApiRequest(
     val method: HttpMethod,

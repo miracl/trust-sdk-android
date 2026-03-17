@@ -5,23 +5,22 @@ package com.miracl.trust.storage
  * Already registered users will be kept in it between app launches.
  * >
  * Methods of this interface must not be called outside of the SDK, as they are intended
- * to be only for internal usage.
+ * for internal use only.
  *
- * Keep in mind, that this interface doesn't provide any data encryption and developers should take
- * care of this by themselves.
+ * Note that this interface does not provide any data encryption. Developers must ensure data is encrypted as needed.
  * >
- * By default this SDK uses a concrete implementation of this interface [RoomUserStorage][com.miracl.trust.storage.room.RoomUserStorage].
+ * By default, this SDK uses a concrete implementation of this interface [RoomUserStorage][com.miracl.trust.storage.room.RoomUserStorage].
  */
 public interface UserStorage {
     /**
      * Prepares the user storage to be used.
-     * > Called once on initialization of the SDK.
+     * > Called once when the SDK is initialized.
      */
     public fun loadStorage()
 
     /**
      * Adds a registered user to the user storage.
-     * @param user registered user.
+     * @param user The registered user.
      */
     public fun add(user: UserDto)
 
@@ -39,8 +38,8 @@ public interface UserStorage {
 
     /**
      * Retrieves a registered user from the user storage.
-     * @param userId Identifier of the user.
-     * @param projectId Identifier of the project on the MIRACLTrust platform to which the user is linked.
+     * @param userId The identifier of the user.
+     * @param projectId The unique identifier of the MIRACL Trust project associated with the user.
      */
     public fun getUser(userId: String, projectId: String): UserDto?
 

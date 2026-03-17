@@ -4,10 +4,10 @@ import androidx.annotation.Keep
 import com.miracl.trust.MIRACLTrust
 
 /**
- * The response returned from [getActivationToken][MIRACLTrust.getActivationToken] method when there is an error in the request.
- * @property projectId Identifier of the project against which the verification is performed.
- * @property userId Identifier of the user for which the verification is performed.
- * @property accessId Identifier of the session from which the verification started.
+ * The response returned from the [getActivationToken][MIRACLTrust.getActivationToken] method when there is an error in the request.
+ * @property projectId The identifier of the project against which the verification is performed.
+ * @property userId The identifier of the user for which the verification is performed.
+ * @property accessId The identifier of the session from which the verification started.
  */
 @Keep
 public class ActivationTokenErrorResponse internal constructor(

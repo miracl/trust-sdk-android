@@ -7,17 +7,17 @@ import com.miracl.trust.MIRACLSuccess;
 import com.miracl.trust.MIRACLError;
 
 /**
- * An interface used to connect MIRACLTrust SDK output to your application.
+ * An interface used to connect the MIRACL Trust SDK output to your application.
  *
- * <p>This interface defines the {@link #onResult(MIRACLResult)} method, which handles the result of a MIRACLTrust SDK operation.
+ * <p>This interface defines the {@link #onResult(MIRACLResult)} method which handles the result of a MIRACL Trust SDK operation.
  * <b>Important:</b> Implementations of this method will be invoked on the main thread.</p>
  *
- * @param <SUCCESS> type of the value on success.
- * @param <FAIL>    type of the value on failure.
+ * @param <SUCCESS> The value type on success.
+ * @param <FAIL>    The value type on failure.
  */
 public interface ResultHandler<SUCCESS, FAIL> {
     /**
-     * Handles the result of a MIRACLTrust SDK operation.
+     * Handles the result of a MIRACL Trust SDK operation.
      *
      * <p><b>Important:</b> The implementation of this method will be invoked on the main thread.</p>
      *

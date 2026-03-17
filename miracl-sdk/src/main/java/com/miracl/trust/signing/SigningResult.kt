@@ -4,9 +4,9 @@ import com.miracl.trust.MIRACLTrust
 import java.util.Date
 
 /**
- * Result returned from [MIRACLTrust.sign] method.
- * @property signature Cryptographic representation of the signature.
- * @property timestamp When the document has been signed.
+ * Result returned from the [MIRACLTrust.sign] method.
+ * @property signature The cryptographic representation of the signature.
+ * @property timestamp Shows when the document was signed.
  */
 public class SigningResult internal constructor(
     public val signature: Signature,

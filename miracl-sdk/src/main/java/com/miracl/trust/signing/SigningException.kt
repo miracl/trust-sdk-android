@@ -5,24 +5,23 @@ public sealed class SigningException(cause: Throwable? = null) : Exception(cause
     /** Empty message hash. */
     public object EmptyMessageHash : SigningException()
 
-    /** User object passed for signing is not valid. */
+    /** The user object passed for signing is not valid. */
     public object InvalidUserData : SigningException()
 
-    /** Pin code includes invalid symbols or pin length does not match. */
+    /** PIN code contains invalid symbols or PIN length does not match. */
     public object InvalidPin : SigningException()
 
-    /** Pin not entered. */
+    /** PIN not entered. */
     public object PinCancelled : SigningException()
 
-    /** The authentication was not successful. */
+    /** Authentication was not successful. */
     public object UnsuccessfulAuthentication : SigningException()
 
-    /** The user is revoked because of too many unsuccessful authentication attempts or has not been
-     *  used in a substantial amount of time. The device needs to be re-registered.
-     */
+    /** The user was revoked due to too many failed authentication attempts or
+    prolonged inactivity. The device must be re-registered.*/
     public object Revoked : SigningException()
 
-    /** Public key of the signing identity is empty. */
+    /** The public key of the signing identity is empty. */
     public object EmptyPublicKey : SigningException()
 
     /** The session identifier in SigningSessionDetails is empty or blank. */

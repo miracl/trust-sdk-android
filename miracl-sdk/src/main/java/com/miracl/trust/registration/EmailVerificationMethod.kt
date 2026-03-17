@@ -2,10 +2,10 @@ package com.miracl.trust.registration
 
 /** Possible email verification methods. */
 public enum class EmailVerificationMethod {
-    /** Verification link is sent to the user email. */
+    /** Verification link is sent to the user's email. */
     Link,
 
-    /** Verification code is sent to the user email. */
+    /** Verification code is sent to the user's email. */
     Code;
 
     override fun toString(): String {

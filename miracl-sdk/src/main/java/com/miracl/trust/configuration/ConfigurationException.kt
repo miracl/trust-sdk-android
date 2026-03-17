@@ -3,7 +3,7 @@ package com.miracl.trust.configuration
 /** A class hierarchy that describes issues with the SDK configuration. */
 public sealed class ConfigurationException : Exception() {
 
-    /** Empty project ID. */
+    /** Empty Project ID. */
     public object EmptyProjectId : ConfigurationException()
 
     /** Invalid Project URL. */

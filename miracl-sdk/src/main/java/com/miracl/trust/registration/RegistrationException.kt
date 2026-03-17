@@ -2,7 +2,7 @@ package com.miracl.trust.registration
 
 /** A class hierarchy that describes registration issues. */
 public sealed class RegistrationException(cause: Throwable? = null) : Exception(cause) {
-    /** Empty user ID. */
+    /** Empty User ID. */
     public object EmptyUserId : RegistrationException()
 
     /** Empty activation token. */
@@ -14,13 +14,13 @@ public sealed class RegistrationException(cause: Throwable? = null) : Exception(
     /** Invalid activation token. */
     public object InvalidActivationToken : RegistrationException()
 
-    /** Pin code includes invalid symbols or pin length does not match. */
+    /** PIN code contains invalid symbols or PIN length does not match. */
     public object InvalidPin : RegistrationException()
 
-    /** Pin not entered. */
+    /** PIN not entered. */
     public object PinCancelled : RegistrationException()
 
-    /** Curve returned by the platform is unsupported by this version of the SDK. */
+    /** The curve returned by the platform is unsupported by this version of the SDK. */
     public object UnsupportedEllipticCurve : RegistrationException()
 
     /** Registration failed. */

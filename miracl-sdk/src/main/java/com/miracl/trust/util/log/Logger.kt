@@ -4,11 +4,11 @@ import com.miracl.trust.util.log.Logger.LoggingLevel
 import com.miracl.trust.util.log.Logger.LoggingLevel.*
 
 /**
- * ## A type representing message logger
- * Some important and useful information will be outputted through this interface
- * while a debug build.
+ * ## A type representing message logger.
+ * Some important and useful information will be output through this interface
+ * during a debug build.
  * >
- * By default this SDK uses a concrete implementation of this interface [DefaultLogger][com.miracl.trust.util.log.DefaultLogger].
+ * By default, this SDK uses a concrete implementation of this interface [DefaultLogger][com.miracl.trust.util.log.DefaultLogger].
  *
  * @see LoggingLevel
  */
@@ -73,4 +73,3 @@ public interface Logger {
      */
     public fun debug(logTag: String, message: String)
 }
-
