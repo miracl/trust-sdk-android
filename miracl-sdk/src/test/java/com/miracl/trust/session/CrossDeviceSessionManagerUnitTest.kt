@@ -4,6 +4,8 @@ import android.net.Uri
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.randomUuidString
+import com.miracl.trust.util.log.DefaultLogger
+import com.miracl.trust.util.log.Logger
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -20,8 +22,9 @@ class CrossDeviceSessionManagerUnitTest {
     private val crossDeviceSessionResponse = createCrossDeviceSessionResponse()
     private val crossDeviceSession = createCrossDeviceSession()
 
+    private val logger = DefaultLogger(loggingLevel = Logger.LoggingLevel.NONE)
     private val sessionApiMock = mockk<CrossDeviceSessionApi>()
-    private val sessionManager = CrossDeviceSessionManager(sessionApiMock)
+    private val sessionManager = CrossDeviceSessionManager(sessionApiMock, logger)
 
     @Before
     fun setUp() {

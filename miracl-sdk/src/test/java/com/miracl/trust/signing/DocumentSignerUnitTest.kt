@@ -20,6 +20,8 @@ import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.session.CrossDeviceSessionApi
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.hexStringToByteArray
+import com.miracl.trust.util.log.DefaultLogger
+import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.toHexString
 import com.miracl.trust.util.toUserDto
 import io.mockk.CapturingSlot
@@ -50,6 +52,7 @@ class DocumentSignerUnitTest {
     private val pinProviderMock = PinProvider { it.consume(pin) }
     private val userStorageMock = mockk<UserStorage>()
     private val crossDeviceSessionApiMock = mockk<CrossDeviceSessionApi>()
+    private val logger = DefaultLogger(loggingLevel = Logger.LoggingLevel.NONE)
 
     @Before
     fun resetMocks() {
@@ -91,7 +94,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -125,7 +129,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -157,7 +162,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -189,7 +195,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -221,7 +228,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -265,7 +273,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -309,7 +318,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -340,7 +350,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -372,7 +383,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -402,7 +414,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -432,7 +445,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -462,7 +476,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -502,7 +517,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -542,7 +558,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -584,7 +601,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -636,7 +654,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -687,7 +706,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -737,7 +757,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -795,7 +816,8 @@ class DocumentSignerUnitTest {
                     cryptoMock,
                     authenticatorContractMock,
                     userStorageMock,
-                    crossDeviceSessionApiMock
+                    crossDeviceSessionApiMock,
+                    logger
                 )
 
             // Act
@@ -867,7 +889,8 @@ class DocumentSignerUnitTest {
                 cryptoMock,
                 authenticatorContractMock,
                 userStorageMock,
-                crossDeviceSessionApiMock
+                crossDeviceSessionApiMock,
+                logger
             )
 
             // Act

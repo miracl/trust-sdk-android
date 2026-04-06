@@ -4,6 +4,8 @@ import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.randomUuidString
 import com.miracl.trust.test_helpers.MockHttpURLConnectionBuilder
+import com.miracl.trust.util.log.DefaultLogger
+import com.miracl.trust.util.log.Logger
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
@@ -17,10 +19,11 @@ class HttpURLConnectionApiManagerUnitTest {
     private val clientSettingsUrl = "https://api.mpin.io/rps/v2/clientSettings"
 
     private lateinit var apiManager: HttpsURLConnectionRequestExecutor
+    private val logger = DefaultLogger(loggingLevel = Logger.LoggingLevel.NONE)
 
     @Before
     fun setUp() {
-        apiManager = HttpsURLConnectionRequestExecutor(10, 10)
+        apiManager = HttpsURLConnectionRequestExecutor(logger, 10, 10)
     }
 
     @Test

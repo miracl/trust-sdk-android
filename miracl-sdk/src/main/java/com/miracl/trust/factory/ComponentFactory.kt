@@ -10,11 +10,13 @@ import com.miracl.trust.session.*
 import com.miracl.trust.signing.DocumentSigner
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.storage.room.RoomDatabaseModule
+import com.miracl.trust.util.log.Logger
 
 internal class ComponentFactory(
-    private val context: Context
+    private val context: Context,
+    private val logger: Logger
 ) {
-    private val crypto: Crypto = Crypto()
+    private val crypto: Crypto = Crypto(logger)
 
     fun defaultUserStorage(projectId: String): UserStorage =
         RoomDatabaseModule(context, projectId).userStorage()
@@ -23,7 +25,7 @@ internal class ComponentFactory(
         authenticator: AuthenticatorContract,
         verificationApi: VerificationApi,
         userStorage: UserStorage
-    ): Verificator = Verificator(authenticator, verificationApi, userStorage)
+    ): Verificator = Verificator(authenticator, verificationApi, userStorage, logger)
 
     fun createRegistrator(
         registrationApi: RegistrationApi,
@@ -32,7 +34,8 @@ internal class ComponentFactory(
         Registrator(
             registrationApi,
             crypto,
-            userStorage
+            userStorage,
+            logger
         )
 
     fun createAuthenticator(
@@ -46,7 +49,8 @@ internal class ComponentFactory(
             sessionApi,
             crypto,
             registrator,
-            userStorage
+            userStorage,
+            logger
         )
 
     fun createDocumentSigner(
@@ -54,15 +58,15 @@ internal class ComponentFactory(
         userStorage: UserStorage,
         crossDeviceSessionApi: CrossDeviceSessionApi
     ): DocumentSigner =
-        DocumentSigner(crypto, authenticator, userStorage, crossDeviceSessionApi)
+        DocumentSigner(crypto, authenticator, userStorage, crossDeviceSessionApi, logger)
 
     fun createSessionManager(
         sessionApi: SessionApi
     ): SessionManagerContract =
-        SessionManager(sessionApi)
+        SessionManager(sessionApi, logger)
 
     fun createCrossDeviceSessionManager(
         crossDeviceSessionApi: CrossDeviceSessionApi
     ): CrossDeviceSessionManagerContract =
-        CrossDeviceSessionManager(crossDeviceSessionApi)
+        CrossDeviceSessionManager(crossDeviceSessionApi, logger)
 }

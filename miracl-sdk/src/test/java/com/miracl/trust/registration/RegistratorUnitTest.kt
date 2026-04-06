@@ -17,6 +17,8 @@ import com.miracl.trust.randomUuidString
 import com.miracl.trust.storage.UserDto
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.hexStringToByteArray
+import com.miracl.trust.util.log.DefaultLogger
+import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.toHexString
 import com.miracl.trust.util.toSHA256
 import com.miracl.trust.util.toUserDto
@@ -40,6 +42,7 @@ class RegistratorUnitTest {
     private val registrationApiMock = mockk<RegistrationApiManager>()
     private val cryptoMock = mockk<Crypto>()
     private val userStorageMock = mockk<UserStorage>()
+    private val logger = DefaultLogger(loggingLevel = Logger.LoggingLevel.NONE)
 
     private lateinit var registrator: Registrator
 
@@ -49,7 +52,7 @@ class RegistratorUnitTest {
         setUpRegistrationApiMock()
         setUpCryptoMock()
 
-        registrator = Registrator(registrationApiMock, cryptoMock, userStorageMock)
+        registrator = Registrator(registrationApiMock, cryptoMock, userStorageMock, logger)
     }
 
     @Test

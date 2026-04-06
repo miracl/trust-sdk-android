@@ -13,15 +13,16 @@ import com.miracl.trust.model.User
 import com.miracl.trust.session.AuthenticationSessionDetails
 import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.storage.UserStorage
-import com.miracl.trust.util.log.Loggable
+import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants
 import com.miracl.trust.util.toHexString
 
 internal class Verificator(
     private val authenticator: AuthenticatorContract,
     private val verificationApi: VerificationApi,
-    private val userStorage: UserStorage
-) : Loggable {
+    private val userStorage: UserStorage,
+    private val logger: Logger
+) {
     suspend fun sendVerificationEmail(
         userId: String,
         projectId: String,
@@ -191,6 +192,6 @@ internal class Verificator(
     }
 
     private fun logOperation(operation: String) {
-        logger?.info(LoggerConstants.VERIFICATOR_TAG, operation)
+        logger.info(LoggerConstants.VERIFICATOR_TAG, operation)
     }
 }

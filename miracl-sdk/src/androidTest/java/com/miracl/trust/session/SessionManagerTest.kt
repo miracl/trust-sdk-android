@@ -8,6 +8,8 @@ import com.miracl.trust.network.ApiRequestExecutor
 import com.miracl.trust.network.ApiSettings
 import com.miracl.trust.network.HttpsURLConnectionRequestExecutor
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
+import com.miracl.trust.util.log.DefaultLogger
+import com.miracl.trust.util.log.Logger
 import com.miracl.trust.utilities.AccessIdResponse
 import com.miracl.trust.utilities.MIRACLService
 import com.miracl.trust.utilities.randomPinLength
@@ -26,14 +28,15 @@ class SessionManagerTest {
 
     @Before
     fun setUp() = runBlocking {
-        val httpRequestExecutor = HttpsURLConnectionRequestExecutor(10, 10)
+        val logger = DefaultLogger(Logger.LoggingLevel.NONE)
+        val httpRequestExecutor = HttpsURLConnectionRequestExecutor(logger, 10, 10)
         val apiSettings = ApiSettings(projectUrl)
         val apiRequestExecutor =
             ApiRequestExecutor(httpRequestExecutor, KotlinxSerializationJsonUtil)
 
         val sessionApi =
             SessionApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
-        sessionManager = SessionManager(sessionApi)
+        sessionManager = SessionManager(sessionApi, logger)
     }
 
     @Test

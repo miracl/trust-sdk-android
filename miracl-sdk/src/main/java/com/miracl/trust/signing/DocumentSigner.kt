@@ -16,7 +16,7 @@ import com.miracl.trust.session.CrossDeviceSessionApi
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.acquirePin
 import com.miracl.trust.util.hexStringToByteArray
-import com.miracl.trust.util.log.Loggable
+import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants
 import com.miracl.trust.util.secondsSince1970
 import com.miracl.trust.util.toHexString
@@ -27,8 +27,9 @@ internal class DocumentSigner(
     private val crypto: Crypto,
     private val authenticator: AuthenticatorContract,
     private val userStorage: UserStorage,
-    private val crossDeviceSessionApi: CrossDeviceSessionApi
-) : Loggable {
+    private val crossDeviceSessionApi: CrossDeviceSessionApi,
+    private val logger: Logger
+) {
     suspend fun sign(
         message: ByteArray,
         user: User,
@@ -172,6 +173,6 @@ internal class DocumentSigner(
         }
 
     private fun logOperation(operation: String) {
-        logger?.info(LoggerConstants.DOCUMENT_SIGNER_TAG, operation)
+        logger.info(LoggerConstants.DOCUMENT_SIGNER_TAG, operation)
     }
 }

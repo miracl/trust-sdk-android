@@ -18,6 +18,8 @@ import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.session.SessionApi
 import com.miracl.trust.storage.UserDto
 import com.miracl.trust.storage.UserStorage
+import com.miracl.trust.util.log.DefaultLogger
+import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.toUserDto
 import com.miracl.trust.util.toHexString
 import io.mockk.*
@@ -41,6 +43,7 @@ class AuthenticatorUnitTest {
     private val pinProviderMock = PinProvider { it.consume(pin) }
     private val registratorMock = mockk<Registrator>()
     private val userStorageMock = mockk<UserStorage>()
+    private val logger = DefaultLogger(loggingLevel = Logger.LoggingLevel.NONE)
 
     private lateinit var authenticator: Authenticator
 
@@ -56,7 +59,8 @@ class AuthenticatorUnitTest {
             sessionApiMock,
             cryptoMock,
             registratorMock,
-            userStorageMock
+            userStorageMock,
+            logger
         )
     }
 

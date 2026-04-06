@@ -7,6 +7,8 @@ import com.miracl.trust.network.HttpMethod
 import com.miracl.trust.network.HttpsURLConnectionRequestExecutor
 import com.miracl.trust.signing.Signature
 import com.miracl.trust.test.BuildConfig
+import com.miracl.trust.util.log.DefaultLogger
+import com.miracl.trust.util.log.Logger
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -67,7 +69,12 @@ data class VerifySignatureResponse(
 )
 
 object MIRACLService {
-    private val requestExecutor = HttpsURLConnectionRequestExecutor(10, 10)
+    private val requestExecutor = HttpsURLConnectionRequestExecutor(
+        logger = DefaultLogger(Logger.LoggingLevel.NONE),
+        connectTimeout = 10,
+        readTimeout = 10
+    )
+
     private val json = Json {
         encodeDefaults = true
         ignoreUnknownKeys = true

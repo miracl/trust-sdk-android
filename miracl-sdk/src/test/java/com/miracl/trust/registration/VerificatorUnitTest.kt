@@ -16,6 +16,8 @@ import com.miracl.trust.session.AuthenticationSessionDetails
 import com.miracl.trust.session.CrossDeviceSession
 import com.miracl.trust.storage.UserDto
 import com.miracl.trust.storage.UserStorage
+import com.miracl.trust.util.log.DefaultLogger
+import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.toHexString
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,8 +34,10 @@ class VerificatorUnitTest {
     private val authenticatorMock = mockk<AuthenticatorContract>()
     private val verificationApiMock = mockk<VerificationApi>()
     private val userStorageMock = mockk<UserStorage>()
+    private val logger = DefaultLogger(loggingLevel = Logger.LoggingLevel.NONE)
 
-    private val verificator = Verificator(authenticatorMock, verificationApiMock, userStorageMock)
+    private val verificator =
+        Verificator(authenticatorMock, verificationApiMock, userStorageMock, logger)
 
     @Before
     fun setUp() {

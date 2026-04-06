@@ -4,7 +4,7 @@ import android.net.Uri
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
-import com.miracl.trust.util.log.Loggable
+import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants
 
 internal enum class SessionStatus(val value: String) {
@@ -21,8 +21,9 @@ internal interface SessionManagerContract {
 }
 
 internal class SessionManager(
-    private val sessionApi: SessionApi
-) : SessionManagerContract, Loggable {
+    private val sessionApi: SessionApi,
+    private val logger: Logger
+) : SessionManagerContract {
     companion object {
         const val PUSH_NOTIFICATION_QR_URL = "qrURL"
     }
@@ -106,6 +107,6 @@ internal class SessionManager(
     }
 
     private fun logOperation(operation: String) {
-        logger?.info(LoggerConstants.SESSION_MANAGER_TAG, operation)
+        logger.info(LoggerConstants.SESSION_MANAGER_TAG, operation)
     }
 }
