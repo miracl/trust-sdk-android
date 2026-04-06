@@ -13,7 +13,7 @@ import com.miracl.trust.model.User
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.acquirePin
 import com.miracl.trust.util.hexStringToByteArray
-import com.miracl.trust.util.log.Loggable
+import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants
 import com.miracl.trust.util.toUserDto
 import com.miracl.trust.util.toHexString
@@ -34,8 +34,9 @@ internal interface RegistratorContract {
 internal class Registrator(
     private val registrationApi: RegistrationApi,
     private val crypto: Crypto,
-    private val userStorage: UserStorage
-) : RegistratorContract, Loggable {
+    private val userStorage: UserStorage,
+    private val logger: Logger
+) : RegistratorContract {
     companion object {
         internal const val MIN_PIN_LENGTH = 4
         internal const val MAX_PIN_LENGTH = 6
@@ -283,6 +284,6 @@ internal class Registrator(
     }
 
     private fun logOperation(operation: String) {
-        logger?.info(LoggerConstants.REGISTRATOR_TAG, operation)
+        logger.info(LoggerConstants.REGISTRATOR_TAG, operation)
     }
 }

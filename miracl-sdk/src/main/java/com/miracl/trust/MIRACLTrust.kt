@@ -22,7 +22,6 @@ import com.miracl.trust.storage.UserStorageException
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.UrlValidator
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
-import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants
 import com.miracl.trust.util.toUserDto
 import com.miracl.trust.util.toUser
@@ -42,9 +41,6 @@ public class MIRACLTrust private constructor(
     configuration: Configuration
 ) {
     public companion object {
-        internal var logger: Logger? = null
-            private set
-
         private const val NOT_INITIALIZED_EXCEPTION = "MIRACLTrust SDK not initialized!"
 
         private lateinit var instance: MIRACLTrust
@@ -72,6 +68,7 @@ public class MIRACLTrust private constructor(
     }
 
     //region Properties
+    private val logger = configuration.logger
     private val apiSettings: ApiSettings
     private val verificator: Verificator
     private val registrator: RegistratorContract
@@ -97,15 +94,13 @@ public class MIRACLTrust private constructor(
 
     //region Initialization
     init {
-        logger = configuration.logger
-
         val apiRequestExecutor = ApiRequestExecutor(
             configuration.httpRequestExecutor,
             KotlinxSerializationJsonUtil,
             configuration.applicationInfo
         )
 
-        val componentFactory = configuration.componentFactory ?: ComponentFactory(context)
+        val componentFactory = configuration.componentFactory ?: ComponentFactory(context, logger)
         apiSettings = ApiSettings(configuration.projectUrl)
 
         miraclTrustCoroutineContext = configuration.miraclCoroutineContext
@@ -1687,7 +1682,7 @@ public class MIRACLTrust private constructor(
 
     //region Private
     private fun logError(tag: String, exception: Exception) {
-        logger?.error(
+        logger.error(
             tag,
             LoggerConstants.FLOW_ERROR
                 .format(
@@ -1698,7 +1693,7 @@ public class MIRACLTrust private constructor(
 
     private fun <T> T.logIfError(tag: String): T {
         if (this is MIRACLError<*, *>) {
-            logger?.error(
+            logger.error(
                 tag,
                 LoggerConstants.FLOW_ERROR
                     .format(

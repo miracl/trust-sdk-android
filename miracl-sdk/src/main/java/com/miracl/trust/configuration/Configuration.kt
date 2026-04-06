@@ -184,15 +184,15 @@ public class Configuration private constructor(
                 deviceNameValue = Build.MODEL
             }
 
-            if (!this::httpRequestExecutorValue.isInitialized) {
-                httpRequestExecutorValue =
-                    HttpsURLConnectionRequestExecutor(connectTimeout, readTimeout)
-            }
-
             if (!this::loggerValue.isInitialized) {
                 val loggingLevel = loggingLevel ?: Logger.LoggingLevel.NONE
                 loggerValue = DefaultLogger(loggingLevel)
                 this.loggingLevel = loggingLevel
+            }
+
+            if (!this::httpRequestExecutorValue.isInitialized) {
+                httpRequestExecutorValue =
+                    HttpsURLConnectionRequestExecutor(loggerValue, connectTimeout, readTimeout)
             }
 
             return Configuration(this)

@@ -5,6 +5,8 @@ import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.randomByteArray
 import com.miracl.trust.randomNumericPin
 import com.miracl.trust.randomPinLength
+import com.miracl.trust.util.log.DefaultLogger
+import com.miracl.trust.util.log.Logger
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -17,6 +19,7 @@ import java.util.*
 
 @ExperimentalCoroutinesApi
 class CryptoUnitTest {
+    private val logger = DefaultLogger(loggingLevel = Logger.LoggingLevel.NONE)
     private val cryptoExternalMock = mockk<CryptoExternalContract>()
 
     @Before
@@ -38,7 +41,7 @@ class CryptoUnitTest {
             val pin = randomNumericPin(randomPinLength()).toInt()
             every { cryptoExternalMock.getClientPass1(mpinId, token, pin) } returns pass1Proof
 
-            val crypto = Crypto(cryptoExternalMock)
+            val crypto = Crypto(logger, cryptoExternalMock)
 
             // Act
             val pass1ProofResult =
@@ -70,7 +73,7 @@ class CryptoUnitTest {
                     pin
                 )
             } throws exception
-            val crypto = Crypto(cryptoExternalMock)
+            val crypto = Crypto(logger, cryptoExternalMock)
 
             // Act
             val pass1ProofResult =
@@ -95,7 +98,7 @@ class CryptoUnitTest {
         val sec = randomByteArray()
         val pass2Proof = Pass2Proof(V = randomByteArray())
         every { cryptoExternalMock.getClientPass2(x, y, sec) } returns pass2Proof
-        val crypto = Crypto(cryptoExternalMock)
+        val crypto = Crypto(logger, cryptoExternalMock)
 
         // Act
         val pass1ProofResult =
@@ -114,7 +117,7 @@ class CryptoUnitTest {
         val sec = randomByteArray()
         val exception = Exception()
         every { cryptoExternalMock.getClientPass2(any(), any(), any()) } throws exception
-        val crypto = Crypto(cryptoExternalMock)
+        val crypto = Crypto(logger, cryptoExternalMock)
 
         // Act
         val pass2ProofResult =
@@ -134,7 +137,7 @@ class CryptoUnitTest {
             randomByteArray()
         )
         every { cryptoExternalMock.generateSigningKeyPair() } returns signingKeyPair
-        val crypto = Crypto(cryptoExternalMock)
+        val crypto = Crypto(logger, cryptoExternalMock)
 
         // Act
         val result =
@@ -150,7 +153,7 @@ class CryptoUnitTest {
         // Arrange
         val exception = Exception()
         every { cryptoExternalMock.generateSigningKeyPair() } throws exception
-        val crypto = Crypto(cryptoExternalMock)
+        val crypto = Crypto(logger, cryptoExternalMock)
 
         // Act
         val result =
@@ -178,7 +181,7 @@ class CryptoUnitTest {
                 )
             } returns dvsClientToken
 
-            val crypto = Crypto(cryptoExternalMock)
+            val crypto = Crypto(logger, cryptoExternalMock)
 
             // Act
             val result =
@@ -204,7 +207,7 @@ class CryptoUnitTest {
             val exception = Exception()
             every { cryptoExternalMock.combineClientSecret(any(), any()) } throws exception
 
-            val crypto = Crypto(cryptoExternalMock)
+            val crypto = Crypto(logger, cryptoExternalMock)
 
             // Act
             val result =
@@ -239,7 +242,7 @@ class CryptoUnitTest {
                 )
             } throws exception
 
-            val crypto = Crypto(cryptoExternalMock)
+            val crypto = Crypto(logger, cryptoExternalMock)
 
             // Act
             val result =
@@ -277,7 +280,7 @@ class CryptoUnitTest {
                 )
             } returns signingResult
 
-            val crypto = Crypto(cryptoExternalMock)
+            val crypto = Crypto(logger, cryptoExternalMock)
 
             // Act
             val result =
@@ -311,7 +314,7 @@ class CryptoUnitTest {
                 )
             } throws exception
 
-            val crypto = Crypto(cryptoExternalMock)
+            val crypto = Crypto(logger, cryptoExternalMock)
 
             // Act
             val result =

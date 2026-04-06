@@ -4,7 +4,7 @@ import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.MIRACLTrust
-import com.miracl.trust.util.log.Loggable
+import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants
 import com.miracl.trust.util.log.LoggerConstants.NETWORK_TAG
 import java.io.*
@@ -26,9 +26,10 @@ internal class DefaultHttpConnectionBuilder : HttpURLConnectionBuilder {
  * Provides implementation of the HttpRequestExecutor that uses [HttpURLConnection].
  */
 internal class HttpsURLConnectionRequestExecutor(
+    private val logger: Logger,
     connectTimeout: Int,
     readTimeout: Int
-) : HttpRequestExecutor, Loggable {
+) : HttpRequestExecutor {
     companion object {
         private const val ENCODING = "UTF-8"
         private const val MEDIA_TYPE = "application/json; charset=utf-8"
@@ -56,7 +57,7 @@ internal class HttpsURLConnectionRequestExecutor(
         try {
             urlConnection = buildURLConnection(apiRequest)
 
-            logger?.debug(
+            logger.debug(
                 NETWORK_TAG,
                 LoggerConstants.NETWORK_REQUEST.format(
                     urlConnection.requestMethod,
@@ -73,7 +74,7 @@ internal class HttpsURLConnectionRequestExecutor(
                 }
             )
 
-            logger?.debug(
+            logger.debug(
                 NETWORK_TAG,
                 LoggerConstants.NETWORK_RESPONSE.format(
                     urlConnection.requestMethod,
@@ -94,7 +95,7 @@ internal class HttpsURLConnectionRequestExecutor(
             }
         } catch (ex: Exception) {
             if (ex is IOException) {
-                logger?.error(NETWORK_TAG, ex.toString())
+                logger.error(NETWORK_TAG, ex.toString())
             }
 
             return MIRACLError(HttpRequestExecutorException.ExecutionError(cause = ex))
@@ -117,7 +118,7 @@ internal class HttpsURLConnectionRequestExecutor(
 
         apiRequest.body?.also {
             if (apiRequest.method == HttpMethod.GET) {
-                logger?.info(NETWORK_TAG, HTTP_METHOD_NOT_EXPECTED_TO_HAVE_A_BODY_LOG)
+                logger.info(NETWORK_TAG, HTTP_METHOD_NOT_EXPECTED_TO_HAVE_A_BODY_LOG)
             }
 
             urlConnection.setRequestProperty(

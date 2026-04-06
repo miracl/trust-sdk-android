@@ -4,7 +4,7 @@ import android.net.Uri
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
-import com.miracl.trust.util.log.Loggable
+import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants
 
 internal interface CrossDeviceSessionManagerContract {
@@ -15,8 +15,9 @@ internal interface CrossDeviceSessionManagerContract {
 }
 
 internal class CrossDeviceSessionManager(
-    private val crossDeviceSessionApi: CrossDeviceSessionApi
-) : CrossDeviceSessionManagerContract, Loggable {
+    private val crossDeviceSessionApi: CrossDeviceSessionApi,
+    private val logger: Logger
+) : CrossDeviceSessionManagerContract {
     companion object {
         const val PUSH_NOTIFICATION_QR_URL = "qrURL"
     }
@@ -93,6 +94,6 @@ internal class CrossDeviceSessionManager(
     }
 
     private fun logOperation(operation: String) {
-        logger?.info(LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG, operation)
+        logger.info(LoggerConstants.CROSS_DEVICE_SESSION_MANAGER_TAG, operation)
     }
 }

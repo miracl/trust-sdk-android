@@ -15,7 +15,7 @@ import com.miracl.trust.session.SessionApi
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.acquirePin
 import com.miracl.trust.util.hexStringToByteArray
-import com.miracl.trust.util.log.Loggable
+import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants
 import com.miracl.trust.util.toUserDto
 import com.miracl.trust.util.toHexString
@@ -74,8 +74,9 @@ internal class Authenticator(
     private val sessionApi: SessionApi,
     private val crypto: Crypto,
     private val registrator: RegistratorContract,
-    private val userStorage: UserStorage
-) : AuthenticatorContract, Loggable {
+    private val userStorage: UserStorage,
+    private val logger: Logger
+) : AuthenticatorContract {
     companion object {
         const val PUSH_NOTIFICATION_PROJECT_ID = "projectID"
         const val PUSH_NOTIFICATION_USER_ID = "userID"
@@ -320,7 +321,7 @@ internal class Authenticator(
         try {
             userStorage.update(user.revoke().toUserDto())
         } catch (ex: Exception) {
-            logger?.error(
+            logger.error(
                 LoggerConstants.AUTHENTICATOR_TAG,
                 LoggerConstants.AuthenticatorOperations.REVOKE_USER_ERROR.format(
                     ex
@@ -330,6 +331,6 @@ internal class Authenticator(
     }
 
     private fun logOperation(operation: String) {
-        logger?.info(LoggerConstants.AUTHENTICATOR_TAG, operation)
+        logger.info(LoggerConstants.AUTHENTICATOR_TAG, operation)
     }
 }

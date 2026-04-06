@@ -5,6 +5,8 @@ import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
+import com.miracl.trust.util.log.DefaultLogger
+import com.miracl.trust.util.log.Logger
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -19,8 +21,9 @@ class SessionManagerUnitTest {
     private val codeStatusResponse = crateCodeStatusResponse()
     private val sessionDetails = createSessionDetails()
 
+    private val logger = DefaultLogger(loggingLevel = Logger.LoggingLevel.NONE)
     private val sessionApiMock = mockk<SessionApi>()
-    private val sessionManager = SessionManager(sessionApiMock)
+    private val sessionManager = SessionManager(sessionApiMock, logger)
 
     @Before
     fun setUp() {

@@ -3,7 +3,7 @@ package com.miracl.trust.crypto
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
-import com.miracl.trust.util.log.Loggable
+import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants.CRYPTO_OPERATION_FINISHED
 import com.miracl.trust.util.log.LoggerConstants.CRYPTO_OPERATION_STARTED
 import com.miracl.trust.util.log.LoggerConstants.CRYPTO_TAG
@@ -15,8 +15,9 @@ internal enum class SupportedEllipticCurves {
 }
 
 internal class Crypto(
+    private val logger: Logger,
     private val cryptoExternal: CryptoExternalContract = CryptoExternal()
-) : Loggable {
+) {
     fun getClientPass1Proof(
         mpinId: ByteArray,
         token: ByteArray,
@@ -121,10 +122,10 @@ internal class Crypto(
     }
 
     private fun logOperationStarted(operationName: String) {
-        logger?.debug(CRYPTO_TAG, CRYPTO_OPERATION_STARTED.format(operationName))
+        logger.debug(CRYPTO_TAG, CRYPTO_OPERATION_STARTED.format(operationName))
     }
 
     private fun logOperationFinished(operationName: String) {
-        logger?.debug(CRYPTO_TAG, CRYPTO_OPERATION_FINISHED.format(operationName))
+        logger.debug(CRYPTO_TAG, CRYPTO_OPERATION_FINISHED.format(operationName))
     }
 }
