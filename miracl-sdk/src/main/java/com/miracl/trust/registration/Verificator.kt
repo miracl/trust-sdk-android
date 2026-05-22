@@ -7,6 +7,7 @@ import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.authentication.AuthenticationException
 import com.miracl.trust.authentication.AuthenticatorContract
 import com.miracl.trust.authentication.AuthenticatorScopes
+import com.miracl.trust.core.DeviceTagProvider
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.QuickCode
 import com.miracl.trust.model.User
@@ -21,7 +22,8 @@ internal class Verificator(
     private val authenticator: AuthenticatorContract,
     private val verificationApi: VerificationApi,
     private val userStorage: UserStorage,
-    private val logger: Logger
+    private val logger: Logger,
+    private val deviceTagProvider: DeviceTagProvider
 ) {
     suspend fun sendVerificationEmail(
         userId: String,
@@ -133,8 +135,9 @@ internal class Verificator(
         }
 
         val confirmationRequestBody = ConfirmationRequestBody(
-            userId,
-            code
+            userId = userId,
+            code = code,
+            deviceTag = deviceTagProvider.get()
         )
 
         logOperation(LoggerConstants.VerificatorOperations.ACTIVATION_TOKEN_REQUEST)

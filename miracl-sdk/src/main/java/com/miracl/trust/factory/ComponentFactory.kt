@@ -4,6 +4,7 @@ import android.content.Context
 import com.miracl.trust.authentication.AuthenticationApi
 import com.miracl.trust.authentication.Authenticator
 import com.miracl.trust.authentication.AuthenticatorContract
+import com.miracl.trust.core.DeviceTagProvider
 import com.miracl.trust.crypto.Crypto
 import com.miracl.trust.registration.*
 import com.miracl.trust.session.*
@@ -14,7 +15,8 @@ import com.miracl.trust.util.log.Logger
 
 internal class ComponentFactory(
     private val context: Context,
-    private val logger: Logger
+    private val logger: Logger,
+    private val deviceTagProvider: DeviceTagProvider
 ) {
     private val crypto: Crypto = Crypto(logger)
 
@@ -25,7 +27,8 @@ internal class ComponentFactory(
         authenticator: AuthenticatorContract,
         verificationApi: VerificationApi,
         userStorage: UserStorage
-    ): Verificator = Verificator(authenticator, verificationApi, userStorage, logger)
+    ): Verificator =
+        Verificator(authenticator, verificationApi, userStorage, logger, deviceTagProvider)
 
     fun createRegistrator(
         registrationApi: RegistrationApi,
@@ -35,7 +38,8 @@ internal class ComponentFactory(
             registrationApi,
             crypto,
             userStorage,
-            logger
+            logger,
+            deviceTagProvider
         )
 
     fun createAuthenticator(

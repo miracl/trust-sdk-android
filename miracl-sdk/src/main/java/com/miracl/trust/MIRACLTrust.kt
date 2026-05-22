@@ -8,6 +8,7 @@ import com.miracl.trust.authentication.AuthenticatorScopes
 import com.miracl.trust.configuration.*
 import com.miracl.trust.configuration.factory.ConfigurationFactory
 import com.miracl.trust.configuration.factory.DefaultConfigurationFactory
+import com.miracl.trust.core.DeviceTagProvider
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.delegate.ResultHandler
 import com.miracl.trust.factory.ComponentFactory
@@ -187,7 +188,12 @@ public class MIRACLTrust private constructor(
             configuration.applicationInfo
         )
 
-        val componentFactory = configuration.componentFactory ?: ComponentFactory(context, logger)
+        var componentFactory = configuration.componentFactory
+        if (componentFactory == null) {
+            val deviceTagProvider = DeviceTagProvider.create(context)
+            componentFactory = ComponentFactory(context, logger, deviceTagProvider)
+        }
+
         apiSettings = ApiSettings(projectUrl)
 
         miraclTrustCoroutineContext = configuration.miraclCoroutineContext
