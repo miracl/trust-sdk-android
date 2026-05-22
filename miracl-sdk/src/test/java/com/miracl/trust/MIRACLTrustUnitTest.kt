@@ -110,6 +110,7 @@ class MIRACLTrustUnitTest {
         // Arrange
         val userStorageMock = mockk<UserStorage>()
         val config = Configuration.Builder(projectId, projectUrl)
+            .componentFactory(componentFactoryMock)
             .deviceName(deviceName)
             .userStorage(userStorageMock)
             .build()
@@ -173,7 +174,11 @@ class MIRACLTrustUnitTest {
     @Test
     fun `createInstance creates configuration when there isn't any`() = runTest {
         // Arrange
-        val configuration = Configuration.Builder().deviceName(deviceName).build()
+        val configuration = Configuration.Builder()
+            .componentFactory(componentFactoryMock)
+            .deviceName(deviceName)
+            .build()
+
         val configurationFactory = mockk<ConfigurationFactory>()
         every { configurationFactory.create() } returns configuration
 
@@ -333,6 +338,7 @@ class MIRACLTrustUnitTest {
         val userStorageMock = mockk<UserStorage>()
         val config = Configuration.Builder(projectId, projectUrl)
             .deviceName(deviceName)
+            .componentFactory(componentFactoryMock)
             .userStorage(userStorageMock)
             .build()
 
@@ -358,6 +364,7 @@ class MIRACLTrustUnitTest {
         every { userStorageMock.all() } returns listOf()
 
         val config = Configuration.Builder(projectId, projectUrl)
+            .componentFactory(componentFactoryMock)
             .deviceName(deviceName)
             .build()
 

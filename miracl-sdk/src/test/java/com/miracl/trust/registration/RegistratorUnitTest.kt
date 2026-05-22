@@ -3,6 +3,7 @@ package com.miracl.trust.registration
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.assertUserEqualsDto
+import com.miracl.trust.core.DeviceTagProvider
 import com.miracl.trust.crypto.Crypto
 import com.miracl.trust.crypto.CryptoException
 import com.miracl.trust.crypto.SigningKeyPair
@@ -36,6 +37,7 @@ class RegistratorUnitTest {
     private val userId = randomUuidString()
     private val projectId = randomUuidString()
     private val deviceName = randomUuidString()
+    private val deviceTag = randomHexString()
     private val pin = randomNumericPin(randomPinLength())
     private val pinProvider = PinProvider { it.consume(pin) }
 
@@ -43,6 +45,7 @@ class RegistratorUnitTest {
     private val cryptoMock = mockk<Crypto>()
     private val userStorageMock = mockk<UserStorage>()
     private val logger = DefaultLogger(loggingLevel = Logger.LoggingLevel.NONE)
+    private val deviceTagProvider = mockk<DeviceTagProvider>()
 
     private lateinit var registrator: Registrator
 
@@ -52,7 +55,10 @@ class RegistratorUnitTest {
         setUpRegistrationApiMock()
         setUpCryptoMock()
 
-        registrator = Registrator(registrationApiMock, cryptoMock, userStorageMock, logger)
+        every { deviceTagProvider.get() } returns deviceTag
+
+        registrator =
+            Registrator(registrationApiMock, cryptoMock, userStorageMock, logger, deviceTagProvider)
     }
 
     @Test
@@ -118,6 +124,7 @@ class RegistratorUnitTest {
                 signingKeyPair.publicKey.toHexString(),
                 registerRequestBody.publicKey
             )
+            Assert.assertEquals(deviceTag, registerRequestBody.deviceTag)
         }
 
     @Test

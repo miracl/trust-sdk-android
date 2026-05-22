@@ -4,6 +4,7 @@ import androidx.annotation.VisibleForTesting
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
+import com.miracl.trust.core.DeviceTagProvider
 import com.miracl.trust.crypto.Crypto
 import com.miracl.trust.crypto.CryptoException
 import com.miracl.trust.crypto.SigningKeyPair
@@ -35,7 +36,8 @@ internal class Registrator(
     private val registrationApi: RegistrationApi,
     private val crypto: Crypto,
     private val userStorage: UserStorage,
-    private val logger: Logger
+    private val logger: Logger,
+    private val deviceTagProvider: DeviceTagProvider
 ) : RegistratorContract {
     companion object {
         internal const val MIN_PIN_LENGTH = 4
@@ -74,7 +76,8 @@ internal class Registrator(
             deviceName = deviceName.trim(),
             activationToken = activationToken.trim(),
             pushToken = pushNotificationsToken,
-            publicKey = signingKeyPair.publicKey.toHexString()
+            publicKey = signingKeyPair.publicKey.toHexString(),
+            deviceTag = deviceTagProvider.get()
         )
 
         try {

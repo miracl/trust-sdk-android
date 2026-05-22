@@ -7,9 +7,11 @@ import com.miracl.trust.authentication.AuthenticateResponse
 import com.miracl.trust.authentication.AuthenticationException
 import com.miracl.trust.authentication.AuthenticatorContract
 import com.miracl.trust.authentication.AuthenticatorScopes
+import com.miracl.trust.core.DeviceTagProvider
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.User
 import com.miracl.trust.randomByteArray
+import com.miracl.trust.randomHexString
 import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
 import com.miracl.trust.session.AuthenticationSessionDetails
@@ -35,14 +37,22 @@ class VerificatorUnitTest {
     private val verificationApiMock = mockk<VerificationApi>()
     private val userStorageMock = mockk<UserStorage>()
     private val logger = DefaultLogger(loggingLevel = Logger.LoggingLevel.NONE)
+    private val deviceTagProvider = mockk<DeviceTagProvider>()
 
     private val verificator =
-        Verificator(authenticatorMock, verificationApiMock, userStorageMock, logger)
+        Verificator(
+            authenticatorMock,
+            verificationApiMock,
+            userStorageMock,
+            logger,
+            deviceTagProvider
+        )
 
     @Before
     fun setUp() {
         clearAllMocks()
         every { userStorageMock.getUser(any(), any()) } returns null
+        every { deviceTagProvider.get() } returns randomHexString()
     }
 
     @Test
@@ -528,6 +538,10 @@ class VerificatorUnitTest {
             // Assert
             Assert.assertEquals(userId, capturingSlotConfirmation.captured.userId)
             Assert.assertEquals(code, capturingSlotConfirmation.captured.code)
+            Assert.assertEquals(
+                deviceTagProvider.get(),
+                capturingSlotConfirmation.captured.deviceTag
+            )
 
             Assert.assertTrue(result is MIRACLSuccess)
             Assert.assertEquals(

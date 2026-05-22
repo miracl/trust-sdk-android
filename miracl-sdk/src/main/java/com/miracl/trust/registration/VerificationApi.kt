@@ -44,7 +44,8 @@ internal data class QuickCodeVerificationResponse(
 @Serializable
 internal data class ConfirmationRequestBody(
     val userId: String,
-    val code: String
+    val code: String,
+    val deviceTag: String
 )
 
 @Serializable

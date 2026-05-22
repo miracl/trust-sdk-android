@@ -18,7 +18,8 @@ internal data class RegisterRequestBody(
     @SerialName("deviceName") val deviceName: String,
     @SerialName("activationToken") val activationToken: String,
     @SerialName("pushToken") val pushToken: String? = null,
-    @SerialName("publicKey") val publicKey: String
+    @SerialName("publicKey") val publicKey: String,
+    @SerialName("deviceTag") val deviceTag: String
 )
 
 @Serializable

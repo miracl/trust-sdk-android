@@ -351,7 +351,8 @@ class VerificationApiUnitTest {
             // Arrange
             val confirmationRequestBody = ConfirmationRequestBody(
                 userId = randomUuidString(),
-                code = randomUuidString()
+                code = randomUuidString(),
+                deviceTag = randomHexString()
             )
 
             val confirmationRequestBodyAsJson =
@@ -399,7 +400,8 @@ class VerificationApiUnitTest {
             val result = apiManager.executeConfirmationRequest(
                 ConfirmationRequestBody(
                     userId = randomUuidString(),
-                    code = randomUuidString()
+                    code = randomUuidString(),
+                    deviceTag = randomHexString()
                 )
             )
 
@@ -432,7 +434,8 @@ class VerificationApiUnitTest {
             val result = apiManager.executeConfirmationRequest(
                 ConfirmationRequestBody(
                     userId = userId,
-                    code = randomUuidString()
+                    code = randomUuidString(),
+                    deviceTag = randomHexString()
                 )
             )
 
@@ -465,7 +468,8 @@ class VerificationApiUnitTest {
             val result = apiManager.executeConfirmationRequest(
                 ConfirmationRequestBody(
                     userId = randomUuidString(),
-                    code = randomUuidString()
+                    code = randomUuidString(),
+                    deviceTag = randomHexString()
                 )
             )
 
@@ -499,7 +503,8 @@ class VerificationApiUnitTest {
             val result = apiManager.executeConfirmationRequest(
                 ConfirmationRequestBody(
                     userId = userId,
-                    code = randomUuidString()
+                    code = randomUuidString(),
+                    deviceTag = randomHexString()
                 )
             )
 
@@ -532,7 +537,8 @@ class VerificationApiUnitTest {
             val result = apiManager.executeConfirmationRequest(
                 ConfirmationRequestBody(
                     userId = randomUuidString(),
-                    code = randomUuidString()
+                    code = randomUuidString(),
+                    deviceTag = randomHexString()
                 )
             )
 
@@ -554,7 +560,8 @@ class VerificationApiUnitTest {
             val result = apiManager.executeConfirmationRequest(
                 ConfirmationRequestBody(
                     userId = randomUuidString(),
-                    code = randomUuidString()
+                    code = randomUuidString(),
+                    deviceTag = randomHexString()
                 )
             )
 

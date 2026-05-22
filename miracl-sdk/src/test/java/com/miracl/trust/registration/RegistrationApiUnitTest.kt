@@ -47,7 +47,8 @@ class RegistrationApiUnitTest {
                 userId = randomUuidString(),
                 deviceName = randomUuidString(),
                 activationToken = randomUuidString(),
-                publicKey = randomHexString()
+                publicKey = randomHexString(),
+                deviceTag = randomHexString()
             )
             val capturingSlot = CapturingSlot<ApiRequest>()
             val registerResponse = RegisterResponse(
@@ -83,7 +84,8 @@ class RegistrationApiUnitTest {
                 userId = randomUuidString(),
                 deviceName = randomUuidString(),
                 activationToken = randomUuidString(),
-                publicKey = randomHexString()
+                publicKey = randomHexString(),
+                deviceTag = randomHexString()
             )
             val jsonString = "invalid json"
             val executorResult = MIRACLSuccess<String, ApiException>(
@@ -111,7 +113,8 @@ class RegistrationApiUnitTest {
                 userId = randomUuidString(),
                 deviceName = randomUuidString(),
                 activationToken = randomUuidString(),
-                publicKey = randomHexString()
+                publicKey = randomHexString(),
+                deviceTag = randomHexString()
             )
             val httpRequestExecutorException = ApiException.ExecutionError()
             val executorResult = MIRACLError<String, ApiException>(
@@ -139,7 +142,8 @@ class RegistrationApiUnitTest {
                 userId = randomUuidString(),
                 deviceName = randomUuidString(),
                 activationToken = randomUuidString(),
-                publicKey = randomHexString()
+                publicKey = randomHexString(),
+                deviceTag = randomHexString()
             )
 
             val apiException =
@@ -171,7 +175,8 @@ class RegistrationApiUnitTest {
                 userId = randomUuidString(),
                 deviceName = randomUuidString(),
                 activationToken = randomUuidString(),
-                publicKey = randomHexString()
+                publicKey = randomHexString(),
+                deviceTag = randomHexString()
             )
             val exceptionMessage = "Unexpected exception"
             val exception = Exception(exceptionMessage)
