@@ -79,6 +79,11 @@ android {
 
             buildConfigField "String", "ECV_PROJECT_ID", "\"${project.getProperties().get('miracltrust.ecvProjectId')}\""
             buildConfigField "String", "ECV_PROJECT_URL", "\"${project.getProperties().get('miracltrust.ecvProjectUrl')}\""
+
+            buildConfigField "String", "MAILPIT_URL", "\"${project.getProperties().get('mailpit.url')}\""
+            buildConfigField "String", "MAILPIT_USER", "\"${project.getProperties().get('mailpit.user')}\""
+            buildConfigField "String", "MAILPIT_PASS", "\"${project.getProperties().get('mailpit.pass')}\""
+            buildConfigField "String", "MAILPIT_EMAIL_ADDRESS", "\"${project.getProperties().get('mailpit.emailAddress')}\""
         }
     }
 
@@ -154,8 +159,6 @@ dependencies {
     androidTestRuntimeOnly(libs.jjwt.orgjson) {
         exclude(group: 'org.json', module: 'json') // Provided by Android natively
     }
-
-    androidTestImplementation project(':utilities')
 }
 
 apiValidation {
