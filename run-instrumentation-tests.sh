@@ -1,11 +1,5 @@
 #!/bin/sh
 
-TEST_CREDENTIALS_DIR="./utilities/src/main/res/raw"
-mkdir -p $TEST_CREDENTIALS_DIR
-echo $GMAIL_CREDENTIALS > "${TEST_CREDENTIALS_DIR}/credentials.json"
-echo $GMAIL_TOKEN > "${TEST_CREDENTIALS_DIR}/token.json"
-
-#Instrumentation tests
 ./gradlew connectedAndroidTest \
   -Pmiracltrust.cuvProjectId="$TEST_CUV_PROJECT_ID" \
   -Pmiracltrust.cuvProjectUrl="$TEST_CUV_PROJECT_URL" \
@@ -13,11 +7,8 @@ echo $GMAIL_TOKEN > "${TEST_CREDENTIALS_DIR}/token.json"
   -Pmiracltrust.dvProjectId="$TEST_DV_PROJECT_ID" \
   -Pmiracltrust.dvProjectUrl="$TEST_DV_PROJECT_URL" \
   -Pmiracltrust.ecvProjectId="$TEST_ECV_PROJECT_ID" \
-  -Pmiracltrust.ecvProjectUrl="$TEST_ECV_PROJECT_URL"
-
-GRADLE_EXIT_CODE=$?
-
-rm "${TEST_CREDENTIALS_DIR}/credentials.json"
-rm "${TEST_CREDENTIALS_DIR}/token.json"
-
-exit $GRADLE_EXIT_CODE
+  -Pmiracltrust.ecvProjectUrl="$TEST_ECV_PROJECT_URL" \
+  -Pmailpit.url=$TEST_MAILPIT_URL \
+  -Pmailpit.user=$TEST_MAILPIT_USER \
+  -Pmailpit.pass=$TEST_MAILPIT_PASS \
+  -Pmailpit.emailAddress=$TEST_MAILPIT_EMAIL_ADDRESS

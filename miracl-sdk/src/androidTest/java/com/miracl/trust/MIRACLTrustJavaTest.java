@@ -3,11 +3,11 @@ package com.miracl.trust;
 
 import static com.miracl.trust.utilities.UtilitiesKt.USER_ID;
 import static com.miracl.trust.utilities.UtilitiesKt.USER_PIN_LENGTH;
+import static com.miracl.trust.utilities.UtilitiesKt.createMailpitUserId;
 import static com.miracl.trust.utilities.UtilitiesKt.getUnixTime;
 import static com.miracl.trust.utilities.UtilitiesKt.randomHash;
 import static com.miracl.trust.utilities.UtilitiesKt.randomNumericPin;
 
-import android.content.Context;
 import android.net.Uri;
 
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -31,9 +31,9 @@ import com.miracl.trust.signing.Signature;
 import com.miracl.trust.signing.SigningException;
 import com.miracl.trust.signing.SigningResult;
 import com.miracl.trust.storage.UserStorageException;
-import com.miracl.trust.utilities.GmailService;
 import com.miracl.trust.utilities.JwtHelper;
 import com.miracl.trust.utilities.MIRACLService;
+import com.miracl.trust.utilities.MailpitService;
 import com.miracl.trust.utilities.VerifySignatureResponse;
 
 import org.junit.Assert;
@@ -78,11 +78,11 @@ public class MIRACLTrustJavaTest {
         miraclTrust.updateProjectSettings(BuildConfig.DV_PROJECT_ID, BuildConfig.DV_PROJECT_URL);
 
         long timestamp = getUnixTime();
-        miraclTrust.sendVerificationEmail(USER_ID, result -> {
+        String userId = createMailpitUserId();
+        miraclTrust.sendVerificationEmail(userId, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
 
-            Context context = InstrumentationRegistry.getInstrumentation().getContext();
-            String verificationUrl = GmailService.INSTANCE.getVerificationUrl(context, USER_ID, USER_ID, timestamp);
+            String verificationUrl = MailpitService.INSTANCE.getVerificationUrl(userId, timestamp);
             Assert.assertNotNull(verificationUrl);
 
             miraclTrust.getActivationToken(
@@ -90,9 +90,9 @@ public class MIRACLTrustJavaTest {
                     activationTokenResult -> {
                         Assert.assertTrue(activationTokenResult instanceof MIRACLSuccess);
 
-                        String userId = ((MIRACLSuccess<ActivationTokenResponse, ActivationTokenException>)
-                                activationTokenResult).getValue().getUserId();
-                        Assert.assertEquals(USER_ID, userId);
+                        ActivationTokenResponse activationTokenResponse =
+                                ((MIRACLSuccess<ActivationTokenResponse, ActivationTokenException>) activationTokenResult).getValue();
+                        Assert.assertEquals(userId, activationTokenResponse.getUserId());
                     }
             );
         });

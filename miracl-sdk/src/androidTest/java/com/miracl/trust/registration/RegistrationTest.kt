@@ -9,9 +9,10 @@ import com.miracl.trust.MIRACLTrust
 import com.miracl.trust.configuration.Configuration
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.network.ApiException
-import com.miracl.trust.utilities.GmailService
 import com.miracl.trust.utilities.MIRACLService
+import com.miracl.trust.utilities.MailpitService
 import com.miracl.trust.utilities.USER_ID
+import com.miracl.trust.utilities.createMailpitUserId
 import com.miracl.trust.utilities.generateWrongPin
 import com.miracl.trust.utilities.getUnixTime
 import com.miracl.trust.utilities.randomNumericPin
@@ -63,12 +64,12 @@ class RegistrationTest {
         // Send verification email
         miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
         val timestamp = getUnixTime()
-        val sendEmailResult = miraclTrust.sendVerificationEmail(USER_ID)
+        val userId = createMailpitUserId()
+        val sendEmailResult = miraclTrust.sendVerificationEmail(userId)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Fetch the verification URL from the email
-        val context = InstrumentationRegistry.getInstrumentation().context
-        val verificationUrl = GmailService.getVerificationUrl(context, USER_ID, USER_ID, timestamp)
+        val verificationUrl = MailpitService.getVerificationUrl(userId, timestamp)
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
@@ -77,10 +78,10 @@ class RegistrationTest {
 
         // Register
         val activationToken = (activationTokenResult as MIRACLSuccess).value.activationToken
-        val result = register(activationToken = activationToken)
+        val result = register(userId = userId, activationToken = activationToken)
 
         Assert.assertTrue(result is MIRACLSuccess)
-        Assert.assertEquals(USER_ID, (result as MIRACLSuccess).value.userId)
+        Assert.assertEquals(userId, (result as MIRACLSuccess).value.userId)
         Assert.assertEquals(dvProjectId, result.value.projectId)
     }
 

@@ -14,9 +14,10 @@ import com.miracl.trust.model.User
 import com.miracl.trust.session.AuthenticationSessionDetails
 import com.miracl.trust.session.AuthenticationSessionException
 import com.miracl.trust.util.secondsSince1970
-import com.miracl.trust.utilities.GmailService
 import com.miracl.trust.utilities.MIRACLService
+import com.miracl.trust.utilities.MailpitService
 import com.miracl.trust.utilities.USER_ID
+import com.miracl.trust.utilities.createMailpitUserId
 import com.miracl.trust.utilities.generateWrongPin
 import com.miracl.trust.utilities.getUnixTime
 import com.miracl.trust.utilities.randomNumericPin
@@ -27,7 +28,6 @@ import org.junit.Before
 import org.junit.Test
 import java.net.URL
 import java.util.Date
-import java.util.UUID
 
 class VerificationTest {
     private val projectId = BuildConfig.CUV_PROJECT_ID
@@ -58,16 +58,14 @@ class VerificationTest {
     fun testDefaultVerification() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
-        val addressParts = USER_ID.split("@")
-        val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
+        val email = createMailpitUserId()
 
         val timestamp = getUnixTime()
         val sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Fetch the verification URL from the email
-        val context = InstrumentationRegistry.getInstrumentation().context
-        val verificationUrl = GmailService.getVerificationUrl(context, USER_ID, email, timestamp)
+        val verificationUrl = MailpitService.getVerificationUrl(email, timestamp)
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
@@ -80,8 +78,7 @@ class VerificationTest {
     fun testDefaultVerificationBackoff() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
-        val addressParts = USER_ID.split("@")
-        val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
+        val email = createMailpitUserId()
 
         var sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
@@ -97,8 +94,7 @@ class VerificationTest {
     fun testDefaultVerificationWithSessionDetails() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
-        val addressParts = USER_ID.split("@")
-        val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
+        val email = createMailpitUserId()
 
         val qrCode = MIRACLService.obtainAccessId(dvProjectId, dvProjectUrl).qrURL
         var authenticationSessionDetailsResult:
@@ -122,8 +118,7 @@ class VerificationTest {
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Fetch the verification URL from the email
-        val context = InstrumentationRegistry.getInstrumentation().context
-        val verificationUrl = GmailService.getVerificationUrl(context, USER_ID, email, timestamp)
+        val verificationUrl = MailpitService.getVerificationUrl(email, timestamp)
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
@@ -138,8 +133,7 @@ class VerificationTest {
     fun testDefaultVerificationWithCrossDeviceSession() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
-        val addressParts = USER_ID.split("@")
-        val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
+        val email = createMailpitUserId()
 
         val qrCode = MIRACLService.obtainAccessId(dvProjectId, dvProjectUrl).qrURL
         val crossDeviceSessionResult = miraclTrust.getCrossDeviceSessionFromQRCode(qrCode)
@@ -155,8 +149,7 @@ class VerificationTest {
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Fetch the verification URL from the email
-        val context = InstrumentationRegistry.getInstrumentation().context
-        val verificationUrl = GmailService.getVerificationUrl(context, USER_ID, email, timestamp)
+        val verificationUrl = MailpitService.getVerificationUrl(email, timestamp)
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
@@ -171,16 +164,14 @@ class VerificationTest {
     fun testDefaultVerificationWithMpinId() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
-        val addressParts = USER_ID.split("@")
-        val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
+        val email = createMailpitUserId()
 
         val timestamp = System.currentTimeMillis() / 1000
         val sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Fetch the verification URL from the email
-        val context = InstrumentationRegistry.getInstrumentation().context
-        val verificationUrl = GmailService.getVerificationUrl(context, USER_ID, email, timestamp)
+        val verificationUrl = MailpitService.getVerificationUrl(email, timestamp)
         Assert.assertNotNull(verificationUrl)
 
         // Get activation token
@@ -210,16 +201,14 @@ class VerificationTest {
     fun testEmailCodeVerification() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
-        val addressParts = USER_ID.split("@")
-        val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
+        val email = createMailpitUserId()
 
         val timestamp = System.currentTimeMillis() / 1000
         val sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
         // Fetch the verification code from the email
-        val context = InstrumentationRegistry.getInstrumentation().context
-        val code = GmailService.getVerificationCode(context, USER_ID, email, timestamp)
+        val code = MailpitService.getVerificationCode(email, timestamp)
         Assert.assertNotNull(code)
 
         // Get activation token
@@ -232,16 +221,14 @@ class VerificationTest {
     fun testEmailCodeVerificationWithMpinId() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
-        val addressParts = USER_ID.split("@")
-        val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
+        val email = createMailpitUserId()
 
         val timestamp = System.currentTimeMillis() / 1000
         val sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
-        // Fetch the verification URL from the email
-        val context = InstrumentationRegistry.getInstrumentation().context
-        val code = GmailService.getVerificationCode(context, USER_ID, email, timestamp)
+        // Fetch the verification code from the email
+        val code = MailpitService.getVerificationCode(email, timestamp)
         Assert.assertNotNull(code)
 
         // Get activation token
@@ -271,16 +258,14 @@ class VerificationTest {
     fun testEmailCodeVerificationWithoutMpinId() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
-        val addressParts = USER_ID.split("@")
-        val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
+        val email = createMailpitUserId()
 
         val timestamp = System.currentTimeMillis() / 1000
         val sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
-        // Fetch the verification URL from the email
-        val context = InstrumentationRegistry.getInstrumentation().context
-        val code = GmailService.getVerificationCode(context, USER_ID, email, timestamp)
+        // Fetch the verification code from the email
+        val code = MailpitService.getVerificationCode(email, timestamp)
         Assert.assertNotNull(code)
 
         // Get activation token
@@ -314,16 +299,14 @@ class VerificationTest {
     fun testEmailCodeVerificationWithRevokedMpinId() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
-        val addressParts = USER_ID.split("@")
-        val email = "${addressParts[0]}+${UUID.randomUUID()}@${addressParts[1]}"
+        val email = createMailpitUserId()
 
         val timestamp = System.currentTimeMillis() / 1000
         val sendEmailResult = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(sendEmailResult is MIRACLSuccess)
 
-        // Fetch the verification URL from the email
-        val context = InstrumentationRegistry.getInstrumentation().context
-        val code = GmailService.getVerificationCode(context, USER_ID, email, timestamp)
+        // Fetch the verification code from the email
+        val code = MailpitService.getVerificationCode(email, timestamp)
         Assert.assertNotNull(code)
 
         // Get activation token

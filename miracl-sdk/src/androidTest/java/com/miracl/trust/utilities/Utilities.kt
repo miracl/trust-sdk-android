@@ -1,5 +1,6 @@
 package com.miracl.trust.utilities
 
+import com.miracl.trust.test.BuildConfig
 import java.util.UUID
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -8,6 +9,13 @@ const val USER_ID = "int@miracl.com"
 const val USER_PIN_LENGTH = 4
 const val WRONG_FORMAT_PIN = "FAIL"
 const val SINGLE_DIGIT_LIMITER = 10
+
+fun createMailpitUserId(): String {
+    return BuildConfig.MAILPIT_EMAIL_ADDRESS.replace(
+        "{tag}",
+        UUID.randomUUID().toString().lowercase()
+    )
+}
 
 fun randomNumericPin(length: Int = USER_PIN_LENGTH): String {
     var pass = ""

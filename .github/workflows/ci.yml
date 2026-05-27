@@ -100,8 +100,10 @@ jobs:
           TEST_DV_PROJECT_URL: ${{ vars.TEST_DV_PROJECT_URL }}
           TEST_ECV_PROJECT_ID: ${{ vars.TEST_ECV_PROJECT_ID }}
           TEST_ECV_PROJECT_URL: ${{ vars.TEST_ECV_PROJECT_URL }}
-          GMAIL_CREDENTIALS: ${{ secrets.GMAIL_CREDENTIALS }}
-          GMAIL_TOKEN: ${{ secrets.GMAIL_TOKEN }}
+          TEST_MAILPIT_URL: ${{ secrets.TEST_MAILPIT_URL }}
+          TEST_MAILPIT_USER: ${{ secrets.TEST_MAILPIT_USER }}
+          TEST_MAILPIT_PASS: ${{ secrets.TEST_MAILPIT_PASS }}
+          TEST_MAILPIT_EMAIL_ADDRESS: ${{ secrets.TEST_MAILPIT_EMAIL_ADDRESS }}
         with:
           api-level: 35
           arch: "x86_64"
