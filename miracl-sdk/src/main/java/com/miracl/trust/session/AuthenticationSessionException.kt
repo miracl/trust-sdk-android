@@ -1,6 +1,7 @@
 package com.miracl.trust.session
 
 /** A class hierarchy that describes issues with the authentication session management. */
+@Deprecated("Deprecated. Switch to the new CrossDeviceSession APIs.")
 public sealed class AuthenticationSessionException(cause: Exception? = null) : Exception(cause) {
     /** Could not find the session identifier in the App Link. */
     public object InvalidAppLink : AuthenticationSessionException()
