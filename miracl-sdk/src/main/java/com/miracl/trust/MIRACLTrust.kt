@@ -309,6 +309,11 @@ public class MIRACLTrust private constructor(
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
      */
+    @Deprecated(
+        message = "Use getCrossDeviceSessionFromAppLink(appLink, resultHandler) instead.",
+        replaceWith = ReplaceWith("getCrossDeviceSessionFromAppLink(appLink, resultHandler)"),
+        level = DeprecationLevel.WARNING
+    )
     public fun getAuthenticationSessionDetailsFromAppLink(
         appLink: Uri,
         resultHandler: ResultHandler<AuthenticationSessionDetails, AuthenticationSessionException>
@@ -341,6 +346,11 @@ public class MIRACLTrust private constructor(
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
      */
+    @Deprecated(
+        message = "Use getCrossDeviceSessionFromQRCode(qrCode, resultHandler) instead.",
+        replaceWith = ReplaceWith("getCrossDeviceSessionFromQRCode(qrCode, resultHandler)"),
+        level = DeprecationLevel.WARNING
+    )
     public fun getAuthenticationSessionDetailsFromQRCode(
         qrCode: String,
         resultHandler: ResultHandler<AuthenticationSessionDetails, AuthenticationSessionException>
@@ -373,6 +383,11 @@ public class MIRACLTrust private constructor(
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
      */
+    @Deprecated(
+        message = "Use getCrossDeviceSessionFromNotificationPayload(payload, resultHandler) instead.",
+        replaceWith = ReplaceWith("getCrossDeviceSessionFromNotificationPayload(payload, resultHandler)"),
+        level = DeprecationLevel.WARNING
+    )
     public fun getAuthenticationSessionDetailsFromNotificationPayload(
         payload: Map<String, String>,
         resultHandler: ResultHandler<AuthenticationSessionDetails, AuthenticationSessionException>
@@ -402,6 +417,7 @@ public class MIRACLTrust private constructor(
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
      */
+    @Deprecated("Use abortCrossDeviceSession(crossDeviceSession, resultHandler) instead.")
     public fun abortAuthenticationSession(
         authenticationSessionDetails: AuthenticationSessionDetails,
         resultHandler: ResultHandler<Unit, AuthenticationSessionException>
@@ -721,6 +737,7 @@ public class MIRACLTrust private constructor(
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
      */
+    @Deprecated("Use sendVerificationEmail(userId, crossDeviceSession, resultHandler) instead.")
     public fun sendVerificationEmail(
         userId: String,
         authenticationSessionDetails: AuthenticationSessionDetails,
