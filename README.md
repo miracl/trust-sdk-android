@@ -549,23 +549,24 @@ application server for [verification](https://miracl.com/resources/docs/guides/a
 
 #### Authenticate users on another application
 
-To authenticate a user on another application, there are three options:
+To authenticate a user on another application, you need to obtain a [CrossDeviceSession](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.session/-cross-device-session/index.html)
+which represents details for an authentication operation started on the another device.
+To obtain the session, there are three options:
 
-- Authenticate with [AppLink](https://developer.android.com/training/app-links)
+- Via [AppLink](https://developer.android.com/training/app-links)
 
-  Use the [authenticateWithAppLink](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-app-link.html)
+  Use the [getCrossDeviceSessionFromAppLink](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-cross-device-session-from-app-link.html)
   method:
 
   ```kotlin
   intent.data?.let { appLink ->
-      miraclTrust.authenticateWithAppLink(
-          user = user,
+      miraclTrust.getCrossDeviceSessionFromAppLink(
           appLink = appLink,
-          pinProvider = pinProvider,
-          resultHandler = ResultHandler { result ->
+          resultHandler = { result ->
               when (result) {
                   is MIRACLSuccess -> {
-                      // user is authenticated
+                      val crossDeviceSession = result.value
+                      // Use the crossDeviceSession to authenticate.
                   }
 
                   is MIRACLError -> {
@@ -582,19 +583,17 @@ To authenticate a user on another application, there are three options:
 
   ```kotlin
   intent.data?.let { appLink ->
-      val result = miraclTrust.authenticateWithAppLink(
-          user = user,
-          appLink = appLink,
-          pinProvider = pinProvider
-      )
+      val result = miraclTrust.getCrossDeviceSessionFromAppLink(appLink)
 
       when (result) {
           is MIRACLSuccess -> {
-              // user is authenticated
+              val crossDeviceSession = result.value
+              // Use the crossDeviceSession to authenticate.
           }
 
           is MIRACLError -> {
-              // user is not authenticated
+              val error = result.value
+              // Cannot obtain CrossDeviceSession due to an error.
           }
       }
   }
@@ -608,15 +607,20 @@ To authenticate a user on another application, there are three options:
   ```java
   Uri appLink = getIntent().getData();
   if (appLink != null) {
-      miraclTrust.authenticateWithAppLink(
-          user,
+      miraclTrust.getCrossDeviceSessionFromAppLink(
           appLink,
-          pinProvider,
           result -> {
               if (result instanceof MIRACLSuccess) {
-                  // user is authenticated
+                  CrossDeviceSession crossDeviceSession =
+                          ((MIRACLSuccess<CrossDeviceSession, CrossDeviceSessionException>)
+                                  result).getValue();
+
+                  // Use the crossDeviceSession to authenticate.
               } else {
-                  // user is not authenticated
+                  CrossDeviceSessionException error =
+                          ((MIRACLError<CrossDeviceSession, CrossDeviceSessionException>)
+                                  result).getValue();
+                  // Cannot obtain CrossDeviceSession due to an error.
               }
           }
       );
@@ -625,23 +629,24 @@ To authenticate a user on another application, there are three options:
 
   </details>
 
-- Authenticate with QR code
+- Via QR code
 
-  Use the [authenticateWithQRCode](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-q-r-code.html)
+  Use the [getCrossDeviceSessionFromQRCode](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-cross-device-session-from-q-r-code.html)
   method:
 
   ```kotlin
-  miraclTrust.authenticateWithQRCode(
-      user = user,
+  miraclTrust.getCrossDeviceSessionFromQRCode(
       qrCode = qrCode,
-      pinProvider = pinProvider,
-      resultHandler = ResultHandler { result ->
+      resultHandler = { result ->
           when (result) {
               is MIRACLSuccess -> {
-                  // user is authenticated
+                  val crossDeviceSession = result.value
+                  // Use the crossDeviceSession to authenticate.
               }
+
               is MIRACLError -> {
-                  // user is not authenticated
+                  val error = result.value
+                  // Cannot obtain CrossDeviceSession due to an error.
               }
           }
       }
@@ -652,19 +657,17 @@ To authenticate a user on another application, there are three options:
   <summary>Using coroutines</summary>
 
   ```kotlin
-  val result = miraclTrust.authenticateWithQRCode(
-      user = user,
-      qrCode = qrCode,
-      pinProvider = pinProvider
-  )
+  val result = miraclTrust.getCrossDeviceSessionFromQRCode(qrCode)
 
   when (result) {
       is MIRACLSuccess -> {
-          // user is authenticated
+          val crossDeviceSession = result.value
+          // Use the crossDeviceSession to authenticate.
       }
 
       is MIRACLError -> {
-          // user is not authenticated
+          val error = result.value
+          // Cannot obtain CrossDeviceSession due to an error.
       }
   }
   ```
@@ -675,15 +678,20 @@ To authenticate a user on another application, there are three options:
     <summary>Using Java</summary>
 
   ```java
-  miraclTrust.authenticateWithQRCode(
-      user,
+  miraclTrust.getCrossDeviceSessionFromQRCode(
       qrCode,
-      pinProvider,
       result -> {
           if (result instanceof MIRACLSuccess) {
-              // user is authenticated
+              CrossDeviceSession crossDeviceSession =
+                      ((MIRACLSuccess<CrossDeviceSession, CrossDeviceSessionException>)
+                              result).getValue();
+
+              // Use the crossDeviceSession to authenticate.
           } else {
-              // user is not authenticated
+              CrossDeviceSessionException error =
+                      ((MIRACLError<CrossDeviceSession, CrossDeviceSessionException>)
+                              result).getValue();
+              // Cannot obtain CrossDeviceSession due to an error.
           }
       }
   );
@@ -694,21 +702,23 @@ To authenticate a user on another application, there are three options:
 - Authenticate with
   [notification](https://developer.android.com/guide/topics/ui/notifiers/notifications)
 
-  Use the [authenticateWithNotificationPayload](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-notification-payload.html)
+  Use the [getCrossDeviceSessionFromNotificationPayload](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-cross-device-session-from-notification-payload.html)
   method:
 
   ```kotlin
   val payload = remoteMessage.data
-  miraclTrust.authenticateWithNotificationPayload(
+  miraclTrust.getCrossDeviceSessionFromNotificationPayload(
       payload = payload,
-      pinProvider = pinProvider,
-      resultHandler = ResultHandler { result ->
+      resultHandler = { result ->
           when (result) {
               is MIRACLSuccess -> {
-                  // user is authenticated
+                  val crossDeviceSession = result.value
+                  // Use the crossDeviceSession to authenticate.
               }
+
               is MIRACLError -> {
-                  // user is not authenticated
+                  val error = result.value
+                  // Cannot obtain CrossDeviceSession due to an error.
               }
           }
       }
@@ -720,18 +730,17 @@ To authenticate a user on another application, there are three options:
 
   ```kotlin
   val payload = remoteMessage.data
-  val result = miraclTrust.authenticateWithNotificationPayload(
-      payload = payload,
-      pinProvider = pinProvider
-  )
+  val result = miraclTrust.getCrossDeviceSessionFromNotificationPayload(payload)
 
   when (result) {
       is MIRACLSuccess -> {
-          // user is authenticated
+          val crossDeviceSession = result.value
+          // Use the crossDeviceSession to authenticate.
       }
 
       is MIRACLError -> {
-          // user is not authenticated
+          val error = result.value
+          // Cannot obtain CrossDeviceSession due to an error.
       }
   }
   ```
@@ -743,20 +752,99 @@ To authenticate a user on another application, there are three options:
 
   ```java
   Map<String, String> payload = remoteMessage.getData();
-  miraclTrust.authenticateWithNotificationPayload(
+  miraclTrust.getCrossDeviceSessionFromNotificationPayload(
       payload,
-      pinProvider,
       result -> {
           if (result instanceof MIRACLSuccess) {
-              // user is authenticated
+              CrossDeviceSession crossDeviceSession =
+                      ((MIRACLSuccess<CrossDeviceSession, CrossDeviceSessionException>)
+                              result).getValue();
+
+              // Use the crossDeviceSession to authenticate.
           } else {
-              // user is not authenticated
+              CrossDeviceSessionException error =
+                      ((MIRACLError<CrossDeviceSession, CrossDeviceSessionException>)
+                              result).getValue();
+              // Cannot obtain CrossDeviceSession due to an error.
           }
       }
   );
   ```
 
   </details>
+
+After the [CrossDeviceSession](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.session/-cross-device-session/index.html) is obtained you need to pass the object
+to the [authenticate](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate.html)
+method:
+
+```kotlin
+intent.data?.let { appLink ->
+    miraclTrust.authenticate(
+        user = user,
+        crossDeviceSession = crossDeviceSession,
+        pinProvider = pinProvider,
+        resultHandler = ResultHandler { result ->
+            when (result) {
+                is MIRACLSuccess -> {
+                    // user is authenticated
+                }
+
+                is MIRACLError -> {
+                    // user is not authenticated
+                }
+            }
+        }
+    )
+}
+```
+
+<details>
+<summary>Using coroutines</summary>
+
+```kotlin
+intent.data?.let { appLink ->
+    val result = miraclTrust.authenticate(
+        user = user,
+        crossDeviceSession = crossDeviceSession,
+        pinProvider = pinProvider
+    )
+
+    when (result) {
+        is MIRACLSuccess -> {
+            // user is authenticated
+        }
+
+        is MIRACLError -> {
+            // user is not authenticated
+        }
+    }
+}
+```
+
+</details>
+
+<details>
+<summary>Using Java</summary>
+
+```java
+Uri appLink = getIntent().getData();
+if (appLink != null) {
+    miraclTrust.authenticate(
+        user,
+        crossDeviceSession,
+        pinProvider,
+        result -> {
+            if (result instanceof MIRACLSuccess) {
+                // user is authenticated
+            } else {
+                // user is not authenticated
+            }
+        }
+    );
+}
+```
+
+</details>
 
 For more information about authenticating users on custom applications, see
 [Cross-Device Authentication](https://miracl.com/resources/docs/guides/how-to/custom-mobile-authentication/).
