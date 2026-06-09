@@ -636,6 +636,31 @@ public class MIRACLTrust private constructor(
      * implementation, verification is done by sending an email message.
      *
      * @param userId The identifier of the user. Must be a valid email address.
+     *
+     * @return A [MIRACLResult] representing the result of the verification:
+     * - If successful, returns a [MIRACLSuccess] with the [VerificationResponse].
+     * - If an error occurs, returns a [MIRACLError] with a [VerificationException]
+     * describing issues with the operation.
+     */
+    @JvmSynthetic
+    public suspend fun sendVerificationEmail(
+        userId: String
+    ): MIRACLResult<VerificationResponse, VerificationException> {
+        return withContext(miraclTrustCoroutineContext) {
+            verificator.sendVerificationEmail(
+                userId = userId,
+                projectId = projectId,
+                deviceName = deviceName
+            )
+                .logIfError(LoggerConstants.VERIFICATOR_TAG)
+        }
+    }
+
+    /**
+     * Default method for verifying user identity against the MIRACL Trust platform. In the current
+     * implementation, verification is done by sending an email message.
+     *
+     * @param userId The identifier of the user. Must be a valid email address.
      * @param crossDeviceSession The session from which the verification is initiated.
      *
      * @return A [MIRACLResult] representing the result of the verification:
@@ -646,7 +671,7 @@ public class MIRACLTrust private constructor(
     @JvmSynthetic
     public suspend fun sendVerificationEmail(
         userId: String,
-        crossDeviceSession: CrossDeviceSession? = null
+        crossDeviceSession: CrossDeviceSession
     ): MIRACLResult<VerificationResponse, VerificationException> {
         return withContext(miraclTrustCoroutineContext) {
             verificator.sendVerificationEmail(
