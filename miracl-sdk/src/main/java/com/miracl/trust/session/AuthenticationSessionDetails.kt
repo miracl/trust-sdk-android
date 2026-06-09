@@ -15,6 +15,7 @@ package com.miracl.trust.session
  * @property identityTypeLabel The label of the identity which will be used for identity verification.
  * @property quickCodeEnabled Indicates whether the QuickCode is enabled for the project or not.
  */
+@Deprecated("Deprecated. Switch to the new CrossDeviceSession APIs.")
 public class AuthenticationSessionDetails internal constructor(
     public val accessId: String,
     userId: String,

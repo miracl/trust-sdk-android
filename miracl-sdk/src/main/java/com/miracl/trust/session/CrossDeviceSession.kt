@@ -1,5 +1,7 @@
 package com.miracl.trust.session
 
+import com.miracl.trust.MIRACLTrust
+
 /**
  * An object representing details for an operation (authentication or signing)
  * started on another device.
@@ -9,6 +11,10 @@ package com.miracl.trust.session
  * @property userId The User ID entered by the user when the session is started.
  * @property projectId The Project ID setting for the application in the MIRACL Trust platform.
  * @property signingHash The hash of the transaction that needs to be signed, if any.
+ *
+ * @see [MIRACLTrust.getCrossDeviceSessionFromAppLink]
+ * @see [MIRACLTrust.getCrossDeviceSessionFromQRCode]
+ * @see [MIRACLTrust.getCrossDeviceSessionFromNotificationPayload]
  */
 public class CrossDeviceSession(
     public val sessionId: String,

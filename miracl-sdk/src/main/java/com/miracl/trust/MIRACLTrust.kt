@@ -309,6 +309,11 @@ public class MIRACLTrust private constructor(
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
      */
+    @Deprecated(
+        message = "Use getCrossDeviceSessionFromAppLink(appLink, resultHandler) instead.",
+        replaceWith = ReplaceWith("getCrossDeviceSessionFromAppLink(appLink, resultHandler)"),
+        level = DeprecationLevel.WARNING
+    )
     public fun getAuthenticationSessionDetailsFromAppLink(
         appLink: Uri,
         resultHandler: ResultHandler<AuthenticationSessionDetails, AuthenticationSessionException>
@@ -341,6 +346,11 @@ public class MIRACLTrust private constructor(
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
      */
+    @Deprecated(
+        message = "Use getCrossDeviceSessionFromQRCode(qrCode, resultHandler) instead.",
+        replaceWith = ReplaceWith("getCrossDeviceSessionFromQRCode(qrCode, resultHandler)"),
+        level = DeprecationLevel.WARNING
+    )
     public fun getAuthenticationSessionDetailsFromQRCode(
         qrCode: String,
         resultHandler: ResultHandler<AuthenticationSessionDetails, AuthenticationSessionException>
@@ -373,6 +383,11 @@ public class MIRACLTrust private constructor(
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
      */
+    @Deprecated(
+        message = "Use getCrossDeviceSessionFromNotificationPayload(payload, resultHandler) instead.",
+        replaceWith = ReplaceWith("getCrossDeviceSessionFromNotificationPayload(payload, resultHandler)"),
+        level = DeprecationLevel.WARNING
+    )
     public fun getAuthenticationSessionDetailsFromNotificationPayload(
         payload: Map<String, String>,
         resultHandler: ResultHandler<AuthenticationSessionDetails, AuthenticationSessionException>
@@ -402,6 +417,7 @@ public class MIRACLTrust private constructor(
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
      */
+    @Deprecated("Use abortCrossDeviceSession(crossDeviceSession, resultHandler) instead.")
     public fun abortAuthenticationSession(
         authenticationSessionDetails: AuthenticationSessionDetails,
         resultHandler: ResultHandler<Unit, AuthenticationSessionException>
@@ -433,7 +449,6 @@ public class MIRACLTrust private constructor(
      * - If successful, returns a [MIRACLSuccess] with the [CrossDeviceSession].
      * - If an error occurs, returns a [MIRACLError] with a [CrossDeviceSessionException]
      * describing issues with the operation.
-     * @suppress
      */
     @JvmSynthetic
     public suspend fun getCrossDeviceSessionFromAppLink(
@@ -453,7 +468,6 @@ public class MIRACLTrust private constructor(
      * - If successful, the result is a [MIRACLSuccess] with the [CrossDeviceSession].
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
-     * @suppress
      */
     public fun getCrossDeviceSessionFromAppLink(
         appLink: Uri,
@@ -484,7 +498,6 @@ public class MIRACLTrust private constructor(
      * - If successful, returns a [MIRACLSuccess] with the [CrossDeviceSession].
      * - If an error occurs, returns a [MIRACLError] with a [CrossDeviceSessionException]
      * describing issues with the operation.
-     * @suppress
      */
     @JvmSynthetic
     public suspend fun getCrossDeviceSessionFromQRCode(
@@ -504,7 +517,6 @@ public class MIRACLTrust private constructor(
      * - If successful, the result is a [MIRACLSuccess] with the [CrossDeviceSession].
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
-     * @suppress
      */
     public fun getCrossDeviceSessionFromQRCode(
         qrCode: String,
@@ -535,7 +547,6 @@ public class MIRACLTrust private constructor(
      * - If successful, returns a [MIRACLSuccess] with the [CrossDeviceSession].
      * - If an error occurs, returns a [MIRACLError] with a [CrossDeviceSessionException]
      * describing issues with the operation.
-     * @suppress
      */
     @JvmSynthetic
     public suspend fun getCrossDeviceSessionFromNotificationPayload(
@@ -555,7 +566,6 @@ public class MIRACLTrust private constructor(
      * - If successful, the result is a [MIRACLSuccess] with the [CrossDeviceSession].
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
-     * @suppress
      */
     public fun getCrossDeviceSessionFromNotificationPayload(
         payload: Map<String, String>,
@@ -587,7 +597,6 @@ public class MIRACLTrust private constructor(
      * - If successful, returns a [MIRACLSuccess] with [Unit].
      * - If an error occurs, returns a [MIRACLError] with a [CrossDeviceSessionException]
      * describing issues with the operation.
-     * @suppress
      */
     @JvmSynthetic
     public suspend fun abortCrossDeviceSession(
@@ -607,7 +616,6 @@ public class MIRACLTrust private constructor(
      * - If successful, the result is a [MIRACLSuccess].
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
-     * @suppress
      */
     public fun abortCrossDeviceSession(
         crossDeviceSession: CrossDeviceSession,
@@ -636,6 +644,31 @@ public class MIRACLTrust private constructor(
      * implementation, verification is done by sending an email message.
      *
      * @param userId The identifier of the user. Must be a valid email address.
+     *
+     * @return A [MIRACLResult] representing the result of the verification:
+     * - If successful, returns a [MIRACLSuccess] with the [VerificationResponse].
+     * - If an error occurs, returns a [MIRACLError] with a [VerificationException]
+     * describing issues with the operation.
+     */
+    @JvmSynthetic
+    public suspend fun sendVerificationEmail(
+        userId: String
+    ): MIRACLResult<VerificationResponse, VerificationException> {
+        return withContext(miraclTrustCoroutineContext) {
+            verificator.sendVerificationEmail(
+                userId = userId,
+                projectId = projectId,
+                deviceName = deviceName
+            )
+                .logIfError(LoggerConstants.VERIFICATOR_TAG)
+        }
+    }
+
+    /**
+     * Default method for verifying user identity against the MIRACL Trust platform. In the current
+     * implementation, verification is done by sending an email message.
+     *
+     * @param userId The identifier of the user. Must be a valid email address.
      * @param crossDeviceSession The session from which the verification is initiated.
      *
      * @return A [MIRACLResult] representing the result of the verification:
@@ -646,7 +679,7 @@ public class MIRACLTrust private constructor(
     @JvmSynthetic
     public suspend fun sendVerificationEmail(
         userId: String,
-        crossDeviceSession: CrossDeviceSession? = null
+        crossDeviceSession: CrossDeviceSession
     ): MIRACLResult<VerificationResponse, VerificationException> {
         return withContext(miraclTrustCoroutineContext) {
             verificator.sendVerificationEmail(
@@ -704,6 +737,7 @@ public class MIRACLTrust private constructor(
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
      */
+    @Deprecated("Use sendVerificationEmail(userId, crossDeviceSession, resultHandler) instead.")
     public fun sendVerificationEmail(
         userId: String,
         authenticationSessionDetails: AuthenticationSessionDetails,
@@ -740,7 +774,6 @@ public class MIRACLTrust private constructor(
      * - If successful, the result is a [MIRACLSuccess] with the [VerificationResponse].
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
-     * @suppress
      */
     public fun sendVerificationEmail(
         userId: String,
@@ -1148,7 +1181,6 @@ public class MIRACLTrust private constructor(
      * - If successful, returns a [MIRACLSuccess] with [Unit].
      * - If an error occurs, returns a [MIRACLError] with an [AuthenticationException]
      * describing issues with the operation.
-     * @suppress
      */
     @JvmSynthetic
     public suspend fun authenticate(
@@ -1194,7 +1226,6 @@ public class MIRACLTrust private constructor(
      * - If successful, the result is a [MIRACLSuccess].
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
-     * @suppress
      */
     public fun authenticate(
         user: User,
@@ -1598,7 +1629,6 @@ public class MIRACLTrust private constructor(
      * - If successful, returns a [MIRACLSuccess] with [Unit].
      * - If an error occurs, returns a [MIRACLError] with a [SigningException]
      * describing issues with the operation.
-     * @suppress
      */
     @JvmSynthetic
     public suspend fun sign(
@@ -1629,7 +1659,6 @@ public class MIRACLTrust private constructor(
      * - If successful, the result is a [MIRACLSuccess].
      * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
      * operation.
-     * @suppress
      */
     public fun sign(
         crossDeviceSession: CrossDeviceSession,

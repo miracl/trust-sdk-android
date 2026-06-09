@@ -72,7 +72,7 @@ public final class com/miracl/trust/MIRACLTrust {
 	public final fun sendVerificationEmail (Ljava/lang/String;Lcom/miracl/trust/session/AuthenticationSessionDetails;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final fun sendVerificationEmail (Ljava/lang/String;Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final synthetic fun sendVerificationEmail (Ljava/lang/String;Lcom/miracl/trust/session/CrossDeviceSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun sendVerificationEmail$default (Lcom/miracl/trust/MIRACLTrust;Ljava/lang/String;Lcom/miracl/trust/session/CrossDeviceSession;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final synthetic fun sendVerificationEmail (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun setProjectId (Ljava/lang/String;)V
 	public final fun sign (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final synthetic fun sign (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
