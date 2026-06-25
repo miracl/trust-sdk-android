@@ -7,7 +7,12 @@ import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.MIRACLTrust
 import com.miracl.trust.configuration.Configuration
+import com.miracl.trust.delegate.PinProvider
+import com.miracl.trust.model.User
 import com.miracl.trust.utilities.MIRACLService
+import com.miracl.trust.utilities.USER_ID
+import com.miracl.trust.utilities.randomHash
+import com.miracl.trust.utilities.randomNumericPin
 import com.miracl.trust.utilities.randomUuidString
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -22,13 +27,15 @@ class CrossDeviceSessionManagementTest {
     private val projectUrl = BuildConfig.CUV_PROJECT_URL
     private val userId = randomUuidString()
     private val description = randomUuidString()
-    private val hash = randomUuidString()
+    private val hash = randomHash().toHexString()
 
     private lateinit var miraclTrust: MIRACLTrust
     private lateinit var qrCode: String
+    private lateinit var pinProvider: PinProvider
+    private lateinit var user: User
 
     @Before
-    fun setUp() {
+    fun setUp() = runTest(testCoroutineDispatcher) {
         val configuration = Configuration.Builder(projectId, projectUrl)
             .coroutineContext(testCoroutineDispatcher)
             .build()
@@ -38,6 +45,20 @@ class CrossDeviceSessionManagementTest {
 
         qrCode =
             MIRACLService.obtainAccessId(projectId, projectUrl, userId, description, hash).qrURL
+
+        val pin = randomNumericPin()
+        pinProvider = PinProvider { pinConsumer -> pinConsumer.consume(pin) }
+        val activationToken = MIRACLService.obtainActivationToken()
+
+        val registrationResult = miraclTrust.register(
+            userId = USER_ID,
+            activationToken = activationToken,
+            pinProvider = pinProvider,
+            pushNotificationsToken = null
+        )
+        Assert.assertTrue(registrationResult is MIRACLSuccess)
+
+        user = (registrationResult as MIRACLSuccess).value
     }
 
     @Test
@@ -187,5 +208,86 @@ class CrossDeviceSessionManagementTest {
             CrossDeviceSessionException.InvalidCrossDeviceSession,
             (result as MIRACLError).value
         )
+    }
+
+    @Test
+    fun testAuthenticateWithCrossDeviceSession() = runTest(testCoroutineDispatcher) {
+        // Get the session
+        val crossDeviceSession =
+            (miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) as MIRACLSuccess).value
+
+        // Authenticate
+        val result =
+            miraclTrust.authenticateWithCrossDeviceSession(crossDeviceSession, user, pinProvider)
+
+        // Assert
+        Assert.assertTrue(result is MIRACLSuccess)
+    }
+
+    @Test
+    fun testSignWithCrossDeviceSession() = runTest(testCoroutineDispatcher) {
+        // Get the session
+        val crossDeviceSession =
+            (miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) as MIRACLSuccess).value
+
+        // Sign
+        val result = miraclTrust.signWithCrossDeviceSession(crossDeviceSession, user, pinProvider)
+
+        // Assert
+        Assert.assertTrue(result is MIRACLSuccess)
+    }
+
+    @Test
+    fun testAuthorizeCrossDeviceSession() = runTest(testCoroutineDispatcher) {
+        // Get the session
+        val crossDeviceSession =
+            (miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) as MIRACLSuccess).value
+
+        // Authorize the session
+        val result = miraclTrust.authorizeCrossDeviceSession(crossDeviceSession, user, pinProvider)
+
+        // Assert
+        Assert.assertTrue(result is MIRACLSuccess)
+    }
+
+    @Test
+    fun testCompleteAuthenticationCrossDeviceSession() = runTest(testCoroutineDispatcher) {
+        // Get the session
+        val crossDeviceSession =
+            (miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) as MIRACLSuccess).value
+
+        // Authenticate
+        val authenticationResult = miraclTrust.generateAuthenticationToken(user, pinProvider)
+        val authenticationToken = (authenticationResult as MIRACLSuccess).value
+
+        // Complete the session
+        val result = miraclTrust.completeCrossDeviceSession(
+            crossDeviceSession.sessionId,
+            authenticationToken
+        )
+
+        // Assert
+        Assert.assertTrue(result is MIRACLSuccess)
+    }
+
+    @Test
+    fun testCompleteSigningCrossDeviceSession() = runTest(testCoroutineDispatcher) {
+        // Get the session
+        val crossDeviceSession =
+            (miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) as MIRACLSuccess).value
+
+        // Sign
+        val signResult =
+            miraclTrust.generateSignature(crossDeviceSession.signingHash.toByteArray(), user, pinProvider)
+        val signingResult = (signResult as MIRACLSuccess).value
+
+        // Complete the session
+        val result = miraclTrust.completeCrossDeviceSession(
+            sessionId = crossDeviceSession.sessionId,
+            signingResult = signingResult
+        )
+
+        // Assert
+        Assert.assertTrue(result is MIRACLSuccess)
     }
 }

@@ -2464,7 +2464,7 @@ class MIRACLTrustUnitTest {
             )
 
             // Act
-            val result = miraclTrust.authenticate(
+            val result = miraclTrust.generateAuthenticationToken(
                 user = authenticationUser,
                 pinProvider = pinProviderMock
             )
@@ -2491,7 +2491,7 @@ class MIRACLTrustUnitTest {
             val authenticationUser = mockk<User>()
 
             // Act
-            val result = miraclTrust.authenticate(
+            val result = miraclTrust.generateAuthenticationToken(
                 user = authenticationUser,
                 pinProvider = pinProviderMock
             )
@@ -2524,7 +2524,7 @@ class MIRACLTrustUnitTest {
             val authenticationUser = mockk<User>()
 
             // Act
-            val result = miraclTrust.authenticate(
+            val result = miraclTrust.generateAuthenticationToken(
                 user = authenticationUser,
                 pinProvider = pinProviderMock
             )
@@ -3097,7 +3097,7 @@ class MIRACLTrustUnitTest {
             } returns MIRACLSuccess(signingResult)
 
             // Act
-            val result = miraclTrust.sign(
+            val result = miraclTrust.generateSignature(
                 message = randomByteArray(),
                 user = mockk(),
                 pinProvider = pinProviderMock
@@ -3123,7 +3123,7 @@ class MIRACLTrustUnitTest {
             } returns MIRACLError(signingException)
 
             // Act
-            val result = miraclTrust.sign(
+            val result = miraclTrust.generateSignature(
                 message = randomByteArray(),
                 user = mockk(),
                 pinProvider = pinProviderMock

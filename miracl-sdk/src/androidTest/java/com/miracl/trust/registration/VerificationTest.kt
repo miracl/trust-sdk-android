@@ -483,21 +483,21 @@ class VerificationTest {
 
     private fun revokeUser(user: User, pin: String) = runTest(testCoroutineDispatcher) {
         val wrongPinProvider = PinProvider { it.consume(generateWrongPin(pin)) }
-        var authenticateResult = miraclTrust.authenticate(user, wrongPinProvider)
+        var authenticateResult = miraclTrust.generateAuthenticationToken(user, wrongPinProvider)
         Assert.assertTrue(authenticateResult is MIRACLError)
         Assert.assertEquals(
             AuthenticationException.UnsuccessfulAuthentication,
             (authenticateResult as MIRACLError).value
         )
 
-        authenticateResult = miraclTrust.authenticate(user, wrongPinProvider)
+        authenticateResult = miraclTrust.generateAuthenticationToken(user, wrongPinProvider)
         Assert.assertTrue(authenticateResult is MIRACLError)
         Assert.assertEquals(
             AuthenticationException.UnsuccessfulAuthentication,
             (authenticateResult as MIRACLError).value
         )
 
-        authenticateResult = miraclTrust.authenticate(user, wrongPinProvider)
+        authenticateResult = miraclTrust.generateAuthenticationToken(user, wrongPinProvider)
         Assert.assertTrue(authenticateResult is MIRACLError)
         Assert.assertEquals(
             AuthenticationException.Revoked,

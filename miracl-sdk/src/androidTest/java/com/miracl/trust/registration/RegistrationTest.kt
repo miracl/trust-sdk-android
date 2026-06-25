@@ -155,7 +155,7 @@ class RegistrationTest {
         Assert.assertEquals(USER_ID, user.userId)
 
         // Authentication
-        val authenticationResult = miraclTrust.authenticate(user, pinProvider)
+        val authenticationResult = miraclTrust.generateAuthenticationToken(user, pinProvider)
         Assert.assertTrue(authenticationResult is MIRACLSuccess)
     }
 
@@ -175,13 +175,13 @@ class RegistrationTest {
         val wrongPin = generateWrongPin(pin)
         val wrongPinProvider = PinProvider { pinConsumer -> pinConsumer.consume(wrongPin) }
 
-        var authenticationResult = miraclTrust.authenticate(user, wrongPinProvider)
+        var authenticationResult = miraclTrust.generateAuthenticationToken(user, wrongPinProvider)
         Assert.assertTrue(authenticationResult is MIRACLError)
 
-        authenticationResult = miraclTrust.authenticate(user, wrongPinProvider)
+        authenticationResult = miraclTrust.generateAuthenticationToken(user, wrongPinProvider)
         Assert.assertTrue(authenticationResult is MIRACLError)
 
-        authenticationResult = miraclTrust.authenticate(user, wrongPinProvider)
+        authenticationResult = miraclTrust.generateAuthenticationToken(user, wrongPinProvider)
         Assert.assertTrue(authenticationResult is MIRACLError)
 
         user = miraclTrust.getUser(user.userId)!!
@@ -197,7 +197,7 @@ class RegistrationTest {
         Assert.assertEquals(USER_ID, user.userId)
 
         // Authentication
-        authenticationResult = miraclTrust.authenticate(user, newPinProvider)
+        authenticationResult = miraclTrust.generateAuthenticationToken(user, newPinProvider)
         Assert.assertTrue(authenticationResult is MIRACLSuccess)
     }
 

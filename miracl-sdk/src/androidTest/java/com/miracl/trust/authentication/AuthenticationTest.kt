@@ -60,7 +60,7 @@ class AuthenticationTest {
     @Test
     fun testSuccessfulAuthentication() = runTest(testCoroutineDispatcher) {
         // Act
-        val result = miraclTrust.authenticate(user, pinProvider)
+        val result = miraclTrust.generateAuthenticationToken(user, pinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLSuccess)
@@ -118,7 +118,7 @@ class AuthenticationTest {
         val emptyPinProvider = PinProvider { it.consume(null) }
 
         // Act
-        val result = miraclTrust.authenticate(user, emptyPinProvider)
+        val result = miraclTrust.generateAuthenticationToken(user, emptyPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -134,7 +134,7 @@ class AuthenticationTest {
         val shorterPinProvider = PinProvider { it.consume(randomNumericPin(pin.length - 1)) }
 
         // Act
-        val result = miraclTrust.authenticate(user, shorterPinProvider)
+        val result = miraclTrust.generateAuthenticationToken(user, shorterPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -150,7 +150,7 @@ class AuthenticationTest {
         val longerPinProvider = PinProvider { it.consume(randomNumericPin(pin.length + 1)) }
 
         // Act
-        val result = miraclTrust.authenticate(user, longerPinProvider)
+        val result = miraclTrust.generateAuthenticationToken(user, longerPinProvider)
         testCoroutineDispatcher.scheduler.advanceUntilIdle()
 
         // Assert
@@ -167,7 +167,7 @@ class AuthenticationTest {
         val wrongFormatPinProvider = PinProvider { it.consume(WRONG_FORMAT_PIN) }
 
         // Act
-        val result = miraclTrust.authenticate(user, wrongFormatPinProvider)
+        val result = miraclTrust.generateAuthenticationToken(user, wrongFormatPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -183,7 +183,7 @@ class AuthenticationTest {
         val wrongPinProvider = PinProvider { it.consume(generateWrongPin(pin)) }
 
         // Act
-        val result = miraclTrust.authenticate(user, wrongPinProvider)
+        val result = miraclTrust.generateAuthenticationToken(user, wrongPinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)
@@ -198,28 +198,28 @@ class AuthenticationTest {
         // Arrange
         val wrongPinProvider = PinProvider { it.consume(generateWrongPin(pin)) }
 
-        var result = miraclTrust.authenticate(user, wrongPinProvider)
+        var result = miraclTrust.generateAuthenticationToken(user, wrongPinProvider)
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(
             AuthenticationException.UnsuccessfulAuthentication,
             (result as MIRACLError).value
         )
 
-        result = miraclTrust.authenticate(user, wrongPinProvider)
+        result = miraclTrust.generateAuthenticationToken(user, wrongPinProvider)
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(
             AuthenticationException.UnsuccessfulAuthentication,
             (result as MIRACLError).value
         )
 
-        result = miraclTrust.authenticate(user, wrongPinProvider)
+        result = miraclTrust.generateAuthenticationToken(user, wrongPinProvider)
         Assert.assertTrue(result is MIRACLError)
         Assert.assertEquals(AuthenticationException.Revoked, (result as MIRACLError).value)
 
         Assert.assertTrue(miraclTrust.getUser(user.userId)!!.revoked)
 
         // Act
-        result = miraclTrust.authenticate(user, pinProvider)
+        result = miraclTrust.generateAuthenticationToken(user, pinProvider)
 
         // Assert
         Assert.assertTrue(result is MIRACLError)

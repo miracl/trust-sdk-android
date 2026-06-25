@@ -157,6 +157,7 @@ public class MIRACLTrust private constructor(
     //region Properties
     private val logger = configuration.logger
     private val apiSettings: ApiSettings
+    private val crossDeviceSessionApi: CrossDeviceSessionApi
     private val verificator: Verificator
     private val registrator: RegistratorContract
     private val documentSigner: DocumentSigner
@@ -226,7 +227,7 @@ public class MIRACLTrust private constructor(
 
         sessionManager = componentFactory.createSessionManager(sessionApi)
 
-        val crossDeviceSessionApi = CrossDeviceSessionApiManager(
+        crossDeviceSessionApi = CrossDeviceSessionApiManager(
             apiRequestExecutor,
             KotlinxSerializationJsonUtil,
             apiSettings
@@ -576,6 +577,88 @@ public class MIRACLTrust private constructor(
                     }
                 }
         }
+    }
+
+    @JvmSynthetic
+    public suspend fun authenticateWithCrossDeviceSession(
+        crossDeviceSession: CrossDeviceSession,
+        user: User,
+        pinProvider: PinProvider
+    ): MIRACLResult<Unit, AuthenticationException> {
+        return withContext(miraclTrustCoroutineContext) {
+            authenticator.authenticateWithCrossDeviceSession(
+                user,
+                crossDeviceSession,
+                pinProvider,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            ).let { result ->
+                when (result) {
+                    is MIRACLSuccess -> {
+                        MIRACLSuccess(Unit)
+                    }
+
+                    is MIRACLError -> {
+                        logError(
+                            LoggerConstants.AUTHENTICATOR_TAG,
+                            result.value
+                        )
+
+                        MIRACLError(result.value)
+                    }
+                }
+            }
+        }
+    }
+
+    public suspend fun signWithCrossDeviceSession(
+        crossDeviceSession: CrossDeviceSession,
+        user: User,
+        pinProvider: PinProvider
+    ): MIRACLResult<Unit, SigningException> {
+        return withContext(miraclTrustCoroutineContext) {
+            documentSigner
+                .sign(
+                    crossDeviceSession = crossDeviceSession,
+                    user = user,
+                    pinProvider = pinProvider,
+                    deviceName = deviceName
+                )
+                .logIfError(LoggerConstants.DOCUMENT_SIGNER_TAG)
+        }
+    }
+
+
+
+    public suspend fun authorizeCrossDeviceSession(
+        crossDeviceSession: CrossDeviceSession,
+        user: User,
+        pinProvider: PinProvider
+    ): MIRACLResult<Unit, out Exception> {
+        return if (crossDeviceSession.signingHash.isNotBlank()) {
+            signWithCrossDeviceSession(crossDeviceSession, user, pinProvider)
+        } else {
+            authenticateWithCrossDeviceSession(crossDeviceSession, user, pinProvider)
+        }
+    }
+
+
+
+    public suspend fun completeCrossDeviceSession(
+        sessionId: String,
+        token: String
+    ): MIRACLResult<Unit, CrossDeviceSessionException> {
+        TODO()
+    }
+
+    public suspend fun completeCrossDeviceSession(
+        sessionId: String,
+        signingResult: SigningResult
+    ): MIRACLResult<Unit, Exception> {
+        return crossDeviceSessionApi.executeUpdateCrossDeviceSessionForSigningRequest(
+            sessionId = sessionId,
+            signature = signingResult.signature
+        )
     }
 
     /**
@@ -1042,7 +1125,7 @@ public class MIRACLTrust private constructor(
      * describing issues with the operation.
      */
     @JvmSynthetic
-    public suspend fun authenticate(
+    public suspend fun generateAuthenticationToken(
         user: User,
         pinProvider: PinProvider
     ): MIRACLResult<String, AuthenticationException> {
@@ -1532,7 +1615,7 @@ public class MIRACLTrust private constructor(
      * describing issues with the operation.
      */
     @JvmSynthetic
-    public suspend fun sign(
+    public suspend fun generateSignature(
         message: ByteArray,
         user: User,
         pinProvider: PinProvider,

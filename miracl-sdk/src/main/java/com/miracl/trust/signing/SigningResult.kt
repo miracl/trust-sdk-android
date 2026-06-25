@@ -4,7 +4,7 @@ import com.miracl.trust.MIRACLTrust
 import java.util.Date
 
 /**
- * Result returned from the [MIRACLTrust.sign] method.
+ * Result returned from the [MIRACLTrust.generateSignature] method.
  * @property signature The cryptographic representation of the signature.
  * @property timestamp Shows when the document was signed.
  */

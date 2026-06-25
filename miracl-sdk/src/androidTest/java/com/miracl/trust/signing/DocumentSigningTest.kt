@@ -68,7 +68,7 @@ class DocumentSigningTest {
     fun testSuccessfulDocumentSigning() = runTest(testCoroutineDispatcher) {
         // Sign
         val message = randomHash()
-        val result = miraclTrust.sign(
+        val result = miraclTrust.generateSignature(
             message = message,
             user = user,
             pinProvider = pinProvider
@@ -143,7 +143,7 @@ class DocumentSigningTest {
         val emptyMessage = "".toByteArray()
 
         // Act
-        val signingResult = miraclTrust.sign(
+        val signingResult = miraclTrust.generateSignature(
             message = emptyMessage,
             user = user,
             pinProvider = pinProvider
@@ -160,7 +160,7 @@ class DocumentSigningTest {
         val emptyPinProvider = PinProvider { pinConsumer -> pinConsumer.consume(null) }
 
         // Act
-        val signingResult = miraclTrust.sign(
+        val signingResult = miraclTrust.generateSignature(
             message = randomHash(),
             user = user,
             pinProvider = emptyPinProvider
@@ -179,7 +179,7 @@ class DocumentSigningTest {
         }
 
         // Act
-        val signingResult = miraclTrust.sign(
+        val signingResult = miraclTrust.generateSignature(
             message = randomHash(),
             user = user,
             pinProvider = shorterPinProvider
@@ -198,7 +198,7 @@ class DocumentSigningTest {
         }
 
         // Act
-        val signingResult = miraclTrust.sign(
+        val signingResult = miraclTrust.generateSignature(
             message = randomHash(),
             user = user,
             pinProvider = longerPinProvider
@@ -217,7 +217,7 @@ class DocumentSigningTest {
         }
 
         // Act
-        val signingResult = miraclTrust.sign(
+        val signingResult = miraclTrust.generateSignature(
             message = randomHash(),
             user = user,
             pinProvider = wrongFormatPinProvider
@@ -236,7 +236,7 @@ class DocumentSigningTest {
         }
 
         // Act
-        val signingResult = miraclTrust.sign(
+        val signingResult = miraclTrust.generateSignature(
             message = randomHash(),
             user = user,
             pinProvider = wrongPinProvider
@@ -257,7 +257,7 @@ class DocumentSigningTest {
             pinConsumer.consume(generateWrongPin(pin))
         }
 
-        var signingResult = miraclTrust.sign(
+        var signingResult = miraclTrust.generateSignature(
             message = randomHash(),
             user = user,
             pinProvider = wrongPinProvider
@@ -268,7 +268,7 @@ class DocumentSigningTest {
             (signingResult as MIRACLError).value
         )
 
-        signingResult = miraclTrust.sign(
+        signingResult = miraclTrust.generateSignature(
             message = randomHash(),
             user = user,
             pinProvider = wrongPinProvider
@@ -279,7 +279,7 @@ class DocumentSigningTest {
             (signingResult as MIRACLError).value
         )
 
-        signingResult = miraclTrust.sign(
+        signingResult = miraclTrust.generateSignature(
             message = randomHash(),
             user = user,
             pinProvider = wrongPinProvider
@@ -291,7 +291,7 @@ class DocumentSigningTest {
         Assert.assertTrue(user.revoked)
 
         // Act
-        signingResult = miraclTrust.sign(
+        signingResult = miraclTrust.generateSignature(
             message = randomHash(),
             user = user,
             pinProvider = pinProvider
