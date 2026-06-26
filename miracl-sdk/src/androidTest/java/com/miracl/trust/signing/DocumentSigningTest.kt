@@ -91,7 +91,7 @@ class DocumentSigningTest {
     }
 
     @Test
-    fun testSuccessfulDocumentSigningWithCrossDeviceSession() = runTest(testCoroutineDispatcher) {
+    fun testSuccessfulCrossDeviceSessionSigning() = runTest(testCoroutineDispatcher) {
         // Arrange
         val createSessionResponse = MIRACLService.obtainAccessId(
             projectId = projectId,
@@ -108,7 +108,7 @@ class DocumentSigningTest {
         val crossDeviceSession = (getCrossDeviceSessionResult as MIRACLSuccess).value
 
         // Act
-        val result = miraclTrust.sign(
+        val result = miraclTrust.signCrossDeviceSession(
             crossDeviceSession = crossDeviceSession,
             user = user,
             pinProvider = pinProvider

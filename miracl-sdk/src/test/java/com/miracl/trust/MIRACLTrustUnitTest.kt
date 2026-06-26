@@ -1161,6 +1161,128 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
+    fun `signCrossDeviceSession returns MIRACLSuccess on success`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val crossDeviceSession = createCrossDeviceSession()
+            coEvery {
+                documentSignerMock.sign(
+                    crossDeviceSession = any(),
+                    user = any(),
+                    pinProvider = any(),
+                    deviceName = any()
+                )
+            } returns MIRACLSuccess(Unit)
+
+            // Act
+            val result = miraclTrust.signCrossDeviceSession(
+                crossDeviceSession = crossDeviceSession,
+                user = mockk(),
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+        }
+
+    @Test
+    fun `signCrossDeviceSession returns MIRACLError on fail`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val crossDeviceSession = createCrossDeviceSession()
+            val signingException = SigningException.SigningFail()
+            coEvery {
+                documentSignerMock.sign(
+                    crossDeviceSession = any(),
+                    user = any(),
+                    pinProvider = any(),
+                    deviceName = any(),
+                )
+            } returns MIRACLError(signingException)
+
+            // Act
+            val result = miraclTrust.signCrossDeviceSession(
+                crossDeviceSession = crossDeviceSession,
+                user = mockk(),
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(signingException, (result as MIRACLError).value)
+        }
+
+    @Test
+    fun `signCrossDeviceSession passes the MIRACLSuccess to result handler on success`() {
+        // Arrange
+        val crossDeviceSession = createCrossDeviceSession()
+        coEvery {
+            documentSignerMock.sign(
+                crossDeviceSession = any(),
+                user = any(),
+                pinProvider = any(),
+                deviceName = any()
+            )
+        } returns MIRACLSuccess(Unit)
+
+        val resultHandlerMock = mockk<ResultHandler<Unit, SigningException>>()
+        every { resultHandlerMock.onResult(any()) } just runs
+
+        // Act
+        miraclTrust.signCrossDeviceSession(
+            crossDeviceSession = crossDeviceSession,
+            user = mockk(),
+            pinProvider = pinProviderMock,
+            resultHandler = resultHandlerMock
+        )
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert
+        val capturingSlot = CapturingSlot<MIRACLResult<Unit, SigningException>>()
+        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
+
+        val captured = capturingSlot.captured
+
+        Assert.assertTrue(captured is MIRACLSuccess)
+    }
+
+    @Test
+    fun `signCrossDeviceSession passes the MIRACLError to result handler on fail`() {
+        // Arrange
+        val crossDeviceSession = createCrossDeviceSession()
+        val signingException = SigningException.SigningFail()
+        coEvery {
+            documentSignerMock.sign(
+                crossDeviceSession = any(),
+                user = any(),
+                pinProvider = any(),
+                deviceName = any(),
+            )
+        } returns MIRACLError(signingException)
+
+        val resultHandlerMock = mockk<ResultHandler<Unit, SigningException>>()
+        every { resultHandlerMock.onResult(any()) } just runs
+
+        // Act
+        miraclTrust.signCrossDeviceSession(
+            crossDeviceSession = crossDeviceSession,
+            user = mockk(),
+            pinProvider = pinProviderMock,
+            resultHandler = resultHandlerMock
+        )
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert
+        val capturingSlot = CapturingSlot<MIRACLResult<Unit, SigningException>>()
+        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
+
+        val captured = capturingSlot.captured
+
+        Assert.assertTrue(captured is MIRACLError)
+        Assert.assertEquals(signingException, (captured as MIRACLError).value)
+    }
+
+    @Test
     fun `abortCrossDeviceSession returns MIRACLSuccess when session abort was successful`() =
         runTest(testCoroutineDispatcher) {
             // Arrange
@@ -3206,128 +3328,6 @@ class MIRACLTrustUnitTest {
 
         // Assert
         val capturingSlot = CapturingSlot<MIRACLResult<SigningResult, SigningException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        val captured = capturingSlot.captured
-
-        Assert.assertTrue(captured is MIRACLError)
-        Assert.assertEquals(signingException, (captured as MIRACLError).value)
-    }
-
-    @Test
-    fun `sign with CrossDeviceSession returns MIRACLSuccess on success`() =
-        runTest(testCoroutineDispatcher) {
-            // Arrange
-            val crossDeviceSession = createCrossDeviceSession()
-            coEvery {
-                documentSignerMock.sign(
-                    crossDeviceSession = any(),
-                    user = any(),
-                    pinProvider = any(),
-                    deviceName = any()
-                )
-            } returns MIRACLSuccess(Unit)
-
-            // Act
-            val result = miraclTrust.sign(
-                crossDeviceSession = crossDeviceSession,
-                user = mockk(),
-                pinProvider = pinProviderMock
-            )
-
-            // Assert
-            Assert.assertTrue(result is MIRACLSuccess)
-        }
-
-    @Test
-    fun `sign with CrossDeviceSession returns MIRACLError on fail`() =
-        runTest(testCoroutineDispatcher) {
-            // Arrange
-            val crossDeviceSession = createCrossDeviceSession()
-            val signingException = SigningException.SigningFail()
-            coEvery {
-                documentSignerMock.sign(
-                    crossDeviceSession = any(),
-                    user = any(),
-                    pinProvider = any(),
-                    deviceName = any(),
-                )
-            } returns MIRACLError(signingException)
-
-            // Act
-            val result = miraclTrust.sign(
-                crossDeviceSession = crossDeviceSession,
-                user = mockk(),
-                pinProvider = pinProviderMock
-            )
-
-            // Assert
-            Assert.assertTrue(result is MIRACLError)
-            Assert.assertEquals(signingException, (result as MIRACLError).value)
-        }
-
-    @Test
-    fun `sign with CrossDeviceSession passes the MIRACLSuccess to result handler on success`() {
-        // Arrange
-        val crossDeviceSession = createCrossDeviceSession()
-        coEvery {
-            documentSignerMock.sign(
-                crossDeviceSession = any(),
-                user = any(),
-                pinProvider = any(),
-                deviceName = any()
-            )
-        } returns MIRACLSuccess(Unit)
-
-        val resultHandlerMock = mockk<ResultHandler<Unit, SigningException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.sign(
-            crossDeviceSession = crossDeviceSession,
-            user = mockk(),
-            pinProvider = pinProviderMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<Unit, SigningException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        val captured = capturingSlot.captured
-
-        Assert.assertTrue(captured is MIRACLSuccess)
-    }
-
-    @Test
-    fun `sign with CrossDeviceSession passes the MIRACLError to result handler on fail`() {
-        // Arrange
-        val crossDeviceSession = createCrossDeviceSession()
-        val signingException = SigningException.SigningFail()
-        coEvery {
-            documentSignerMock.sign(
-                crossDeviceSession = any(),
-                user = any(),
-                pinProvider = any(),
-                deviceName = any(),
-            )
-        } returns MIRACLError(signingException)
-
-        val resultHandlerMock = mockk<ResultHandler<Unit, SigningException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.sign(
-            crossDeviceSession = crossDeviceSession,
-            user = mockk(),
-            pinProvider = pinProviderMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<Unit, SigningException>>()
         coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
 
         val captured = capturingSlot.captured

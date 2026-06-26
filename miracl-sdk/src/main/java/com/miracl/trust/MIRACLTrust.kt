@@ -676,6 +676,79 @@ public class MIRACLTrust private constructor(
     }
 
     /**
+     * Generates a signature for a hash provided by the [crossDeviceSession] and updates the session.
+     *
+     * @param crossDeviceSession The details for the signing operation.
+     * @param user A user to sign with.
+     * @param pinProvider A callback called by the SDK when the PIN is requested.
+     *
+     * @return A [MIRACLResult] representing the result of the signing operation:
+     * - If successful, returns a [MIRACLSuccess] with [Unit].
+     * - If an error occurs, returns a [MIRACLError] with a [SigningException]
+     * describing issues with the operation.
+     * @suppress
+     */
+    @JvmSynthetic
+    public suspend fun signCrossDeviceSession(
+        crossDeviceSession: CrossDeviceSession,
+        user: User,
+        pinProvider: PinProvider
+    ): MIRACLResult<Unit, SigningException> {
+        return withContext(miraclTrustCoroutineContext) {
+            documentSigner
+                .sign(
+                    crossDeviceSession = crossDeviceSession,
+                    user = user,
+                    pinProvider = pinProvider,
+                    deviceName = deviceName
+                )
+                .logIfError(LoggerConstants.DOCUMENT_SIGNER_TAG)
+        }
+    }
+
+    /**
+     * Generates a signature for a hash provided by the [crossDeviceSession] parameter and updates
+     * the session.
+     *
+     * @param crossDeviceSession The details for the signing operation.
+     * @param user A user to sign with.
+     * @param pinProvider A callback called by the SDK when the PIN is requested.
+     * @param resultHandler A callback to handle the result of the signing.
+     * - If successful, the result is a [MIRACLSuccess].
+     * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun signCrossDeviceSession(
+        crossDeviceSession: CrossDeviceSession,
+        user: User,
+        pinProvider: PinProvider,
+        resultHandler: ResultHandler<Unit, SigningException>
+    ) {
+        miraclTrustScope.launch {
+            documentSigner
+                .sign(
+                    crossDeviceSession = crossDeviceSession,
+                    user = user,
+                    pinProvider = pinProvider,
+                    deviceName = deviceName
+                )
+                .also { result ->
+                    if (result is MIRACLError) {
+                        logError(
+                            LoggerConstants.DOCUMENT_SIGNER_TAG,
+                            result.value
+                        )
+                    }
+
+                    withContext(resultHandlerDispatcher) {
+                        resultHandler.onResult(result)
+                    }
+                }
+        }
+    }
+
+    /**
      * Cancels an ongoing [CrossDeviceSession].
      *
      * @param crossDeviceSession The session to cancel.
@@ -1596,79 +1669,6 @@ public class MIRACLTrust private constructor(
                     user,
                     pinProvider,
                     deviceName
-                )
-                .also { result ->
-                    if (result is MIRACLError) {
-                        logError(
-                            LoggerConstants.DOCUMENT_SIGNER_TAG,
-                            result.value
-                        )
-                    }
-
-                    withContext(resultHandlerDispatcher) {
-                        resultHandler.onResult(result)
-                    }
-                }
-        }
-    }
-
-    /**
-     * Generates a signature for a hash provided by the [crossDeviceSession] and updates the session.
-     *
-     * @param crossDeviceSession The details for the signing operation.
-     * @param user A user to sign with.
-     * @param pinProvider A callback called by the SDK when the PIN is requested.
-     *
-     * @return A [MIRACLResult] representing the result of the signing operation:
-     * - If successful, returns a [MIRACLSuccess] with [Unit].
-     * - If an error occurs, returns a [MIRACLError] with a [SigningException]
-     * describing issues with the operation.
-     * @suppress
-     */
-    @JvmSynthetic
-    public suspend fun sign(
-        crossDeviceSession: CrossDeviceSession,
-        user: User,
-        pinProvider: PinProvider
-    ): MIRACLResult<Unit, SigningException> {
-        return withContext(miraclTrustCoroutineContext) {
-            documentSigner
-                .sign(
-                    crossDeviceSession = crossDeviceSession,
-                    user = user,
-                    pinProvider = pinProvider,
-                    deviceName = deviceName
-                )
-                .logIfError(LoggerConstants.DOCUMENT_SIGNER_TAG)
-        }
-    }
-
-    /**
-     * Generates a signature for a hash provided by the [crossDeviceSession] parameter and updates
-     * the session.
-     *
-     * @param crossDeviceSession The details for the signing operation.
-     * @param user A user to sign with.
-     * @param pinProvider A callback called by the SDK when the PIN is requested.
-     * @param resultHandler A callback to handle the result of the signing.
-     * - If successful, the result is a [MIRACLSuccess].
-     * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
-     * operation.
-     * @suppress
-     */
-    public fun sign(
-        crossDeviceSession: CrossDeviceSession,
-        user: User,
-        pinProvider: PinProvider,
-        resultHandler: ResultHandler<Unit, SigningException>
-    ) {
-        miraclTrustScope.launch {
-            documentSigner
-                .sign(
-                    crossDeviceSession = crossDeviceSession,
-                    user = user,
-                    pinProvider = pinProvider,
-                    deviceName = deviceName
                 )
                 .also { result ->
                     if (result is MIRACLError) {
