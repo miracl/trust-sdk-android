@@ -74,10 +74,10 @@ public final class com/miracl/trust/MIRACLTrust {
 	public final synthetic fun sendVerificationEmail (Ljava/lang/String;Lcom/miracl/trust/session/CrossDeviceSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final synthetic fun sendVerificationEmail (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun setProjectId (Ljava/lang/String;)V
-	public final fun sign (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
-	public final synthetic fun sign (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
 	public final synthetic fun sign ([BLcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun signCrossDeviceSession (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lcom/miracl/trust/delegate/ResultHandler;)V
+	public final synthetic fun signCrossDeviceSession (Lcom/miracl/trust/session/CrossDeviceSession;Lcom/miracl/trust/model/User;Lcom/miracl/trust/delegate/PinProvider;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun updateProjectSettings (Ljava/lang/String;Ljava/lang/String;)V
 }
 
