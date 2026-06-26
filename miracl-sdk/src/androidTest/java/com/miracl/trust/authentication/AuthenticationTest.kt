@@ -72,16 +72,16 @@ class AuthenticationTest {
     }
 
     @Test
-    fun testSuccessfulAuthenticationWithCrossDeviceSession() = runTest(testCoroutineDispatcher) {
+    fun testSuccessfulCrossDeviceSessionAuthentication() = runTest(testCoroutineDispatcher) {
         // Arrange
         val qrCode = MIRACLService.obtainAccessId().qrURL
         val crossDeviceSession =
             (miraclTrust.getCrossDeviceSessionFromQRCode(qrCode) as MIRACLSuccess).value
 
         // Act
-        val result = miraclTrust.authenticate(
-            user = user,
+        val result = miraclTrust.authenticateCrossDeviceSession(
             crossDeviceSession = crossDeviceSession,
+            user = user,
             pinProvider = pinProvider
         )
 
@@ -90,7 +90,7 @@ class AuthenticationTest {
     }
 
     @Test
-    fun testAuthenticationWithCrossDeviceSessionFailOnInvalidSession() =
+    fun testCrossDeviceSessionAuthenticationFailOnInvalidSession() =
         runTest(testCoroutineDispatcher) {
             // Arrange
             val crossDeviceSession = CrossDeviceSession(
@@ -102,7 +102,11 @@ class AuthenticationTest {
             )
 
             // Act
-            val result = miraclTrust.authenticate(user, crossDeviceSession, pinProvider)
+            val result = miraclTrust.authenticateCrossDeviceSession(
+                crossDeviceSession = crossDeviceSession,
+                user = user,
+                pinProvider = pinProvider
+            )
 
             // Assert
             Assert.assertTrue(result is MIRACLError)
