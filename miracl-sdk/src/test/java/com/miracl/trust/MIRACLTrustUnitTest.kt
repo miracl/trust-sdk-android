@@ -1033,6 +1033,134 @@ class MIRACLTrustUnitTest {
     }
 
     @Test
+    fun `authenticateCrossDeviceSession returns a MIRACLSuccess when input is valid and user is authenticated`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val authenticationUser = mockk<User>()
+            val crossDeviceSession = createCrossDeviceSession()
+            coEvery {
+                authenticatorMock.authenticateWithCrossDeviceSession(
+                    authenticationUser,
+                    crossDeviceSession,
+                    pinProviderMock,
+                    arrayOf(AuthenticatorScopes.OIDC.value),
+                    deviceName
+                )
+            } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
+
+            // Act
+            val result = miraclTrust.authenticateCrossDeviceSession(
+                crossDeviceSession = crossDeviceSession,
+                user = authenticationUser,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLSuccess)
+        }
+
+    @Test
+    fun `authenticateCrossDeviceSession returns a MIRACLError when authentication fails`() =
+        runTest(testCoroutineDispatcher) {
+            // Arrange
+            val authenticationUser = mockk<User>()
+            val crossDeviceSession = createCrossDeviceSession()
+            val authenticationException = AuthenticationException.AuthenticationFail()
+            coEvery {
+                authenticatorMock.authenticateWithCrossDeviceSession(
+                    authenticationUser,
+                    crossDeviceSession,
+                    pinProviderMock,
+                    arrayOf(AuthenticatorScopes.OIDC.value),
+                    deviceName
+                )
+            } returns MIRACLError(authenticationException)
+
+            // Act
+            val result = miraclTrust.authenticateCrossDeviceSession(
+                crossDeviceSession = crossDeviceSession,
+                user = authenticationUser,
+                pinProvider = pinProviderMock
+            )
+
+            // Assert
+            Assert.assertTrue(result is MIRACLError)
+            Assert.assertEquals(authenticationException, (result as MIRACLError).value)
+        }
+
+    @Test
+    fun `authenticateCrossDeviceSession calls result handler with MIRACLSuccess when input is valid and user is authenticated`() {
+        // Arrange
+        val authenticationUser = mockk<User>()
+        val crossDeviceSession = createCrossDeviceSession()
+        coEvery {
+            authenticatorMock.authenticateWithCrossDeviceSession(
+                authenticationUser,
+                crossDeviceSession,
+                pinProviderMock,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            )
+        } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
+
+        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
+        every { resultHandlerMock.onResult(any()) } just runs
+
+        // Act
+        miraclTrust.authenticateCrossDeviceSession(
+            crossDeviceSession = crossDeviceSession,
+            user = authenticationUser,
+            pinProvider = pinProviderMock,
+            resultHandler = resultHandlerMock
+        )
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert
+        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
+        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
+
+        Assert.assertTrue(capturingSlot.captured is MIRACLSuccess)
+    }
+
+    @Test
+    fun `authenticateCrossDeviceSession calls result handler with MIRACLError when authentication fails`() {
+        // Arrange
+        val authenticationUser = mockk<User>()
+        val crossDeviceSession = createCrossDeviceSession()
+        val authenticationException = AuthenticationException.AuthenticationFail()
+        coEvery {
+            authenticatorMock.authenticateWithCrossDeviceSession(
+                authenticationUser,
+                crossDeviceSession,
+                pinProviderMock,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            )
+        } returns MIRACLError(authenticationException)
+
+        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
+        every { resultHandlerMock.onResult(any()) } just runs
+
+        // Act
+        miraclTrust.authenticateCrossDeviceSession(
+            crossDeviceSession = crossDeviceSession,
+            user = authenticationUser,
+            pinProvider = pinProviderMock,
+            resultHandler = resultHandlerMock
+        )
+        testCoroutineDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert
+        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
+        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
+
+        val result = capturingSlot.captured
+
+        Assert.assertTrue(result is MIRACLError)
+        Assert.assertEquals(authenticationException, (result as MIRACLError).value)
+    }
+
+    @Test
     fun `abortCrossDeviceSession returns MIRACLSuccess when session abort was successful`() =
         runTest(testCoroutineDispatcher) {
             // Arrange
@@ -2650,134 +2778,6 @@ class MIRACLTrustUnitTest {
         val result = capturingSlot.captured
         Assert.assertTrue(result is MIRACLError)
         Assert.assertTrue((result as MIRACLError).value is AuthenticationException.AuthenticationFail)
-    }
-
-    @Test
-    fun `authenticate with CrossDeviceSession returns a MIRACLSuccess when input is valid and user is authenticated`() =
-        runTest(testCoroutineDispatcher) {
-            // Arrange
-            val authenticationUser = mockk<User>()
-            val crossDeviceSession = createCrossDeviceSession()
-            coEvery {
-                authenticatorMock.authenticateWithCrossDeviceSession(
-                    authenticationUser,
-                    crossDeviceSession,
-                    pinProviderMock,
-                    arrayOf(AuthenticatorScopes.OIDC.value),
-                    deviceName
-                )
-            } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
-
-            // Act
-            val result = miraclTrust.authenticate(
-                user = authenticationUser,
-                crossDeviceSession = crossDeviceSession,
-                pinProvider = pinProviderMock
-            )
-
-            // Assert
-            Assert.assertTrue(result is MIRACLSuccess)
-        }
-
-    @Test
-    fun `authenticate with CrossDeviceSession returns a MIRACLError when authentication fails`() =
-        runTest(testCoroutineDispatcher) {
-            // Arrange
-            val authenticationUser = mockk<User>()
-            val crossDeviceSession = createCrossDeviceSession()
-            val authenticationException = AuthenticationException.AuthenticationFail()
-            coEvery {
-                authenticatorMock.authenticateWithCrossDeviceSession(
-                    authenticationUser,
-                    crossDeviceSession,
-                    pinProviderMock,
-                    arrayOf(AuthenticatorScopes.OIDC.value),
-                    deviceName
-                )
-            } returns MIRACLError(authenticationException)
-
-            // Act
-            val result = miraclTrust.authenticate(
-                user = authenticationUser,
-                crossDeviceSession = crossDeviceSession,
-                pinProvider = pinProviderMock
-            )
-
-            // Assert
-            Assert.assertTrue(result is MIRACLError)
-            Assert.assertEquals(authenticationException, (result as MIRACLError).value)
-        }
-
-    @Test
-    fun `authenticate with CrossDeviceSession calls result handler with MIRACLSuccess when input is valid and user is authenticated`() {
-        // Arrange
-        val authenticationUser = mockk<User>()
-        val crossDeviceSession = createCrossDeviceSession()
-        coEvery {
-            authenticatorMock.authenticateWithCrossDeviceSession(
-                authenticationUser,
-                crossDeviceSession,
-                pinProviderMock,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
-            )
-        } returns MIRACLSuccess(AuthenticateResponse(0, "", null, null))
-
-        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.authenticate(
-            user = authenticationUser,
-            crossDeviceSession = crossDeviceSession,
-            pinProvider = pinProviderMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        Assert.assertTrue(capturingSlot.captured is MIRACLSuccess)
-    }
-
-    @Test
-    fun `authenticate with CrossDeviceSession calls result handler with MIRACLError when authentication fails`() {
-        // Arrange
-        val authenticationUser = mockk<User>()
-        val crossDeviceSession = createCrossDeviceSession()
-        val authenticationException = AuthenticationException.AuthenticationFail()
-        coEvery {
-            authenticatorMock.authenticateWithCrossDeviceSession(
-                authenticationUser,
-                crossDeviceSession,
-                pinProviderMock,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
-            )
-        } returns MIRACLError(authenticationException)
-
-        val resultHandlerMock = mockk<ResultHandler<Unit, AuthenticationException>>()
-        every { resultHandlerMock.onResult(any()) } just runs
-
-        // Act
-        miraclTrust.authenticate(
-            user = authenticationUser,
-            crossDeviceSession = crossDeviceSession,
-            pinProvider = pinProviderMock,
-            resultHandler = resultHandlerMock
-        )
-        testCoroutineDispatcher.scheduler.advanceUntilIdle()
-
-        // Assert
-        val capturingSlot = CapturingSlot<MIRACLResult<Unit, AuthenticationException>>()
-        coVerify { resultHandlerMock.onResult(capture(capturingSlot)) }
-
-        val result = capturingSlot.captured
-
-        Assert.assertTrue(result is MIRACLError)
-        Assert.assertEquals(authenticationException, (result as MIRACLError).value)
     }
 
     @Test

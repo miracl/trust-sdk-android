@@ -181,14 +181,14 @@ public class MIRACLTrustJavaTest {
     }
 
     @Test
-    public void testAuthenticationWithCrossDeviceSession() {
+    public void testAuthenticateCrossDeviceSession() {
         String qrCode = MIRACLService.INSTANCE.obtainAccessId().getQrURL();
         miraclTrust.getCrossDeviceSessionFromQRCode(qrCode, result -> {
             Assert.assertTrue(result instanceof MIRACLSuccess);
 
             CrossDeviceSession crossDeviceSession =
                     ((MIRACLSuccess<CrossDeviceSession, CrossDeviceSessionException>) result).getValue();
-            createUser(user -> miraclTrust.authenticate(user, crossDeviceSession, pinProvider, authenticationResult -> {
+            createUser(user -> miraclTrust.authenticateCrossDeviceSession(crossDeviceSession, user, pinProvider, authenticationResult -> {
                 Assert.assertTrue(authenticationResult instanceof MIRACLSuccess);
             }));
         });

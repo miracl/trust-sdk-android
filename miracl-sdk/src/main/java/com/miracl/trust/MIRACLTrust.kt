@@ -579,6 +579,103 @@ public class MIRACLTrust private constructor(
     }
 
     /**
+     * Authenticates an end user on the MIRACL Trust platform.
+     *
+     * Use this method to authenticate another device or application using [CrossDeviceSession].
+     *
+     * @param crossDeviceSession The details for the authentication operation.
+     * @param user The user to authenticate.
+     * @param pinProvider A callback called by the SDK when the PIN is requested.
+     *
+     * @return A [MIRACLResult] representing the result of the authentication:
+     * - If successful, returns a [MIRACLSuccess] with [Unit].
+     * - If an error occurs, returns a [MIRACLError] with an [AuthenticationException]
+     * describing issues with the operation.
+     * @suppress
+     */
+    @JvmSynthetic
+    public suspend fun authenticateCrossDeviceSession(
+        crossDeviceSession: CrossDeviceSession,
+        user: User,
+        pinProvider: PinProvider
+    ): MIRACLResult<Unit, AuthenticationException> {
+        return withContext(miraclTrustCoroutineContext) {
+            authenticator.authenticateWithCrossDeviceSession(
+                user,
+                crossDeviceSession,
+                pinProvider,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            ).let { result ->
+                when (result) {
+                    is MIRACLSuccess -> {
+                        MIRACLSuccess(Unit)
+                    }
+
+                    is MIRACLError -> {
+                        logError(
+                            LoggerConstants.AUTHENTICATOR_TAG,
+                            result.value
+                        )
+
+                        MIRACLError(result.value)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Authenticates an end user on the MIRACL Trust platform.
+     *
+     * Use this method to authenticate another device or application using [CrossDeviceSession].
+     *
+     * @param crossDeviceSession The details for the authentication operation.
+     * @param user The user to authenticate with.
+     * @param pinProvider A callback called by the SDK when the PIN is requested.
+     * @param resultHandler A callback to handle the result of the authentication.
+     * - If successful, the result is a [MIRACLSuccess].
+     * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
+     * operation.
+     * @suppress
+     */
+    public fun authenticateCrossDeviceSession(
+        crossDeviceSession: CrossDeviceSession,
+        user: User,
+        pinProvider: PinProvider,
+        resultHandler: ResultHandler<Unit, AuthenticationException>
+    ) {
+        miraclTrustScope.launch {
+            authenticator.authenticateWithCrossDeviceSession(
+                user,
+                crossDeviceSession,
+                pinProvider,
+                arrayOf(AuthenticatorScopes.OIDC.value),
+                deviceName
+            ).also { result ->
+                when (result) {
+                    is MIRACLSuccess -> {
+                        withContext(resultHandlerDispatcher) {
+                            resultHandler.onResult(MIRACLSuccess(Unit))
+                        }
+                    }
+
+                    is MIRACLError -> {
+                        logError(
+                            LoggerConstants.AUTHENTICATOR_TAG,
+                            result.value
+                        )
+
+                        withContext(resultHandlerDispatcher) {
+                            resultHandler.onResult(MIRACLError(result.value))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Cancels an ongoing [CrossDeviceSession].
      *
      * @param crossDeviceSession The session to cancel.
@@ -1142,103 +1239,6 @@ public class MIRACLTrust private constructor(
                             } else {
                                 resultHandler.onResult(MIRACLError(AuthenticationException.AuthenticationFail()))
                             }
-                        }
-                    }
-
-                    is MIRACLError -> {
-                        logError(
-                            LoggerConstants.AUTHENTICATOR_TAG,
-                            result.value
-                        )
-
-                        withContext(resultHandlerDispatcher) {
-                            resultHandler.onResult(MIRACLError(result.value))
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Authenticates an end user on the MIRACL Trust platform.
-     *
-     * Use this method to authenticate another device or application using [CrossDeviceSession].
-     *
-     * @param user The user to authenticate.
-     * @param crossDeviceSession The details for the authentication operation.
-     * @param pinProvider A callback called by the SDK when the PIN is requested.
-     *
-     * @return A [MIRACLResult] representing the result of the authentication:
-     * - If successful, returns a [MIRACLSuccess] with [Unit].
-     * - If an error occurs, returns a [MIRACLError] with an [AuthenticationException]
-     * describing issues with the operation.
-     * @suppress
-     */
-    @JvmSynthetic
-    public suspend fun authenticate(
-        user: User,
-        crossDeviceSession: CrossDeviceSession,
-        pinProvider: PinProvider
-    ): MIRACLResult<Unit, AuthenticationException> {
-        return withContext(miraclTrustCoroutineContext) {
-            authenticator.authenticateWithCrossDeviceSession(
-                user,
-                crossDeviceSession,
-                pinProvider,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
-            ).let { result ->
-                when (result) {
-                    is MIRACLSuccess -> {
-                        MIRACLSuccess(Unit)
-                    }
-
-                    is MIRACLError -> {
-                        logError(
-                            LoggerConstants.AUTHENTICATOR_TAG,
-                            result.value
-                        )
-
-                        MIRACLError(result.value)
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Authenticates an end user on the MIRACL Trust platform.
-     *
-     * Use this method to authenticate another device or application using [CrossDeviceSession].
-     *
-     * @param user The user to authenticate with.
-     * @param crossDeviceSession The details for the authentication operation.
-     * @param pinProvider A callback called by the SDK when the PIN is requested.
-     * @param resultHandler A callback to handle the result of the authentication.
-     * - If successful, the result is a [MIRACLSuccess].
-     * - If an error occurs, the result is a [MIRACLError] with an exception describing issues with the
-     * operation.
-     * @suppress
-     */
-    public fun authenticate(
-        user: User,
-        crossDeviceSession: CrossDeviceSession,
-        pinProvider: PinProvider,
-        resultHandler: ResultHandler<Unit, AuthenticationException>
-    ) {
-        miraclTrustScope.launch {
-            authenticator.authenticateWithCrossDeviceSession(
-                user,
-                crossDeviceSession,
-                pinProvider,
-                arrayOf(AuthenticatorScopes.OIDC.value),
-                deviceName
-            ).also { result ->
-                when (result) {
-                    is MIRACLSuccess -> {
-                        withContext(resultHandlerDispatcher) {
-                            resultHandler.onResult(MIRACLSuccess(Unit))
                         }
                     }
 
