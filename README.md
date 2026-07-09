@@ -14,6 +14,7 @@ The MIRACL Trust Android SDK provides the following functionalities:
 - [Registration](#registration)
 - [Authentication](#authentication)
 - [Signing](#signing)
+- [Cross-Device Session](#cross-device-session)
 - [QuickCode](#quickcode)
 - [User Management](#user-management)
 
@@ -48,14 +49,16 @@ The MIRACL Trust Android SDK provides the following functionalities:
 
 To configure the SDK:
 
-1. Create an account in the MIRACL Trust platform. For information about how
-   to do it, see the
+1. Create an account in the MIRACL Trust platform. For information about how to
+   do it, see the
    [Getting Started](https://miracl.com/resources/docs/guides/get-started/)
    guide.
 1. Call the
    [configure](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/configure.html)
-   method with a configuration created by the [Configuration.Builder](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.configuration/-configuration/-builder/index.html)
-   class using [your project properties](https://miracl.com/resources/docs/get-started/create-project/#project-properties):
+   method with a configuration created by the
+   [Configuration.Builder](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.configuration/-configuration/-builder/index.html)
+   class using
+   [your project properties](https://miracl.com/resources/docs/get-started/create-project/#project-properties):
 
 Kotlin:
 
@@ -90,7 +93,8 @@ method before that; otherwise assertion will be triggered.
 
 ### Obtain instance of the SDK
 
-To obtain an instance of the SDK, call the [getInstance](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/get-instance.html)
+To obtain an instance of the SDK, call the
+[getInstance](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/-companion/get-instance.html)
 method:
 
 Kotlin:
@@ -116,7 +120,6 @@ options for that:
   With this type of verification, the end user's email address serves as the
   User ID. Currently, MIRACL Trust provides two kinds of built-in email
   verification methods:
-
   - [Email Link](https://miracl.com/resources/docs/guides/built-in-user-verification/email-link/)
     (default)
   - [Email Code](https://miracl.com/resources/docs/guides/built-in-user-verification/email-code/)
@@ -181,26 +184,24 @@ options for that:
   ```
 
   </details>
-  
+
   Then, a verification email is sent, and a
   [VerificationResponse](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.registration/-verification-response/index.html)
   with backoff and email verification method is returned.
 
   If the verification method you have chosen for your project is:
-
   - **Email Code:**
-  
+
     You must check the email verification method in the response.
-  
     - If the end user is registering for the first time or resetting their PIN,
-      an email with a verification code will be sent, and the email
-      verification method in the response will be
+      an email with a verification code will be sent, and the email verification
+      method in the response will be
       [EmailVerificationMethod.Code](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.registration/-email-verification-method/-code/index.html).
       Then, ask the user to enter the code in the application.
 
-    - If the end user has already registered another device with the same
-      User ID, a Verification URL will be sent, and the verification method in
-      the response will be
+    - If the end user has already registered another device with the same User
+      ID, a Verification URL will be sent, and the verification method in the
+      response will be
       [EmailVerificationMethod.Link](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.registration/-email-verification-method/-link/index.html).
       In this case, proceed as described for the **Email Link** verification
       method below.
@@ -208,181 +209,188 @@ options for that:
   - **Email Link:** Your application must open when the end user follows the
     Verification URL in the email. To ensure proper deep linking behaviour on
     mobile applications, use
-    [Android's App Links](https://developer.android.com/training/app-links).
-    To associate your application with the email Verification URL, use the
+    [Android's App Links](https://developer.android.com/training/app-links). To
+    associate your application with the email Verification URL, use the
     **Android association** field in **Mobile Applications** under
     **Configuration** in the [MIRACL Trust Portal](https://trust.miracl.cloud).
 
 ### Registration
 
-1. To register the mobile device, get an activation token. This happens in
-   two different ways depending on type of verification.
-
+1. To register the mobile device, get an activation token. This happens in two
+   different ways depending on type of verification.
    - [Custom User Verification](https://miracl.com/resources/docs/guides/custom-user-verification/)
-   or [Email Link](https://miracl.com/resources/docs/guides/built-in-user-verification/email-link/):
+     or
+     [Email Link](https://miracl.com/resources/docs/guides/built-in-user-verification/email-link/):
 
-      After the application recieves the Verification URL, it must confirm the
-      verification by passing it to the
-      [getActivationToken](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-activation-token.html)
-      method:
+     After the application receives the Verification URL, it must confirm the
+     verification by passing it to the
+     [getActivationToken](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-activation-token.html)
+     method:
 
-      ```kotlin
-      intent?.data?.let { verificationUri ->
-          miraclTrust.getActivationToken(
-              verificationUri,
-              resultHandler = { result ->
-                  when (result) {
-                      is MIRACLSuccess -> {
-                          val userId = result.value.userId
-                          val activationToken = result.value.activationToken
+     ```kotlin
+     intent?.data?.let { verificationUri ->
+         miraclTrust.getActivationToken(
+             verificationUri,
+             resultHandler = { result ->
+                 when (result) {
+                     is MIRACLSuccess -> {
+                         val userId = result.value.userId
+                         val activationToken = result.value.activationToken
 
-                          // Use the activation token and the User ID to register the user.
-                      }
+                         // Use the activation token and the User ID to register the user.
+                     }
 
-                      is MIRACLError -> {
-                          val error = result.value
-                          // Cannot obtain activation token due to an error.
-                      }
-                  }
-              }
-          )
-      }
-      ```
+                     is MIRACLError -> {
+                         val error = result.value
+                         // Cannot obtain activation token due to an error.
+                     }
+                 }
+             }
+         )
+     }
+     ```
 
-      <details>
-        <summary>Using coroutines</summary>
+        <details>
+          <summary>Using coroutines</summary>
 
-      ```kotlin
-      intent?.data?.let { verificationUri ->
-          val result = miraclTrust.getActivationToken(verificationUri)
-          when (result) {
-              is MIRACLSuccess -> {
-                  val userId = result.value.userId
-                  val activationToken = result.value.activationToken
+     ```kotlin
+     intent?.data?.let { verificationUri ->
+         val result = miraclTrust.getActivationToken(verificationUri)
+         when (result) {
+             is MIRACLSuccess -> {
+                 val userId = result.value.userId
+                 val activationToken = result.value.activationToken
 
-                  // Use the activation token and the User ID to register the user.
-              }
+                 // Use the activation token and the User ID to register the user.
+             }
 
-              is MIRACLError -> {
-                  val error = result.value
-                  // Cannot obtain activation token due to an error.
-              }
-          }
-      }
-      ```
+             is MIRACLError -> {
+                 val error = result.value
+                 // Cannot obtain activation token due to an error.
+             }
+         }
+     }
+     ```
 
-      </details>
+        </details>
 
-      <details>
-        <summary>Using Java</summary>
+        <details>
+          <summary>Using Java</summary>
 
-      ```java
-      Uri verificationUri = intent.getData();
-      if (verificationUri != null) {
-          miraclTrust.getActivationToken(verificationUri, result -> {
-              if (result instanceof MIRACLSuccess) {
-                  ActivationTokenResponse response =
-                          ((MIRACLSuccess<ActivationTokenResponse, ActivationTokenException>)
-                                  result).getValue();
+     ```java
+     Uri verificationUri = intent.getData();
+     if (verificationUri != null) {
+         miraclTrust.getActivationToken(verificationUri, result -> {
+             if (result instanceof MIRACLSuccess) {
+                 ActivationTokenResponse response =
+                         ((MIRACLSuccess<ActivationTokenResponse, ActivationTokenException>)
+                                 result).getValue();
 
-                  String userId = response.getUserId();
-                  String activationToken = response.getActivationToken();
+                 String userId = response.getUserId();
+                 String activationToken = response.getActivationToken();
 
-                  // Use the activation token and the User ID to register the user.
-              } else {
-                  MIRACLError<ActivationTokenResponse,
-                          ActivationTokenException> error =
-                          (MIRACLError<ActivationTokenResponse, ActivationTokenException>)
-                                  result;
-                  // Cannot obtain activation token due to an error.
-              }
-          });
-      }
-      ```
+                 // Use the activation token and the User ID to register the user.
+             } else {
+                 MIRACLError<ActivationTokenResponse,
+                         ActivationTokenException> error =
+                         (MIRACLError<ActivationTokenResponse, ActivationTokenException>)
+                                 result;
+                 // Cannot obtain activation token due to an error.
+             }
+         });
+     }
+     ```
 
-      </details>
+        </details>
 
    - [Email Code](https://miracl.com/resources/docs/guides/built-in-user-verification/email-code/):
 
-      When the end user enters the verification code, the application must
-      confirm the verification by passing it to the
-      [getActivationToken](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-activation-token.html)
-      method:
+     When the end user enters the verification code, the application must
+     confirm the verification by passing it to the
+     [getActivationToken](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-activation-token.html)
+     method:
 
-      ```kotlin
-      miraclTrust.getActivationToken(userId, code) { result ->
-          when (result) {
-              is MIRACLSuccess -> {
-                  val userId = result.value.userId
-                  val activationToken = result.value.activationToken
+     ```kotlin
+     miraclTrust.getActivationToken(userId, code) { result ->
+         when (result) {
+             is MIRACLSuccess -> {
+                 val userId = result.value.userId
+                 val activationToken = result.value.activationToken
 
-                  // Use the activation token and the User ID to register the user.
-              }
+                 // Use the activation token and the User ID to register the user.
+             }
 
-              is MIRACLError -> {
-                  val error = result.value
-                  // Cannot obtain activation token due to an error.
-              }
-          }
-      }
-      ```
+             is MIRACLError -> {
+                 val error = result.value
+                 // Cannot obtain activation token due to an error.
+             }
+         }
+     }
+     ```
 
       <details>
         <summary>Using coroutines</summary>
 
-      ```kotlin
-      val result = miraclTrust.getActivationToken(userId, code)
-      when (result) {
-          is MIRACLSuccess -> {
-              val userId = result.value.userId
-              val activationToken = result.value.activationToken
+     ```kotlin
+     val result = miraclTrust.getActivationToken(userId, code)
+     when (result) {
+         is MIRACLSuccess -> {
+             val userId = result.value.userId
+             val activationToken = result.value.activationToken
 
-              // Use the activation token and the User ID to register the user.
-          }
+             // Use the activation token and the User ID to register the user.
+         }
 
-          is MIRACLError -> {
-              val error = result.value
-              // Cannot obtain activation token due to an error.
-          }
-      }
-      ```
+         is MIRACLError -> {
+             val error = result.value
+             // Cannot obtain activation token due to an error.
+         }
+     }
+     ```
 
       </details>
 
       <details>
         <summary>Using Java</summary>
 
-      ```java
-      miraclTrust.getActivationToken(userId, code, result -> {
-          if (result instanceof MIRACLSuccess) {
-              ActivationTokenResponse response =
-                      ((MIRACLSuccess<ActivationTokenResponse, ActivationTokenException>)
-                              result).getValue();
+     ```java
+     miraclTrust.getActivationToken(userId, code, result -> {
+         if (result instanceof MIRACLSuccess) {
+             ActivationTokenResponse response =
+                     ((MIRACLSuccess<ActivationTokenResponse, ActivationTokenException>)
+                             result).getValue();
 
-              String userId = response.getUserId();
-              String activationToken = response.getActivationToken();
+             String userId = response.getUserId();
+             String activationToken = response.getActivationToken();
 
-              // Use the activation token and the User ID to register the user.
-          } else {
-              MIRACLError<ActivationTokenResponse,
-                      ActivationTokenException> error =
-                      (MIRACLError<ActivationTokenResponse, ActivationTokenException>)
-                              result;
-              // Cannot obtain activation token due to an error.
-          }
-      });
-      ```
+             // Use the activation token and the User ID to register the user.
+         } else {
+             MIRACLError<ActivationTokenResponse,
+                     ActivationTokenException> error =
+                     (MIRACLError<ActivationTokenResponse, ActivationTokenException>)
+                             result;
+             // Cannot obtain activation token due to an error.
+         }
+     });
+     ```
 
       </details>
 
 1. Pass the User ID (email or any string you use for identification), activation
-   token (received from verification), [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
-   and [ResultHandler](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-result-handler/index.html)
-   implementations to the [register](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/register.html)
-   function. When the registration is successful, a [ResultHandler](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-result-handler/index.html)
-   callback is returned, passing a [MIRACLSuccess](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-success/index.html)
-   together with the registered user as its value. Otherwise, [MIRACLError](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-error/index.html)
-   with a [RegistrationException](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.registration/-registration-exception/index.html)
+   token (received from verification),
+   [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
+   and
+   [ResultHandler](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-result-handler/index.html)
+   implementations to the
+   [register](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/register.html)
+   function. When the registration is successful, a
+   [ResultHandler](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-result-handler/index.html)
+   callback is returned, passing a
+   [MIRACLSuccess](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-success/index.html)
+   together with the registered user as its value. Otherwise,
+   [MIRACLError](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-error/index.html)
+   with a
+   [RegistrationException](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.registration/-registration-exception/index.html)
    is passed in the callback.
 
    ```kotlin
@@ -471,19 +479,13 @@ options for that:
 
 ### Authentication
 
-MIRACL Trust Android SDK offers two options:
-
-- [Authenticate users on the mobile application](#authenticate-users-on-the-mobile-application)
-- [Authenticate users on another application](#authenticate-users-on-another-application)
-
-#### Authenticate users on the mobile application
-
 The
 [authenticate](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate.html)
 method generates a [JWT](https://datatracker.ietf.org/doc/html/rfc7519)
 authentication token for а registered user.
 
-Use [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
+Use
+[PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
 the same way it is used during registration.
 
 ```kotlin
@@ -545,221 +547,8 @@ miraclTrust.authenticate(
 </details>
 
 After the JWT authentication token is generated, it needs to be sent to the
-application server for [verification](https://miracl.com/resources/docs/guides/authentication/jwt-verification/).
-
-#### Authenticate users on another application
-
-To authenticate a user on another application, there are three options:
-
-- Authenticate with [AppLink](https://developer.android.com/training/app-links)
-
-  Use the [authenticateWithAppLink](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-app-link.html)
-  method:
-
-  ```kotlin
-  intent.data?.let { appLink ->
-      miraclTrust.authenticateWithAppLink(
-          user = user,
-          appLink = appLink,
-          pinProvider = pinProvider,
-          resultHandler = ResultHandler { result ->
-              when (result) {
-                  is MIRACLSuccess -> {
-                      // user is authenticated
-                  }
-
-                  is MIRACLError -> {
-                      // user is not authenticated
-                  }
-              }
-          }
-      )
-  }
-  ```
-
-  <details>
-    <summary>Using coroutines</summary>
-
-  ```kotlin
-  intent.data?.let { appLink ->
-      val result = miraclTrust.authenticateWithAppLink(
-          user = user,
-          appLink = appLink,
-          pinProvider = pinProvider
-      )
-
-      when (result) {
-          is MIRACLSuccess -> {
-              // user is authenticated
-          }
-
-          is MIRACLError -> {
-              // user is not authenticated
-          }
-      }
-  }
-  ```
-
-  </details>
-
-  <details>
-    <summary>Using Java</summary>
-
-  ```java
-  Uri appLink = getIntent().getData();
-  if (appLink != null) {
-      miraclTrust.authenticateWithAppLink(
-          user,
-          appLink,
-          pinProvider,
-          result -> {
-              if (result instanceof MIRACLSuccess) {
-                  // user is authenticated
-              } else {
-                  // user is not authenticated
-              }
-          }
-      );
-  }
-  ```
-
-  </details>
-
-- Authenticate with QR code
-
-  Use the [authenticateWithQRCode](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-q-r-code.html)
-  method:
-
-  ```kotlin
-  miraclTrust.authenticateWithQRCode(
-      user = user,
-      qrCode = qrCode,
-      pinProvider = pinProvider,
-      resultHandler = ResultHandler { result ->
-          when (result) {
-              is MIRACLSuccess -> {
-                  // user is authenticated
-              }
-              is MIRACLError -> {
-                  // user is not authenticated
-              }
-          }
-      }
-  )
-  ```
-
-  <details>
-  <summary>Using coroutines</summary>
-
-  ```kotlin
-  val result = miraclTrust.authenticateWithQRCode(
-      user = user,
-      qrCode = qrCode,
-      pinProvider = pinProvider
-  )
-
-  when (result) {
-      is MIRACLSuccess -> {
-          // user is authenticated
-      }
-
-      is MIRACLError -> {
-          // user is not authenticated
-      }
-  }
-  ```
-
-  </details>
-
-  <details>
-    <summary>Using Java</summary>
-
-  ```java
-  miraclTrust.authenticateWithQRCode(
-      user,
-      qrCode,
-      pinProvider,
-      result -> {
-          if (result instanceof MIRACLSuccess) {
-              // user is authenticated
-          } else {
-              // user is not authenticated
-          }
-      }
-  );
-  ```
-
-  </details>
-
-- Authenticate with
-  [notification](https://developer.android.com/guide/topics/ui/notifiers/notifications)
-
-  Use the [authenticateWithNotificationPayload](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-with-notification-payload.html)
-  method:
-
-  ```kotlin
-  val payload = remoteMessage.data
-  miraclTrust.authenticateWithNotificationPayload(
-      payload = payload,
-      pinProvider = pinProvider,
-      resultHandler = ResultHandler { result ->
-          when (result) {
-              is MIRACLSuccess -> {
-                  // user is authenticated
-              }
-              is MIRACLError -> {
-                  // user is not authenticated
-              }
-          }
-      }
-  )
-  ```
-
-  <details>
-  <summary>Using coroutines</summary>
-
-  ```kotlin
-  val payload = remoteMessage.data
-  val result = miraclTrust.authenticateWithNotificationPayload(
-      payload = payload,
-      pinProvider = pinProvider
-  )
-
-  when (result) {
-      is MIRACLSuccess -> {
-          // user is authenticated
-      }
-
-      is MIRACLError -> {
-          // user is not authenticated
-      }
-  }
-  ```
-
-  </details>
-
-  <details>
-    <summary>Using Java</summary>
-
-  ```java
-  Map<String, String> payload = remoteMessage.getData();
-  miraclTrust.authenticateWithNotificationPayload(
-      payload,
-      pinProvider,
-      result -> {
-          if (result instanceof MIRACLSuccess) {
-              // user is authenticated
-          } else {
-              // user is not authenticated
-          }
-      }
-  );
-  ```
-
-  </details>
-
-For more information about authenticating users on custom applications, see
-[Cross-Device Authentication](https://miracl.com/resources/docs/guides/how-to/custom-mobile-authentication/).
+application server for
+[verification](https://miracl.com/resources/docs/guides/authentication/jwt-verification/).
 
 ### Signing
 
@@ -834,10 +623,446 @@ miraclTrust.sign(
 </details>
 
 The signature needs to be verified. This is done when the signature and the
-timestamp are sent to the application server, which then makes an HTTP call to the
+timestamp are sent to the application server, which then makes an HTTP call to
+the
 [POST /dvs/verify](https://miracl.com/resources/docs/guides/dvs/dvs-web-plugin/#api-reference)
 endpoint. If the MIRACL Trust platform returns a status code `200`, the
-`certificate` entry in the response body indicates that the signing is successful.
+`certificate` entry in the response body indicates that the signing is
+successful.
+
+### Cross-Device Session
+
+The MIRACL Trust Android SDK provides a cross-device session mechanism for
+authenticating users or signing documents on a mobile device from external
+applications. A cross-device session can be fetched via App Links, QR codes, or
+push notifications. Once the cross-device session is successfully fetched, you
+can proceed to authenticate the end user or sign a document using the
+corresponding SDK methods. If the session is no longer needed or the process is
+completed, you can abort it to cancel the current cross-device operation.
+
+#### Fetch the Cross-Device Session
+
+Depending on how the cross-device session is initiated, there are three options
+to fetch it:
+
+- Via [App Link](https://developer.android.com/training/app-links)
+
+  Use the
+  [getCrossDeviceSessionFromAppLink](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-cross-device-session-from-app-link.html)
+  method:
+
+  ```kotlin
+  intent.data?.let { appLink ->
+      miraclTrust.getCrossDeviceSessionFromAppLink(
+          appLink = appLink,
+          resultHandler = { result ->
+              when (result) {
+                  is MIRACLSuccess -> {
+                      val crossDeviceSession = result.value
+                      // Use the crossDeviceSession to authenticate and sign.
+                  }
+
+                  is MIRACLError -> {
+                      // Cannot obtain CrossDeviceSession due to an error.
+                  }
+              }
+          }
+      )
+  }
+  ```
+
+  <details>
+    <summary>Using coroutines</summary>
+
+  ```kotlin
+  intent.data?.let { appLink ->
+      val result = miraclTrust.getCrossDeviceSessionFromAppLink(appLink)
+
+      when (result) {
+          is MIRACLSuccess -> {
+              val crossDeviceSession = result.value
+              // Use the crossDeviceSession to authenticate and sign.
+          }
+
+          is MIRACLError -> {
+              val error = result.value
+              // Cannot obtain CrossDeviceSession due to an error.
+          }
+      }
+  }
+  ```
+
+  </details>
+
+  <details>
+    <summary>Using Java</summary>
+
+  ```java
+  Uri appLink = getIntent().getData();
+  if (appLink != null) {
+      miraclTrust.getCrossDeviceSessionFromAppLink(
+          appLink,
+          result -> {
+              if (result instanceof MIRACLSuccess) {
+                  CrossDeviceSession crossDeviceSession =
+                          ((MIRACLSuccess<CrossDeviceSession, CrossDeviceSessionException>)
+                                  result).getValue();
+
+                  // Use the crossDeviceSession to authenticate and sign.
+              } else {
+                  CrossDeviceSessionException error =
+                          ((MIRACLError<CrossDeviceSession, CrossDeviceSessionException>)
+                                  result).getValue();
+                  // Cannot obtain CrossDeviceSession due to an error.
+              }
+          }
+      );
+  }
+  ```
+
+  </details>
+
+- Via QR code
+
+  Use the
+  [getCrossDeviceSessionFromQRCode](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-cross-device-session-from-q-r-code.html)
+  method:
+
+  ```kotlin
+  miraclTrust.getCrossDeviceSessionFromQRCode(
+      qrCode = qrCode,
+      resultHandler = { result ->
+          when (result) {
+              is MIRACLSuccess -> {
+                  val crossDeviceSession = result.value
+                  // Use the crossDeviceSession to authenticate and sign.
+              }
+
+              is MIRACLError -> {
+                  val error = result.value
+                  // Cannot obtain CrossDeviceSession due to an error.
+              }
+          }
+      }
+  )
+  ```
+
+  <details>
+  <summary>Using coroutines</summary>
+
+  ```kotlin
+  val result = miraclTrust.getCrossDeviceSessionFromQRCode(qrCode)
+
+  when (result) {
+      is MIRACLSuccess -> {
+          val crossDeviceSession = result.value
+          // Use the crossDeviceSession to authenticate and sign.
+      }
+
+      is MIRACLError -> {
+          val error = result.value
+          // Cannot obtain CrossDeviceSession due to an error.
+      }
+  }
+  ```
+
+  </details>
+
+  <details>
+    <summary>Using Java</summary>
+
+  ```java
+  miraclTrust.getCrossDeviceSessionFromQRCode(
+      qrCode,
+      result -> {
+          if (result instanceof MIRACLSuccess) {
+              CrossDeviceSession crossDeviceSession =
+                      ((MIRACLSuccess<CrossDeviceSession, CrossDeviceSessionException>)
+                              result).getValue();
+
+              // Use the crossDeviceSession to authenticate and sign.
+          } else {
+              CrossDeviceSessionException error =
+                      ((MIRACLError<CrossDeviceSession, CrossDeviceSessionException>)
+                              result).getValue();
+              // Cannot obtain CrossDeviceSession due to an error.
+          }
+      }
+  );
+  ```
+
+  </details>
+
+- Via
+  [push notification](https://developer.android.com/guide/topics/ui/notifiers/notifications)
+
+  Use the
+  [getCrossDeviceSessionFromNotificationPayload](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/get-cross-device-session-from-notification-payload.html)
+  method:
+
+  ```kotlin
+  val payload = remoteMessage.data
+  miraclTrust.getCrossDeviceSessionFromNotificationPayload(
+      payload = payload,
+      resultHandler = { result ->
+          when (result) {
+              is MIRACLSuccess -> {
+                  val crossDeviceSession = result.value
+                  // Use the crossDeviceSession to authenticate and sign.
+              }
+
+              is MIRACLError -> {
+                  val error = result.value
+                  // Cannot obtain CrossDeviceSession due to an error.
+              }
+          }
+      }
+  )
+  ```
+
+  <details>
+  <summary>Using coroutines</summary>
+
+  ```kotlin
+  val payload = remoteMessage.data
+  val result = miraclTrust.getCrossDeviceSessionFromNotificationPayload(payload)
+
+  when (result) {
+      is MIRACLSuccess -> {
+          val crossDeviceSession = result.value
+          // Use the crossDeviceSession to authenticate and sign.
+      }
+
+      is MIRACLError -> {
+          val error = result.value
+          // Cannot obtain CrossDeviceSession due to an error.
+      }
+  }
+  ```
+
+  </details>
+
+  <details>
+    <summary>Using Java</summary>
+
+  ```java
+  Map<String, String> payload = remoteMessage.getData();
+  miraclTrust.getCrossDeviceSessionFromNotificationPayload(
+      payload,
+      result -> {
+          if (result instanceof MIRACLSuccess) {
+              CrossDeviceSession crossDeviceSession =
+                      ((MIRACLSuccess<CrossDeviceSession, CrossDeviceSessionException>)
+                              result).getValue();
+
+              // Use the crossDeviceSession to authenticate and sign.
+          } else {
+              CrossDeviceSessionException error =
+                      ((MIRACLError<CrossDeviceSession, CrossDeviceSessionException>)
+                              result).getValue();
+              // Cannot obtain CrossDeviceSession due to an error.
+          }
+      }
+  );
+  ```
+
+  </details>
+
+#### Authenticate Cross-Device Session
+
+After fetching the cross-device session, authenticate using the
+[authenticateCrossDeviceSession](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/authenticate-cross-device-session.html)
+method:
+
+```kotlin
+miraclTrust.authenticateCrossDeviceSession(
+    crossDeviceSession = crossDeviceSession,
+    user = user,
+    pinProvider = pinProvider,
+    resultHandler = ResultHandler { result ->
+        when (result) {
+            is MIRACLSuccess -> {
+                // The cross-device session is authenticated.
+            }
+
+            is MIRACLError -> {
+                // The cross-device session is not authenticated.
+            }
+        }
+    }
+)
+```
+
+<details>
+<summary>Using coroutines</summary>
+
+```kotlin
+val result = miraclTrust.authenticateCrossDeviceSession(
+    crossDeviceSession = crossDeviceSession,
+    user = user,
+    pinProvider = pinProvider
+)
+
+when (result) {
+    is MIRACLSuccess -> {
+        // The cross-device session is authenticated.
+    }
+
+    is MIRACLError -> {
+        // The cross-device session is not authenticated.
+    }
+}
+```
+
+</details>
+
+<details>
+<summary>Using Java</summary>
+
+```java
+miraclTrust.authenticateCrossDeviceSession(
+    crossDeviceSession,
+    user,
+    pinProvider,
+    result -> {
+        if (result instanceof MIRACLSuccess) {
+            // The cross-device session is authenticated.
+        } else {
+            // The cross-device session is not authenticated.
+        }
+    }
+);
+```
+
+</details>
+
+For more information about authenticating users on custom applications, see
+[Cross-Device Authentication](https://miracl.com/resources/docs/guides/how-to/custom-mobile-authentication/).
+
+#### Sign Cross-Device Session
+
+After fetching the cross-device session, sign a document using the
+[signCrossDeviceSession](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/sign-cross-device-session.html)
+method:
+
+```kotlin
+miraclTrust.signCrossDeviceSession(
+    crossDeviceSession = crossDeviceSession,
+    user = user,
+    pinProvider = pinProvider,
+    resultHandler = ResultHandler { result ->
+        when (result) {
+            is MIRACLSuccess -> {
+                // The cross-device session is signed.
+            }
+
+            is MIRACLError -> {
+                // The cross-device session is not signed.
+            }
+        }
+    }
+)
+```
+
+<details>
+<summary>Using coroutines</summary>
+
+```kotlin
+val result = miraclTrust.signCrossDeviceSession(
+    crossDeviceSession = crossDeviceSession,
+    user = user,
+    pinProvider = pinProvider
+)
+
+when (result) {
+    is MIRACLSuccess -> {
+        // The cross-device session is signed.
+    }
+
+    is MIRACLError -> {
+        // The cross-device session is not signed.
+    }
+}
+```
+
+</details>
+
+<details>
+<summary>Using Java</summary>
+
+```java
+miraclTrust.signCrossDeviceSession(
+    crossDeviceSession,
+    user,
+    pinProvider,
+    result -> {
+        if (result instanceof MIRACLSuccess) {
+            // The cross-device session is signed.
+        } else {
+            // The cross-device session is not signed.
+        }
+    }
+);
+```
+
+</details>
+
+#### Abort Cross-Device Session
+
+To cancel the handling of the cross-device session, call the
+[abortCrossDeviceSession](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/abort-cross-device-session.html)
+method:
+
+```kotlin
+miraclTrust.abortCrossDeviceSession(crossDeviceSession) { result ->
+    when (result) {
+        is MIRACLSuccess -> {
+            // The cross-device session is aborted.
+        }
+
+        is MIRACLError -> {
+            // The cross-device session is not aborted.
+        }
+    }
+}
+```
+
+<details>
+<summary>Using coroutines</summary>
+
+```kotlin
+val result = miraclTrust.abortCrossDeviceSession(crossDeviceSession)
+
+when (result) {
+    is MIRACLSuccess -> {
+        // The cross-device session is aborted.
+    }
+
+    is MIRACLError -> {
+        // The cross-device session is not aborted.
+    }
+}
+```
+
+</details>
+
+<details>
+<summary>Using Java</summary>
+
+```java
+miraclTrust.abortCrossDeviceSession(
+    crossDeviceSession,
+    result -> {
+        if (result instanceof MIRACLSuccess) {
+            // The cross-device session is aborted.
+        } else {
+            // The cross-device session is not aborted.
+        }
+    }
+);
+```
+
+</details>
 
 ### QuickCode
 
@@ -845,8 +1070,10 @@ endpoint. If the MIRACL Trust platform returns a status code `200`, the
 is a way to register another device without going through the verification
 process.
 
-To generate a QuickCode, call the [generateQuickCode](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/generate-quick-code.html)
-method with an already registered [User](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.model/-user/index.html)
+To generate a QuickCode, call the
+[generateQuickCode](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust/-m-i-r-a-c-l-trust/generate-quick-code.html)
+method with an already registered
+[User](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.model/-user/index.html)
 object:
 
 ```kotlin
@@ -910,9 +1137,9 @@ miraclTrust.generateQuickCode(
 
 ### User Management
 
-The MIRACL Trust Android SDK provides several methods for managing users registered
-on a device. These operations allow you to retrieve user information or delete
-previously registered users.
+The MIRACL Trust Android SDK provides several methods for managing users
+registered on a device. These operations allow you to retrieve user information
+or delete previously registered users.
 
 #### Get a registered user
 
@@ -1089,11 +1316,14 @@ MIRACL Trust Android SDK depends on:
 1. How to provide PIN code?
 
    For security reasons, the PIN code is sent to the SDK at the last possible
-   moment. A [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
+   moment. A
+   [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
    is responsible for that and when the SDK calls it, the currently executed
    operation is blocked until a PIN code is provided. Therefore, this is a good
-   place to display some user interface for entering the PIN code. Implement [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
-   and use it to obtain a PIN. Then pass the PIN to the [PinConsumer](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-consumer/index.html).
+   place to display some user interface for entering the PIN code. Implement
+   [PinProvider](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-provider/index.html)
+   and use it to obtain a PIN. Then pass the PIN to the
+   [PinConsumer](https://miracl.github.io/trust-sdk-android/miracl-sdk/com.miracl.trust.delegate/-pin-consumer/index.html).
 
    Kotlin:
 
@@ -1121,7 +1351,6 @@ MIRACL Trust Android SDK depends on:
    platform that share a single owner.
 
    You can find the Project ID value in the MIRACL Trust Portal:
-
    1. Go to [trust.miracl.cloud](https://trust.miracl.cloud).
    1. Log in or create a new User ID.
    1. Select your project.
