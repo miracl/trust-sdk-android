@@ -30,7 +30,7 @@ The MIRACL Trust Android SDK provides the following functionalities:
 
    ```kotlin
    dependencies {
-       implementation("com.miracl:trust-sdk-android:1.15.0")
+       implementation("com.miracl:trust-sdk-android:1.15.1")
    }
    ```
 
@@ -38,7 +38,7 @@ The MIRACL Trust Android SDK provides the following functionalities:
 
    ```groovy
    dependencies {
-       implementation "com.miracl:trust-sdk-android:1.15.0"
+       implementation "com.miracl:trust-sdk-android:1.15.1"
    }
    ```
 
