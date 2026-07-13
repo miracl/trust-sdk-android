@@ -68,7 +68,7 @@ internal class DeviceTagProvider(private val file: File) {
         private var cachedTag: String? = null
 
         fun create(context: Context): DeviceTagProvider {
-            val file = File(context.applicationContext.noBackupFilesDir, FILE_NAME)
+            val file = File(context.noBackupFilesDir, FILE_NAME)
             return DeviceTagProvider(file)
         }
     }
