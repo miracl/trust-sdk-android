@@ -41,11 +41,12 @@ internal class Verificator(
         val mpinId = userStorage.getUser(userId, projectId)?.mpinId?.toHexString()
 
         val verificationRequestBody = VerificationRequestBody(
-            projectId,
-            userId,
-            deviceName,
-            authenticationSessionDetails?.accessId ?: crossDeviceSession?.sessionId,
-            mpinId
+            projectId = projectId,
+            userId = userId,
+            deviceName = deviceName,
+            deviceTag = deviceTagProvider.get(),
+            accessId = authenticationSessionDetails?.accessId ?: crossDeviceSession?.sessionId,
+            mpinId = mpinId
         )
 
         logOperation(LoggerConstants.VerificatorOperations.VERIFY_REQUEST)

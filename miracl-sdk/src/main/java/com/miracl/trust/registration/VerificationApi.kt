@@ -17,6 +17,7 @@ internal data class VerificationRequestBody(
     val projectId: String,
     val userId: String,
     val deviceName: String,
+    val deviceTag: String,
     val accessId: String?,
     val mpinId: String?
 )

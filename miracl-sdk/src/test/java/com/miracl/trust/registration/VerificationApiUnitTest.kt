@@ -41,6 +41,7 @@ class VerificationApiUnitTest {
                 projectId = randomUuidString(),
                 userId = randomUuidString(),
                 deviceName = randomUuidString(),
+                deviceTag = randomHexString(),
                 accessId = randomUuidString(),
                 mpinId = randomHexString()
             )
@@ -90,6 +91,7 @@ class VerificationApiUnitTest {
                     projectId = randomUuidString(),
                     userId = randomUuidString(),
                     deviceName = randomUuidString(),
+                    deviceTag = randomHexString(),
                     accessId = null,
                     mpinId = null
                 )
@@ -123,6 +125,7 @@ class VerificationApiUnitTest {
                     projectId = randomUuidString(),
                     userId = randomUuidString(),
                     deviceName = randomUuidString(),
+                    deviceTag = randomHexString(),
                     accessId = null,
                     mpinId = null
                 )
@@ -156,6 +159,7 @@ class VerificationApiUnitTest {
                     projectId = randomUuidString(),
                     userId = randomUuidString(),
                     deviceName = randomUuidString(),
+                    deviceTag = randomHexString(),
                     accessId = null,
                     mpinId = null
                 )
@@ -189,6 +193,7 @@ class VerificationApiUnitTest {
                     projectId = randomUuidString(),
                     userId = randomUuidString(),
                     deviceName = randomUuidString(),
+                    deviceTag = randomHexString(),
                     accessId = null,
                     mpinId = null
                 )
@@ -222,6 +227,7 @@ class VerificationApiUnitTest {
                     projectId = randomUuidString(),
                     userId = randomUuidString(),
                     deviceName = randomUuidString(),
+                    deviceTag = randomHexString(),
                     accessId = null,
                     mpinId = null
                 )
@@ -245,6 +251,7 @@ class VerificationApiUnitTest {
                     projectId = randomUuidString(),
                     userId = randomUuidString(),
                     deviceName = randomUuidString(),
+                    deviceTag = randomHexString(),
                     accessId = null,
                     mpinId = null
                 )
