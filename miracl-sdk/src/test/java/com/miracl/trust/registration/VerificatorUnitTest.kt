@@ -62,6 +62,7 @@ class VerificatorUnitTest {
             val userId = randomUuidString()
             val projectId = randomUuidString()
             val deviceName = randomUuidString()
+            val deviceTag = deviceTagProvider.get()
             val backoff: Long = Random.nextLong()
             val method = EmailVerificationMethod.Link
 
@@ -71,6 +72,7 @@ class VerificatorUnitTest {
                         userId = userId,
                         projectId = projectId,
                         deviceName = deviceName,
+                        deviceTag = deviceTag,
                         accessId = null,
                         mpinId = null
                     )
@@ -98,6 +100,7 @@ class VerificatorUnitTest {
             val userId = randomUuidString()
             val projectId = randomUuidString()
             val deviceName = randomUuidString()
+            val deviceTag = deviceTagProvider.get()
             val accessId = randomUuidString()
             val backoff: Long = Random.nextLong()
             val method = EmailVerificationMethod.Link
@@ -111,6 +114,7 @@ class VerificatorUnitTest {
                         userId = userId,
                         projectId = projectId,
                         deviceName = deviceName,
+                        deviceTag = deviceTag,
                         accessId = accessId,
                         mpinId = null
                     )
@@ -138,6 +142,7 @@ class VerificatorUnitTest {
             val userId = randomUuidString()
             val projectId = randomUuidString()
             val deviceName = randomUuidString()
+            val deviceTag = deviceTagProvider.get()
             val sessionId = randomUuidString()
             val backoff: Long = Random.nextLong()
             val method = EmailVerificationMethod.Link
@@ -151,6 +156,7 @@ class VerificatorUnitTest {
                         userId = userId,
                         projectId = projectId,
                         deviceName = deviceName,
+                        deviceTag = deviceTag,
                         accessId = sessionId,
                         mpinId = null
                     )
@@ -178,6 +184,7 @@ class VerificatorUnitTest {
             val userId = randomUuidString()
             val projectId = randomUuidString()
             val deviceName = randomUuidString()
+            val deviceTag = deviceTagProvider.get()
             val backoff: Long = Random.nextLong()
             val method = EmailVerificationMethod.Code
 
@@ -199,6 +206,7 @@ class VerificatorUnitTest {
                         userId = userId,
                         projectId = projectId,
                         deviceName = deviceName,
+                        deviceTag = deviceTag,
                         accessId = null,
                         mpinId = mpinId.toHexString()
                     )
