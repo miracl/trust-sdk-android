@@ -11,6 +11,7 @@ import com.miracl.trust.MIRACLTrust
  * @property userId The User ID entered by the user when the session is started.
  * @property projectId The Project ID setting for the application in the MIRACL Trust platform.
  * @property signingHash The hash of the transaction that needs to be signed, if any.
+ * @property type The type of the session.
  *
  * @see [MIRACLTrust.getCrossDeviceSessionFromAppLink]
  * @see [MIRACLTrust.getCrossDeviceSessionFromQRCode]
@@ -23,6 +24,13 @@ public class CrossDeviceSession(
     public val projectId: String,
     public val signingHash: String
 ) {
+    public val type: CrossDeviceSessionType
+        get() = if (signingHash.isNotEmpty()) {
+            CrossDeviceSessionType.Signing
+        } else {
+            CrossDeviceSessionType.Authentication
+        }
+
     override fun toString(): String {
         return "CrossDeviceSession(" +
                 "sessionId=$sessionId, " +
