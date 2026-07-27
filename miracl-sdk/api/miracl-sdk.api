@@ -491,6 +491,7 @@ public final class com/miracl/trust/session/CrossDeviceSession {
 	public final fun getSessionDescription ()Ljava/lang/String;
 	public final fun getSessionId ()Ljava/lang/String;
 	public final fun getSigningHash ()Ljava/lang/String;
+	public final fun getType ()Lcom/miracl/trust/session/CrossDeviceSessionType;
 	public final fun getUserId ()Ljava/lang/String;
 	public fun toString ()Ljava/lang/String;
 }
@@ -520,6 +521,14 @@ public final class com/miracl/trust/session/CrossDeviceSessionException$InvalidN
 
 public final class com/miracl/trust/session/CrossDeviceSessionException$InvalidQRCode : com/miracl/trust/session/CrossDeviceSessionException {
 	public static final field INSTANCE Lcom/miracl/trust/session/CrossDeviceSessionException$InvalidQRCode;
+}
+
+public final class com/miracl/trust/session/CrossDeviceSessionType : java/lang/Enum {
+	public static final field Authentication Lcom/miracl/trust/session/CrossDeviceSessionType;
+	public static final field Signing Lcom/miracl/trust/session/CrossDeviceSessionType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/miracl/trust/session/CrossDeviceSessionType;
+	public static fun values ()[Lcom/miracl/trust/session/CrossDeviceSessionType;
 }
 
 public final class com/miracl/trust/session/IdentityType : java/lang/Enum {
