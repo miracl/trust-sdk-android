@@ -4,6 +4,7 @@ import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLResult
 import com.miracl.trust.MIRACLSuccess
+import com.miracl.trust.core.DeviceTagProvider
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -31,21 +32,26 @@ internal data class NewApiErrorResponse(
 internal class ApiRequestExecutor(
     private val httpRequestExecutor: HttpRequestExecutor,
     private val jsonUtil: KotlinxSerializationJsonUtil,
+    deviceTagProvider: DeviceTagProvider,
+    deviceName: String,
     applicationInfo: String? = null
 ) {
-    private val xMiraclClientHeader =
-        "X-MIRACL-CLIENT" to "MIRACL Android SDK/${BuildConfig.VERSION_NAME}${
+    private val xMiraclHeaders = mapOf(
+        "X-Miracl-Device-Tag" to deviceTagProvider.get(),
+        "X-Miracl-Device-Name" to deviceName,
+        "X-Miracl-Client" to "MIRACL Android SDK/${BuildConfig.VERSION_NAME}${
             if (!applicationInfo.isNullOrBlank()) {
                 " $applicationInfo"
             } else ""
         }"
+    )
 
     suspend fun execute(apiRequest: ApiRequest): MIRACLResult<String, ApiException> {
         try {
             val headers = if (apiRequest.headers != null) {
-                apiRequest.headers + xMiraclClientHeader
+                apiRequest.headers + xMiraclHeaders
             } else {
-                mapOf(xMiraclClientHeader)
+                xMiraclHeaders
             }
 
             val result = httpRequestExecutor.execute(apiRequest.copy(headers = headers))

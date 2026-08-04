@@ -1,9 +1,12 @@
 package com.miracl.trust.session
 
 import android.net.Uri
+import android.os.Build
+import androidx.test.platform.app.InstrumentationRegistry
 import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
+import com.miracl.trust.core.DeviceTagProvider
 import com.miracl.trust.network.ApiRequestExecutor
 import com.miracl.trust.network.ApiSettings
 import com.miracl.trust.network.HttpsURLConnectionRequestExecutor
@@ -28,11 +31,16 @@ class SessionManagerTest {
 
     @Before
     fun setUp() = runBlocking {
+        val context = InstrumentationRegistry.getInstrumentation().context
         val logger = DefaultLogger(Logger.LoggingLevel.NONE)
         val httpRequestExecutor = HttpsURLConnectionRequestExecutor(logger, 10, 10)
         val apiSettings = ApiSettings(projectUrl)
-        val apiRequestExecutor =
-            ApiRequestExecutor(httpRequestExecutor, KotlinxSerializationJsonUtil)
+        val apiRequestExecutor = ApiRequestExecutor(
+            httpRequestExecutor = httpRequestExecutor,
+            jsonUtil = KotlinxSerializationJsonUtil,
+            deviceTagProvider = DeviceTagProvider.create(context),
+            deviceName = Build.MODEL
+        )
 
         val sessionApi =
             SessionApiManager(apiRequestExecutor, KotlinxSerializationJsonUtil, apiSettings)
