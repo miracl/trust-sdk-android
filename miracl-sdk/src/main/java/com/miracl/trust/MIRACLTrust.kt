@@ -186,6 +186,8 @@ public class MIRACLTrust private constructor(
         val apiRequestExecutor = ApiRequestExecutor(
             configuration.httpRequestExecutor,
             KotlinxSerializationJsonUtil,
+            deviceTagProvider,
+            deviceName,
             configuration.applicationInfo
         )
 

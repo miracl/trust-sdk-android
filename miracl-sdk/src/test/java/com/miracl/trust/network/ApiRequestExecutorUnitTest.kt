@@ -3,10 +3,14 @@ package com.miracl.trust.network
 import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
+import com.miracl.trust.core.DeviceTagProvider
+import com.miracl.trust.randomHexString
+import com.miracl.trust.randomUuidString
 import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import io.mockk.CapturingSlot
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -18,6 +22,9 @@ import java.io.IOException
 
 @ExperimentalCoroutinesApi
 class ApiRequestExecutorUnitTest {
+    private val deviceTag = randomHexString()
+    private val deviceName = randomUuidString()
+    private val deviceTagProviderMock = mockk<DeviceTagProvider>()
     private val httpRequestExecutorMock = mockk<HttpRequestExecutor>()
     private val jsonUtilMock = mockk<KotlinxSerializationJsonUtil>()
     private val apiRequest = ApiRequest(
@@ -33,11 +40,18 @@ class ApiRequestExecutorUnitTest {
     @Before
     fun setUp() {
         clearAllMocks()
-        apiManager = ApiRequestExecutor(httpRequestExecutorMock, jsonUtilMock)
+        every { deviceTagProviderMock.get() } returns deviceTag
+        apiManager =
+            ApiRequestExecutor(
+                httpRequestExecutorMock,
+                jsonUtilMock,
+                deviceTagProviderMock,
+                deviceName
+            )
     }
 
     @Test
-    fun `execute should add X-MIRACL-CLIENT header in the request with library info`() =
+    fun `execute should add X-Miracl headers in the request`() =
         runTest {
             // Arrange
             val requestHeader = "requestHeaderKey" to "requestHeaderValue"
@@ -54,17 +68,17 @@ class ApiRequestExecutorUnitTest {
 
             // Assert
             Assert.assertTrue(capturingSlot.captured.headers?.get(requestHeader.first) == requestHeader.second)
-            Assert.assertTrue(capturingSlot.captured.headers?.get("X-MIRACL-CLIENT") == libraryInfo)
+            Assert.assertTrue(capturingSlot.captured.headers?.get("X-Miracl-Device-Tag") == deviceTag)
+            Assert.assertTrue(capturingSlot.captured.headers?.get("X-Miracl-Device-Name") == deviceName)
+            Assert.assertTrue(capturingSlot.captured.headers?.get("X-Miracl-Client") == libraryInfo)
         }
 
     @Test
-    fun `execute should add X-MIRACL-CLIENT header in the request with library and application info`() =
+    fun `execute should add X-Miracl-Client header in the request with library and application info`() =
         runTest {
             // Arrange
             val libraryInfo = "MIRACL Android SDK/${BuildConfig.VERSION_NAME}"
             val applicationInfo = "com.miracl.android.trustmfa/3.0.0"
-            val apiManager =
-                ApiRequestExecutor(httpRequestExecutorMock, jsonUtilMock, applicationInfo)
             val expectedHeader = "$libraryInfo $applicationInfo"
 
             val capturingSlot = CapturingSlot<ApiRequest>()
@@ -72,20 +86,33 @@ class ApiRequestExecutorUnitTest {
                 ""
             )
 
+            val apiManager = ApiRequestExecutor(
+                httpRequestExecutor = httpRequestExecutorMock,
+                jsonUtil = jsonUtilMock,
+                deviceTagProvider = deviceTagProviderMock,
+                deviceName = deviceName,
+                applicationInfo = applicationInfo
+            )
+
             // Act
             apiManager.execute(apiRequest)
 
             // Assert
-            Assert.assertTrue(capturingSlot.captured.headers?.get("X-MIRACL-CLIENT") == expectedHeader)
+            Assert.assertTrue(capturingSlot.captured.headers?.get("X-Miracl-Client") == expectedHeader)
         }
 
     @Test
     fun `execute should return MIRACLSuccess when the passed request is valid and response code is 200`() =
         runTest {
             // Arrange
-            val libraryInfo = "MIRACL Android SDK/${BuildConfig.VERSION_NAME}"
-            val expectedApiRequest =
-                apiRequest.copy(headers = mapOf("X-MIRACL-CLIENT" to libraryInfo))
+            val expectedApiRequest = apiRequest.copy(
+                headers = mapOf(
+                    "X-Miracl-Device-Tag" to deviceTag,
+                    "X-Miracl-Device-Name" to deviceName,
+                    "X-Miracl-Client" to "MIRACL Android SDK/${BuildConfig.VERSION_NAME}"
+                )
+            )
+
             val responseBody =
                 "{\"signatureURL\":\"https://api.mpin.io/rps/v2/signature\",\"registerURL\":\"https://api.mpin.io/rps/v2/user\"}"
 
