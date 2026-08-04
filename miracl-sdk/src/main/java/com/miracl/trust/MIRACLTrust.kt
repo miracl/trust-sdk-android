@@ -182,6 +182,7 @@ public class MIRACLTrust private constructor(
 
     //region Initialization
     init {
+        val deviceTagProvider = configuration.deviceTagProvider ?: DeviceTagProvider.create(context)
         val apiRequestExecutor = ApiRequestExecutor(
             configuration.httpRequestExecutor,
             KotlinxSerializationJsonUtil,
@@ -190,7 +191,6 @@ public class MIRACLTrust private constructor(
 
         var componentFactory = configuration.componentFactory
         if (componentFactory == null) {
-            val deviceTagProvider = DeviceTagProvider.create(context)
             componentFactory = ComponentFactory(context, logger, deviceTagProvider)
         }
 

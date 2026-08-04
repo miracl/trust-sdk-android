@@ -5,6 +5,7 @@ import com.miracl.trust.authentication.*
 import com.miracl.trust.configuration.Configuration
 import com.miracl.trust.configuration.ConfigurationException
 import com.miracl.trust.configuration.factory.ConfigurationFactory
+import com.miracl.trust.core.DeviceTagProvider
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.delegate.ResultHandler
 import com.miracl.trust.factory.ComponentFactory
@@ -42,6 +43,7 @@ class MIRACLTrustUnitTest {
     private val activationToken = randomUuidString()
 
     private val componentFactoryMock = mockk<ComponentFactory>()
+    private val deviceTagProviderMock = mockk<DeviceTagProvider>()
     private val pinProviderMock = mockk<PinProvider>()
     private val userStorageMock = mockk<UserStorage>()
     private val registratorMock = mockk<RegistratorContract>()
@@ -68,6 +70,7 @@ class MIRACLTrustUnitTest {
     @Before
     fun setUp() {
         every { userStorageMock.loadStorage() } returns Unit
+        every { deviceTagProviderMock.get() } returns randomHexString()
 
         setUpComponentFactoryMock()
         miraclTrust = configureMIRACLTrust()
@@ -98,6 +101,7 @@ class MIRACLTrustUnitTest {
     fun `configure throws exception when projectId is null`() {
         // Arrange
         val configuration = Configuration.Builder()
+            .deviceTagProvider(deviceTagProviderMock)
             .deviceName(deviceName)
             .build()
 
@@ -111,6 +115,7 @@ class MIRACLTrustUnitTest {
         val userStorageMock = mockk<UserStorage>()
         val config = Configuration.Builder(projectId, projectUrl)
             .componentFactory(componentFactoryMock)
+            .deviceTagProvider(deviceTagProviderMock)
             .deviceName(deviceName)
             .userStorage(userStorageMock)
             .build()
@@ -177,6 +182,7 @@ class MIRACLTrustUnitTest {
         val configuration = Configuration.Builder()
             .componentFactory(componentFactoryMock)
             .deviceName(deviceName)
+            .deviceTagProvider(deviceTagProviderMock)
             .build()
 
         val configurationFactory = mockk<ConfigurationFactory>()
@@ -317,6 +323,7 @@ class MIRACLTrustUnitTest {
         val config = Configuration.Builder(projectId, projectUrl)
             .deviceName(deviceName)
             .componentFactory(componentFactoryMock)
+            .deviceTagProvider(deviceTagProviderMock)
             .httpRequestExecutor(httpRequestExecutorMock)
             .userStorage(userStorageMock)
             .build()
@@ -338,6 +345,7 @@ class MIRACLTrustUnitTest {
         val userStorageMock = mockk<UserStorage>()
         val config = Configuration.Builder(projectId, projectUrl)
             .deviceName(deviceName)
+            .deviceTagProvider(deviceTagProviderMock)
             .componentFactory(componentFactoryMock)
             .userStorage(userStorageMock)
             .build()
@@ -365,6 +373,7 @@ class MIRACLTrustUnitTest {
 
         val config = Configuration.Builder(projectId, projectUrl)
             .componentFactory(componentFactoryMock)
+            .deviceTagProvider(deviceTagProviderMock)
             .deviceName(deviceName)
             .build()
 
@@ -386,6 +395,7 @@ class MIRACLTrustUnitTest {
         val config = Configuration.Builder(projectId, projectUrl)
             .deviceName(deviceName)
             .componentFactory(componentFactoryMock)
+            .deviceTagProvider(deviceTagProviderMock)
             .build()
 
         every { userStorageMock.loadStorage() } just runs
@@ -3343,6 +3353,7 @@ class MIRACLTrustUnitTest {
 
         val config = Configuration.Builder(this.projectId, this.projectUrl)
             .deviceName(this.deviceName)
+            .deviceTagProvider(deviceTagProviderMock)
             .componentFactory(componentFactoryMock)
             .userStorage(userStorageMock)
             .logger(loggerMock)
@@ -3393,6 +3404,7 @@ class MIRACLTrustUnitTest {
     ): Configuration {
         return Configuration.Builder(projectId, projectUrl)
             .deviceName(deviceName)
+            .deviceTagProvider(deviceTagProviderMock)
             .componentFactory(componentFactoryMock)
             .userStorage(userStorageMock)
             .coroutineContext(testCoroutineDispatcher)

@@ -2,6 +2,7 @@ package com.miracl.trust.configuration
 
 import android.os.Build
 import com.miracl.trust.MIRACLTrustAuthenticatorApi
+import com.miracl.trust.core.DeviceTagProvider
 import com.miracl.trust.factory.ComponentFactory
 import com.miracl.trust.network.HttpRequestExecutor
 import com.miracl.trust.network.HttpsURLConnectionRequestExecutor
@@ -31,7 +32,8 @@ public class Configuration private constructor(
     internal val loggingLevel: Logger.LoggingLevel? = null,
     internal val miraclCoroutineContext: CoroutineContext,
     internal val connectTimeout: Int,
-    internal val readTimeout: Int
+    internal val readTimeout: Int,
+    internal val deviceTagProvider: DeviceTagProvider?
 ) {
     private companion object {
         private const val DEFAULT_PLATFORM_URL = "https://api.mpin.io"
@@ -52,7 +54,8 @@ public class Configuration private constructor(
                 builder.loggingLevel,
                 builder.coroutineContext,
                 builder.connectTimeout,
-                builder.readTimeout
+                builder.readTimeout,
+                builder.deviceTagProvider
             )
 
     override fun toString(): String {
@@ -96,6 +99,8 @@ public class Configuration private constructor(
             private set
         internal var readTimeout: Int = DEFAULT_READ_TIMEOUT_SECONDS
             private set
+        internal var deviceTagProvider: DeviceTagProvider? = null
+            private set
 
         /**
          * Creates a [Builder] object.
@@ -115,6 +120,9 @@ public class Configuration private constructor(
 
         internal fun coroutineContext(coroutineContext: CoroutineContext) =
             apply { this.coroutineContext = coroutineContext }
+
+        internal fun deviceTagProvider(deviceTagProvider: DeviceTagProvider) =
+            apply { this.deviceTagProvider = deviceTagProvider }
 
         /**
          * Sets additional information that will be sent via the X-MIRACL-CLIENT HTTP header.
