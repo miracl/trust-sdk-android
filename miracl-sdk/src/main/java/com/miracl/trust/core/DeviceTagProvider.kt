@@ -1,6 +1,7 @@
 package com.miracl.trust.core
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import com.miracl.trust.util.toHexString
 import java.io.File
 import java.security.SecureRandom
@@ -70,6 +71,21 @@ internal class DeviceTagProvider(private val file: File) {
         fun create(context: Context): DeviceTagProvider {
             val file = File(context.noBackupFilesDir, FILE_NAME)
             return DeviceTagProvider(file)
+        }
+
+        @VisibleForTesting
+        internal fun resetForTesting(file: File) {
+            synchronized(LOCK) {
+                cachedTag = null
+                if (file.exists()) {
+                    file.delete()
+                }
+            }
+        }
+
+        @VisibleForTesting
+        internal fun resetForTesting(context: Context) {
+            resetForTesting(File(context.noBackupFilesDir, FILE_NAME))
         }
     }
 }
