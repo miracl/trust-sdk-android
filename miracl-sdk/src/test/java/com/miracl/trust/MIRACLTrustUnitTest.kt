@@ -3413,7 +3413,7 @@ class MIRACLTrustUnitTest {
 
     private fun setUpComponentFactoryMock() {
         every {
-            componentFactoryMock.createVerificator(any(), any(), any())
+            componentFactoryMock.createVerificator(any(), any())
         } returns verificatorMock
         every {
             componentFactoryMock.createRegistrator(

@@ -10,17 +10,12 @@ import com.miracl.trust.authentication.AuthenticatorScopes
 import com.miracl.trust.core.DeviceTagProvider
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.User
-import com.miracl.trust.randomByteArray
 import com.miracl.trust.randomHexString
-import com.miracl.trust.randomPinLength
 import com.miracl.trust.randomUuidString
 import com.miracl.trust.session.AuthenticationSessionDetails
 import com.miracl.trust.session.CrossDeviceSession
-import com.miracl.trust.storage.UserDto
-import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.log.DefaultLogger
 import com.miracl.trust.util.log.Logger
-import com.miracl.trust.util.toHexString
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -35,7 +30,6 @@ import kotlin.random.nextInt
 class VerificatorUnitTest {
     private val authenticatorMock = mockk<AuthenticatorContract>()
     private val verificationApiMock = mockk<VerificationApi>()
-    private val userStorageMock = mockk<UserStorage>()
     private val logger = DefaultLogger(loggingLevel = Logger.LoggingLevel.NONE)
     private val deviceTagProvider = mockk<DeviceTagProvider>()
 
@@ -43,7 +37,6 @@ class VerificatorUnitTest {
         Verificator(
             authenticatorMock,
             verificationApiMock,
-            userStorageMock,
             logger,
             deviceTagProvider
         )
@@ -51,7 +44,6 @@ class VerificatorUnitTest {
     @Before
     fun setUp() {
         clearAllMocks()
-        every { userStorageMock.getUser(any(), any()) } returns null
         every { deviceTagProvider.get() } returns randomHexString()
     }
 
@@ -73,8 +65,7 @@ class VerificatorUnitTest {
                         projectId = projectId,
                         deviceName = deviceName,
                         deviceTag = deviceTag,
-                        accessId = null,
-                        mpinId = null
+                        accessId = null
                     )
                 )
             } returns MIRACLSuccess(VerificationRequestResponse(backoff, method.toString()))
@@ -115,8 +106,7 @@ class VerificatorUnitTest {
                         projectId = projectId,
                         deviceName = deviceName,
                         deviceTag = deviceTag,
-                        accessId = accessId,
-                        mpinId = null
+                        accessId = accessId
                     )
                 )
             } returns MIRACLSuccess(VerificationRequestResponse(backoff, method.toString()))
@@ -157,8 +147,7 @@ class VerificatorUnitTest {
                         projectId = projectId,
                         deviceName = deviceName,
                         deviceTag = deviceTag,
-                        accessId = sessionId,
-                        mpinId = null
+                        accessId = sessionId
                     )
                 )
             } returns MIRACLSuccess(VerificationRequestResponse(backoff, method.toString()))
@@ -169,56 +158,6 @@ class VerificatorUnitTest {
                 projectId = projectId,
                 deviceName = deviceName,
                 crossDeviceSession = crossDeviceSession
-            )
-
-            // Assert
-            Assert.assertTrue(result is MIRACLSuccess)
-            Assert.assertEquals(backoff, (result as MIRACLSuccess).value.backoff)
-            Assert.assertEquals(method, result.value.method)
-        }
-
-    @Test
-    fun `sendVerificationEmail should pass the user's mpinId when it exists`() =
-        runTest {
-            // Arrange
-            val userId = randomUuidString()
-            val projectId = randomUuidString()
-            val deviceName = randomUuidString()
-            val deviceTag = deviceTagProvider.get()
-            val backoff: Long = Random.nextLong()
-            val method = EmailVerificationMethod.Code
-
-            val mpinId = randomByteArray()
-            every { userStorageMock.getUser(userId, projectId) } returns UserDto(
-                userId = userId,
-                projectId = projectId,
-                revoked = Random.nextBoolean(),
-                pinLength = randomPinLength(),
-                mpinId = mpinId,
-                token = randomByteArray(),
-                dtas = randomUuidString(),
-                publicKey = randomByteArray()
-            )
-
-            coEvery {
-                verificationApiMock.executeVerificationRequest(
-                    VerificationRequestBody(
-                        userId = userId,
-                        projectId = projectId,
-                        deviceName = deviceName,
-                        deviceTag = deviceTag,
-                        accessId = null,
-                        mpinId = mpinId.toHexString()
-                    )
-                )
-            } returns MIRACLSuccess(VerificationRequestResponse(backoff, method.toString()))
-
-            // Act
-            val result = verificator.sendVerificationEmail(
-                userId,
-                projectId,
-                deviceName,
-                null
             )
 
             // Assert

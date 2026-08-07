@@ -26,9 +26,8 @@ internal class ComponentFactory(
     fun createVerificator(
         authenticator: AuthenticatorContract,
         verificationApi: VerificationApi,
-        userStorage: UserStorage
     ): Verificator =
-        Verificator(authenticator, verificationApi, userStorage, logger, deviceTagProvider)
+        Verificator(authenticator, verificationApi, logger, deviceTagProvider)
 
     fun createRegistrator(
         registrationApi: RegistrationApi,

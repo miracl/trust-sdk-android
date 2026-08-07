@@ -13,15 +13,12 @@ import com.miracl.trust.model.QuickCode
 import com.miracl.trust.model.User
 import com.miracl.trust.session.AuthenticationSessionDetails
 import com.miracl.trust.session.CrossDeviceSession
-import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.util.log.Logger
 import com.miracl.trust.util.log.LoggerConstants
-import com.miracl.trust.util.toHexString
 
 internal class Verificator(
     private val authenticator: AuthenticatorContract,
     private val verificationApi: VerificationApi,
-    private val userStorage: UserStorage,
     private val logger: Logger,
     private val deviceTagProvider: DeviceTagProvider
 ) {
@@ -38,15 +35,12 @@ internal class Verificator(
             return MIRACLError(error)
         }
 
-        val mpinId = userStorage.getUser(userId, projectId)?.mpinId?.toHexString()
-
         val verificationRequestBody = VerificationRequestBody(
             projectId = projectId,
             userId = userId,
             deviceName = deviceName,
             deviceTag = deviceTagProvider.get(),
-            accessId = authenticationSessionDetails?.accessId ?: crossDeviceSession?.sessionId,
-            mpinId = mpinId
+            accessId = authenticationSessionDetails?.accessId ?: crossDeviceSession?.sessionId
         )
 
         logOperation(LoggerConstants.VerificatorOperations.VERIFY_REQUEST)
