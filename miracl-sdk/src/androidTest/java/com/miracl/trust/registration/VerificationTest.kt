@@ -1,6 +1,7 @@
 package com.miracl.trust.registration
 
 import android.net.Uri
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import com.miracl.trust.BuildConfig
 import com.miracl.trust.MIRACLError
@@ -9,6 +10,7 @@ import com.miracl.trust.MIRACLSuccess
 import com.miracl.trust.MIRACLTrust
 import com.miracl.trust.authentication.AuthenticationException
 import com.miracl.trust.configuration.Configuration
+import com.miracl.trust.core.DeviceTagProvider
 import com.miracl.trust.delegate.PinProvider
 import com.miracl.trust.model.User
 import com.miracl.trust.session.AuthenticationSessionDetails
@@ -161,7 +163,7 @@ class VerificationTest {
     }
 
     @Test
-    fun testDefaultVerificationWithMpinId() = runTest(testCoroutineDispatcher) {
+    fun testDefaultVerificationFromRegisteredDevice() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(dvProjectId, dvProjectUrl)
         val email = createMailpitUserId()
@@ -218,7 +220,7 @@ class VerificationTest {
     }
 
     @Test
-    fun testEmailCodeVerificationWithMpinId() = runTest(testCoroutineDispatcher) {
+    fun testEmailCodeVerificationFromRegisteredDevice() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
         val email = createMailpitUserId()
@@ -255,7 +257,7 @@ class VerificationTest {
     }
 
     @Test
-    fun testEmailCodeVerificationWithoutMpinId() = runTest(testCoroutineDispatcher) {
+    fun testEmailCodeVerificationFromNewDevice() = runTest(testCoroutineDispatcher) {
         // Send verification email
         miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
         val email = createMailpitUserId()
@@ -282,9 +284,8 @@ class VerificationTest {
         )
         Assert.assertTrue(registerResult is MIRACLSuccess)
 
-        // Remove user
-        val user = (registerResult as MIRACLSuccess).value
-        miraclTrust.delete(user)
+        // Reset the device tag
+        DeviceTagProvider.resetForTesting(ApplicationProvider.getApplicationContext())
 
         // Prevent verification request backoff
         Thread.sleep(10000)
@@ -293,49 +294,6 @@ class VerificationTest {
         val result = miraclTrust.sendVerificationEmail(email)
         Assert.assertTrue(result is MIRACLSuccess)
         Assert.assertEquals(EmailVerificationMethod.Link, (result as MIRACLSuccess).value.method)
-    }
-
-    @Test
-    fun testEmailCodeVerificationWithRevokedMpinId() = runTest(testCoroutineDispatcher) {
-        // Send verification email
-        miraclTrust.updateProjectSettings(evcProjectId, evcProjectUrl)
-        val email = createMailpitUserId()
-
-        val timestamp = System.currentTimeMillis() / 1000
-        val sendEmailResult = miraclTrust.sendVerificationEmail(email)
-        Assert.assertTrue(sendEmailResult is MIRACLSuccess)
-
-        // Fetch the verification code from the email
-        val code = MailpitService.getVerificationCode(email, timestamp)
-        Assert.assertNotNull(code)
-
-        // Get activation token
-        val activationTokenReponse = miraclTrust.getActivationToken(email, code!!)
-        Assert.assertTrue(activationTokenReponse is MIRACLSuccess)
-        val activationTokenResponse = (activationTokenReponse as MIRACLSuccess).value
-        Assert.assertEquals(email, activationTokenResponse.userId)
-
-        // Register
-        val pin = randomNumericPin()
-        val pinProvider = PinProvider { it.consume(pin) }
-        val registerResult = miraclTrust.register(
-            userId = email,
-            activationToken = activationTokenResponse.activationToken,
-            pinProvider = pinProvider
-        )
-        Assert.assertTrue(registerResult is MIRACLSuccess)
-
-        // Revoke user
-        val user = (registerResult as MIRACLSuccess).value
-        revokeUser(user, pin)
-
-        // Prevent verification request backoff
-        Thread.sleep(10000)
-
-        // Send second verification email
-        val result = miraclTrust.sendVerificationEmail(email)
-        Assert.assertTrue(result is MIRACLSuccess)
-        Assert.assertEquals(EmailVerificationMethod.Code, (result as MIRACLSuccess).value.method)
     }
 
     @Test

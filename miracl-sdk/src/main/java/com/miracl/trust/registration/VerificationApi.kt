@@ -18,8 +18,7 @@ internal data class VerificationRequestBody(
     val userId: String,
     val deviceName: String,
     val deviceTag: String,
-    val accessId: String?,
-    val mpinId: String?
+    val accessId: String?
 )
 
 @Serializable

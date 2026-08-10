@@ -251,8 +251,7 @@ public class MIRACLTrust private constructor(
             apiSettings = apiSettings
         )
 
-        verificator =
-            componentFactory.createVerificator(authenticator, verificationApi, userStorage)
+        verificator = componentFactory.createVerificator(authenticator, verificationApi)
 
         documentSigner = componentFactory.createDocumentSigner(
             authenticator = authenticator,

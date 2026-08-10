@@ -1,6 +1,9 @@
 package com.miracl.trust.core
 
+import android.content.Context
 import com.miracl.trust.randomHexString
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -20,16 +23,7 @@ class DeviceTagProviderUnitTest {
     @Before
     fun setup() {
         file = tempFolder.newFile("miracl_device_tag")
-
-        if (file.exists()) {
-            file.delete()
-        }
-
-        val cacheField = DeviceTagProvider::class.java.getDeclaredField("cachedTag").apply {
-            isAccessible = true
-        }
-        cacheField.set(null, null)
-
+        DeviceTagProvider.resetForTesting(file)
         provider = DeviceTagProvider(file)
     }
 
@@ -163,5 +157,45 @@ class DeviceTagProviderUnitTest {
         // Assert
         Assert.assertEquals(32, result.length)
         Assert.assertTrue(result.all { it in '0'..'9' || it in 'a'..'f' })
+    }
+
+    @Test
+    fun `resetForTesting should clear cached tag and delete file on disk when called`() {
+        // Arrange
+        val initialTag = provider.get()
+
+        // Act
+        DeviceTagProvider.resetForTesting(file)
+
+        // Assert
+        Assert.assertFalse(file.exists())
+        Assert.assertNotEquals(initialTag, provider.get())
+    }
+
+    @Test
+    fun `resetForTesting with context should delete file in noBackupFilesDir and clear cached tag`() {
+        // Given
+        val initialTag = provider.get()
+
+        val mockContext = mockk<Context>()
+        every { mockContext.noBackupFilesDir } returns tempFolder.root
+
+        // Act
+        DeviceTagProvider.resetForTesting(mockContext)
+
+        // Assert
+        Assert.assertFalse(file.exists())
+        Assert.assertNotEquals(initialTag, provider.get())
+    }
+
+    @Test
+    fun `resetForTesting should complete successfully without throwing when file does not exist`() {
+        // Arrange
+        if (file.exists()) {
+            file.delete()
+        }
+
+        // Act
+        DeviceTagProvider.resetForTesting(file)
     }
 }
