@@ -21,6 +21,10 @@ public sealed class RegistrationException(cause: Throwable? = null) : Exception(
     public object PinCancelled : RegistrationException()
 
     /** The curve returned by the platform is unsupported by this version of the SDK. */
+    @Deprecated(
+        message = "This error is no longer returned and will be removed in a future release.",
+        level = DeprecationLevel.WARNING,
+    )
     public object UnsupportedEllipticCurve : RegistrationException()
 
     /** Registration failed. */

@@ -2,7 +2,6 @@ package com.miracl.trust.registration
 
 import com.miracl.trust.MIRACLError
 import com.miracl.trust.MIRACLSuccess
-import com.miracl.trust.crypto.SupportedEllipticCurves
 import com.miracl.trust.network.ApiException
 import com.miracl.trust.network.ApiRequest
 import com.miracl.trust.network.ApiRequestExecutor
@@ -14,7 +13,6 @@ import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import io.mockk.CapturingSlot
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -54,9 +52,10 @@ class RegistrationApiUnitTest {
             val registerResponse = RegisterResponse(
                 mpinId = randomUuidString(),
                 projectId = projectId,
-                dtas = randomUuidString(),
-                curve = SupportedEllipticCurves.BN254CX.name,
-                secretUrls = listOf(randomUuidString(), randomUuidString())
+                designatedTAs = listOf(
+                    DesignatedTA(randomUuidString(), randomUuidString()),
+                    DesignatedTA(randomUuidString(), randomUuidString())
+                )
             )
             val registerResponseAsJson = jsonUtil.toJsonString(registerResponse)
             coEvery {
@@ -194,34 +193,42 @@ class RegistrationApiUnitTest {
         }
 
     @Test
-    fun `executeClientSecretRequest should return MIRACLSuccess with DVSClientSecretResponse when passed csUrl is valid`() =
+    fun `executeTAShareRequest should return MIRACLSuccess with DVSClientSecretResponse when passed data is valid`() =
         runTest {
             // Arrange
-            val clientSecretUrl = randomUuidString()
+            val designatedTA = DesignatedTA(randomUuidString(), randomUuidString())
+            val taShareRequestBody = TAShareRequestBody(randomHexString(), randomHexString())
 
             val capturingSlot = CapturingSlot<ApiRequest>()
-            val dvsClientSecretResponse =
-                DVSClientSecretResponse(dvsClientSecret = randomHexString())
-            val dvsClientSecret2ResponseAsJson = jsonUtil.toJsonString(dvsClientSecretResponse)
+            val taShareResponse =
+                TAShareResponse(node = randomUuidString(), share = randomHexString())
+            val taShareResponseAsJson = jsonUtil.toJsonString(taShareResponse)
             coEvery {
                 httpRequestExecutorMock.execute(capture(capturingSlot))
-            } returns MIRACLSuccess(dvsClientSecret2ResponseAsJson)
+            } returns MIRACLSuccess(taShareResponseAsJson)
 
             // Act
-            val result = registrationApi.executeDVSClientSecretRequest(clientSecretUrl)
+            val result = registrationApi.executeTAShareRequest(designatedTA, taShareRequestBody)
 
             // Assert
             Assert.assertTrue(result is MIRACLSuccess)
-            Assert.assertTrue((result as MIRACLSuccess).value.dvsClientSecret.isNotBlank())
+            Assert.assertEquals(taShareResponse.node, (result as MIRACLSuccess).value.node)
+            Assert.assertEquals(taShareResponse.share, result.value.share)
 
-            Assert.assertEquals(clientSecretUrl, capturingSlot.captured.url)
+            Assert.assertEquals(designatedTA.url, capturingSlot.captured.url)
+            Assert.assertEquals(
+                "Bearer ${designatedTA.token}",
+                capturingSlot.captured.headers?.get("Authorization")
+            )
         }
 
     @Test
-    fun `executeClientSecretRequest should return MIRACLError when http executor returns an error`() =
+    fun `executeTAShareRequest should return MIRACLError when http executor returns an error`() =
         runTest {
             // Arrange
-            val clientSecretUrl = randomUuidString()
+            val designatedTA = DesignatedTA(randomUuidString(), randomUuidString())
+            val taShareRequestBody = TAShareRequestBody(randomHexString(), randomHexString())
+
             val httpRequestExecutorException = ApiException.ClientError()
             val executorResult = MIRACLError<String, ApiException>(
                 value = httpRequestExecutorException
@@ -231,7 +238,7 @@ class RegistrationApiUnitTest {
             } returns executorResult
 
             // Act
-            val result = registrationApi.executeDVSClientSecretRequest(clientSecretUrl)
+            val result = registrationApi.executeTAShareRequest(designatedTA, taShareRequestBody)
 
             // Assert
             Assert.assertTrue(result is MIRACLError)
@@ -240,67 +247,19 @@ class RegistrationApiUnitTest {
         }
 
     @Test
-    fun `executeClientSecretRequest should retry the request when there is an execution error`() =
+    fun `executeTAShareRequest should return MIRACLError when exception is thrown during execution`() =
         runTest {
             // Arrange
-            val clientSecretUrl = randomUuidString()
-            val executionError = ApiException.ExecutionError()
-            val executorResult = MIRACLError<String, ApiException>(
-                value = executionError
-            )
-            val dvsClientSecretResponse =
-                DVSClientSecretResponse(dvsClientSecret = randomHexString())
-            val dvsClientSecret2ResponseAsJson = jsonUtil.toJsonString(dvsClientSecretResponse)
-            coEvery {
-                httpRequestExecutorMock.execute(any())
-            } returns executorResult andThen MIRACLSuccess(dvsClientSecret2ResponseAsJson)
+            val designatedTA = DesignatedTA(randomUuidString(), randomUuidString())
+            val taShareRequestBody = TAShareRequestBody(randomHexString(), randomHexString())
 
-            // Act
-            val result = registrationApi.executeDVSClientSecretRequest(clientSecretUrl)
-
-            // Assert
-            coVerify(exactly = 2) { httpRequestExecutorMock.execute(any()) }
-
-            Assert.assertTrue(result is MIRACLSuccess)
-            Assert.assertTrue((result as MIRACLSuccess).value.dvsClientSecret.isNotBlank())
-        }
-
-    @Test
-    fun `executeClientSecretRequest should return MIRACLError when the retry returns an error`() =
-        runTest {
-            // Arrange
-            val clientSecretUrl = randomUuidString()
-            val httpRequestExecutorException = ApiException.ExecutionError()
-            val executorResult = MIRACLError<String, ApiException>(
-                value = httpRequestExecutorException
-            )
-            coEvery {
-                httpRequestExecutorMock.execute(any())
-            } returns executorResult
-
-            // Act
-            val result = registrationApi.executeDVSClientSecretRequest(clientSecretUrl)
-
-            // Assert
-            coVerify(exactly = 2) { httpRequestExecutorMock.execute(any()) }
-
-            Assert.assertTrue(result is MIRACLError)
-            Assert.assertTrue((result as MIRACLError).value is RegistrationException.RegistrationFail)
-            Assert.assertEquals(httpRequestExecutorException, result.value.cause)
-        }
-
-    @Test
-    fun `executeClientSecretRequest should return MIRACLError when exception is thrown during execution`() =
-        runTest {
-            // Arrange
-            val clientSecretUrl = randomUuidString()
             val exception = Exception(randomUuidString())
             coEvery {
                 httpRequestExecutorMock.execute(any())
             } throws exception
 
             // Act
-            val result = registrationApi.executeDVSClientSecretRequest(clientSecretUrl)
+            val result = registrationApi.executeTAShareRequest(designatedTA, taShareRequestBody)
 
             // Assert
             Assert.assertTrue(result is MIRACLError)
@@ -309,10 +268,12 @@ class RegistrationApiUnitTest {
         }
 
     @Test
-    fun `executeClientSecretRequest should return MIRACLError when json received from server is not valid`() =
+    fun `executeTAShareRequest should return MIRACLError when json received from server is not valid`() =
         runTest {
             // Arrange
-            val clientSecretUrl = randomUuidString()
+            val designatedTA = DesignatedTA(randomUuidString(), randomUuidString())
+            val taShareRequestBody = TAShareRequestBody(randomHexString(), randomHexString())
+
             val jsonString = "invalid json string"
             val executorResult = MIRACLSuccess<String, ApiException>(
                 value = jsonString
@@ -322,7 +283,7 @@ class RegistrationApiUnitTest {
             } returns executorResult
 
             // Act
-            val result = registrationApi.executeDVSClientSecretRequest(clientSecretUrl)
+            val result = registrationApi.executeTAShareRequest(designatedTA, taShareRequestBody)
 
             // Assert
             Assert.assertTrue(result is MIRACLError)

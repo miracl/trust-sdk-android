@@ -11,6 +11,7 @@ import com.miracl.trust.session.*
 import com.miracl.trust.signing.DocumentSigner
 import com.miracl.trust.storage.UserStorage
 import com.miracl.trust.storage.room.RoomDatabaseModule
+import com.miracl.trust.util.json.KotlinxSerializationJsonUtil
 import com.miracl.trust.util.log.Logger
 
 internal class ComponentFactory(
@@ -38,7 +39,8 @@ internal class ComponentFactory(
             crypto,
             userStorage,
             logger,
-            deviceTagProvider
+            deviceTagProvider,
+            KotlinxSerializationJsonUtil
         )
 
     fun createAuthenticator(

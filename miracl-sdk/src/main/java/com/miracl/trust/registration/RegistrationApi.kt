@@ -19,21 +19,33 @@ internal data class RegisterRequestBody(
     @SerialName("activationToken") val activationToken: String,
     @SerialName("pushToken") val pushToken: String? = null,
     @SerialName("publicKey") val publicKey: String,
-    @SerialName("deviceTag") val deviceTag: String
+    @SerialName("deviceTag") val deviceTag: String,
+    @SerialName("ver") val ver: Int = 2
 )
 
 @Serializable
 internal data class RegisterResponse(
     @SerialName("mpinId") val mpinId: String,
     @SerialName("projectId") val projectId: String,
-    @SerialName("dtas") val dtas: String,
-    @SerialName("curve") val curve: String,
-    @SerialName("secretUrls") val secretUrls: List<String>
+    @SerialName("designatedTAs") val designatedTAs: List<DesignatedTA>
 )
 
 @Serializable
-internal data class DVSClientSecretResponse(
-    @SerialName("dvsClientSecret") var dvsClientSecret: String
+internal data class DesignatedTA(
+    @SerialName("url") val url: String,
+    @SerialName("token") val token: String
+)
+
+@Serializable
+internal data class TAShareRequestBody(
+    @SerialName("mpinId") val mpinId: String,
+    @SerialName("pubKey") val publicKey: String
+)
+
+@Serializable
+internal data class TAShareResponse(
+    @SerialName("node") val node: String,
+    @SerialName("share") var share: String
 )
 
 internal interface RegistrationApi {
@@ -42,10 +54,10 @@ internal interface RegistrationApi {
         projectId: String
     ): MIRACLResult<RegisterResponse, RegistrationException>
 
-    suspend fun executeDVSClientSecretRequest(
-        clientSecretUrl: String
-    ): MIRACLResult<DVSClientSecretResponse, RegistrationException>
-
+    suspend fun executeTAShareRequest(
+        designatedTA: DesignatedTA,
+        taShareRequestBody: TAShareRequestBody
+    ): MIRACLResult<TAShareResponse, RegistrationException>
 }
 
 internal class RegistrationApiManager(
@@ -90,37 +102,31 @@ internal class RegistrationApiManager(
         }
     }
 
-    override suspend fun executeDVSClientSecretRequest(
-        clientSecretUrl: String
-    ): MIRACLResult<DVSClientSecretResponse, RegistrationException> {
+    override suspend fun executeTAShareRequest(
+        designatedTA: DesignatedTA,
+        taShareRequestBody: TAShareRequestBody
+    ): MIRACLResult<TAShareResponse, RegistrationException> {
         try {
-            val clientSecretShareRequest = ApiRequest(
-                method = HttpMethod.GET,
-                headers = null,
-                body = null,
-                params = null,
-                url = clientSecretUrl
-            )
+            val taShareRequestAsJson = jsonUtil.toJsonString(taShareRequestBody)
+            val taShareRequest =
+                ApiRequest(
+                    method = HttpMethod.POST,
+                    headers = mapOf("Authorization" to "Bearer ${designatedTA.token}"),
+                    body = taShareRequestAsJson,
+                    params = null,
+                    url = designatedTA.url
+                )
 
-            var result = apiRequestExecutor.execute(clientSecretShareRequest)
-
+            val result = apiRequestExecutor.execute(taShareRequest)
             if (result is MIRACLError) {
-                if (result.value !is ApiException.ExecutionError) {
-                    return MIRACLError(RegistrationException.RegistrationFail(result.value))
-                }
-
-                // Retry the request if there is an execution error
-                result = apiRequestExecutor.execute(clientSecretShareRequest)
-                if (result is MIRACLError) {
-                    return MIRACLError(RegistrationException.RegistrationFail(result.value))
-                }
+                return MIRACLError(RegistrationException.RegistrationFail(result.value))
             }
 
-            val dvsClientSecretResponse =
-                jsonUtil.fromJsonString<DVSClientSecretResponse>((result as MIRACLSuccess).value)
+            val taShareResponse =
+                jsonUtil.fromJsonString<TAShareResponse>((result as MIRACLSuccess).value)
 
-            return MIRACLSuccess(dvsClientSecretResponse)
-        } catch (ex: java.lang.Exception) {
+            return MIRACLSuccess(taShareResponse)
+        } catch (ex: Exception) {
             return MIRACLError(RegistrationException.RegistrationFail(ex))
         }
     }
