@@ -1,0 +1,83 @@
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+}
+
+// Load sample project configuration
+def configProps = new Properties()
+def configFile = project.file('config.properties')
+if (configFile.exists()) {
+    configFile.withInputStream { configProps.load(it) }
+}
+
+def miraclProjectId = configProps.getProperty('miracl.projectId', 'YOUR_PROJECT_ID').trim()
+def miraclProjectDomain = configProps.getProperty('miracl.projectDomain', 'YOUR_PROJECT_DOMAIN').trim()
+
+// Validate domain formatting (scheme should not be included)
+if (miraclProjectDomain.contains("://")) {
+    throw new GradleException("miracl.projectDomain in config.properties must be a raw host without a scheme (e.g., 'example.miracl.io').")
+}
+
+// Android Lint requires a valid domain for autoVerify="true" intent filters.
+// Use a dummy host so CI and Lint pass before config.properties is configured.
+def manifestDomainHost = (miraclProjectDomain == 'YOUR_PROJECT_DOMAIN' || miraclProjectDomain.isEmpty())
+        ? 'example.com'
+        : miraclProjectDomain
+
+android {
+    namespace 'com.miracl.trust.sample'
+    compileSdkVersion 36
+
+    defaultConfig {
+        applicationId "com.miracl.trust.sample"
+        minSdk 23
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField 'String', 'MIRACL_PROJECT_ID', "\"$miraclProjectId\""
+        buildConfigField 'String', 'MIRACL_PROJECT_DOMAIN', "\"$miraclProjectDomain\""
+        manifestPlaceholders = [miraclProjectDomainHost: manifestDomainHost]
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+    buildFeatures {
+        buildConfig = true
+        compose true
+    }
+}
+
+dependencies {
+    implementation project(':miracl-sdk')
+
+    // Jetpack Compose & Material 3
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.material3
+    implementation libs.androidx.compose.material.icons.core
+
+    // Tooling
+    debugImplementation libs.androidx.compose.ui.tooling
+
+    // Testing
+    testImplementation libs.junit
+    androidTestImplementation libs.junit
+    androidTestImplementation libs.androidx.junit.ktx
+    androidTestImplementation libs.androidx.test.runner
+}
