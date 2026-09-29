@@ -1,0 +1,76 @@
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+}
+
+def localProps = new Properties()
+def localPropsFile = project.file('local.properties')
+if (localPropsFile.exists()) {
+    localPropsFile.withInputStream { localProps.load(it) }
+}
+
+def miraclProjectId = localProps.getProperty('miracl.projectId', '').trim()
+def miraclProjectDomain = localProps.getProperty('miracl.projectDomain', '').trim()
+
+// Enforce raw host requirement (no scheme)
+if (miraclProjectDomain.contains("://")) {
+    throw new GradleException("miracl.projectDomain in local.properties must be a raw host with no protocol scheme (e.g., 'example.miracl.io').")
+}
+
+android {
+    namespace 'com.miracl.trust.sample'
+    compileSdkVersion 36
+
+    defaultConfig {
+        applicationId "com.miracl.trust.sample"
+        minSdk 23
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField 'String', 'MIRACL_PROJECT_ID', "\"$miraclProjectId\""
+        buildConfigField 'String', 'MIRACL_PROJECT_DOMAIN', "\"$miraclProjectDomain\""
+        manifestPlaceholders = [miraclProjectDomainHost: miraclProjectDomain ?: 'example.miracl.io']
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+    buildFeatures {
+        buildConfig = true
+        compose true
+    }
+}
+
+dependencies {
+    implementation project(':miracl-sdk')
+
+    // Jetpack Compose & Material 3
+    implementation platform(libs.androidx.compose.bom)
+    implementation libs.androidx.activity.compose
+    implementation libs.androidx.compose.ui
+    implementation libs.androidx.compose.material3
+    implementation libs.androidx.compose.material.icons.core
+
+    // Android Studio Developer Tooling (Debug Only)
+    debugImplementation libs.androidx.compose.ui.tooling
+
+    // Testing
+    testImplementation libs.junit
+    androidTestImplementation libs.junit
+    androidTestImplementation libs.androidx.junit.ktx
+    androidTestImplementation libs.androidx.test.runner
+}

@@ -1,0 +1,3 @@
+# Copy this file to 'sample/local.properties' and set your MIRACL Trust credentials
+miracl.projectId=YOUR_PROJECT_ID
+miracl.projectDomain=https://YOUR_PROJECT_DOMAIN
